@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}MediaMap AI Chat{% endblock %}
+
+{% set hide_left_sidebar = true %}
+{% set hide_right_sidebar = true %}
+
+{% block additional_styles %}
+.chatbox-container {
+    max-width: 600px;
+    margin: 3rem auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 2rem;
+}
+.chat-messages {
+    min-height: 200px;
+    max-height: 350px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #f9f9f9;
+}
+.user-msg { text-align: right; color: #0d6efd; margin-bottom: 0.5rem; }
+.ai-msg { text-align: left; color: #222; margin-bottom: 0.5rem; }
+.chatbox-input {
+    display: flex;
+    gap: 0.5rem;
+}
+.chatbox-input input {
+    flex: 1;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 0.5rem 1rem;
+}
+.chatbox-input button {
+    border-radius: 6px;
+    border: none;
+    background: #0d6efd;
+    color: #fff;
+    padding: 0.5rem 1.5rem;
+    font-weight: bold;
+}
+{% endblock %}
+
+{% block main_content %}
+<div class="chatbox-container">
+    <h2 class="mb-3">Media Business AI Chat</h2>
+    <p class="mb-4">Welcome! Please describe your media business and your goals. Our AI will help you discover how to make it better with AI.</p>
+    <div id="chat-messages" class="chat-messages">
+        <div class="ai-msg"><strong>AI:</strong> Hi! Tell me about your media business. What do you do, and what are your biggest challenges or goals? I'm here to help you discover how AI can make your business better.</div>
+    </div>
+    <form id="chat-form" class="chatbox-input" autocomplete="off">
+        <input type="text" id="chat-input" placeholder="Type your message..." required />
+        <button type="submit">Send</button>
+    </form>
+</div>
+<script>
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const chatMessages = document.getElementById('chat-messages');
+let chatId = null;
+
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const userMsg = chatInput.value.trim();
+    if (!userMsg) return;
+    // Show user message
+    chatMessages.innerHTML += `<div class='user-msg'><strong>You:</strong> ${userMsg}</div>`;
+    chatInput.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Send to backend
+    const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg, chat_id: chatId })
+    });
+    const data = await res.json();
+    if (data.success) {
+        chatId = data.chat_id || chatId;
+        chatMessages.innerHTML += `<div class='ai-msg'><strong>AI:</strong> ${data.reply}</div>`;
+    } else {
+        chatMessages.innerHTML += `<div class='ai-msg text-danger'><strong>AI:</strong> Sorry, there was an error. Please try again.</div>`;
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+</script>
+{% endblock %} 

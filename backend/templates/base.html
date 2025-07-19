@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MediaMap{% endblock %}</title>
+    <!-- Updated Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .banner {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            color: #fff;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .sidebar {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .content-area {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .nav-link {
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            color: #495057;
+        }
+        .nav-link:hover {
+            background-color: #f1f8ff;
+            color: #0d6efd;
+        }
+        .nav-link.active {
+            background-color: #e8f0fe;
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        .nav-link i {
+            margin-right: 8px;
+        }
+        .feedback-btn {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            background-color: #0d6efd;
+            border: none;
+            width: 100%;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .feedback-btn:hover {
+            background-color: #0b5ed7;
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .feedback-btn i {
+            margin-right: 8px;
+        }
+        .sidebar-section {
+            margin-bottom: 1.5rem;
+        }
+        .sidebar-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+        .progress {
+            margin-bottom: 0.75rem;
+        }
+        
+        /* Base layout */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Adjust main content when right sidebar is hidden */
+        .main-content-full {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Add responsive behavior for smaller screens */
+        @media (max-width: 768px) {
+            .main-content {
+                width: 100% !important;
+            }
+        }
+        .content {
+            flex: 1;
+        }
+        .footer {
+            margin-top: auto;
+            padding: 2rem 0;
+            background-color: #343a40;
+            color: white;
+        }
+        
+        /* Login/Logout button styles */
+        .auth-buttons {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .auth-buttons .btn {
+            margin-left: 10px;
+        }
+        
+        /* Top navigation bar */
+        .top-nav {
+            background-color: #343a40;
+            padding: 0.5rem 0;
+        }
+        .top-nav .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .top-nav .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .top-nav .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.2);
+            font-weight: 500;
+        }
+        .top-nav .container {
+            display: flex;
+            align-items: center;
+        }
+        .top-nav .navbar-brand {
+            color: white;
+            font-weight: 600;
+            margin-right: 2rem;
+        }
+        
+        /* Extra CSS from blocks */
+        {% block extra_css %}{% endblock %}
+        {% block additional_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('landing_page1') }}">
+                <i class="bi bi-layers"></i> MediaMap AI
+            </a>
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_section == 'mediamap' %}active{% endif %}" href="{{ url_for('select_platform', platform='mediamap') }}">
+                        <i class="bi bi-map"></i> Implement AI
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_section == 'language' %}active{% endif %}" href="{{ url_for('select_platform', platform='language') }}">
+                        <i class="bi bi-translate"></i> Voices AI
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_section == 'contentflow' %}active{% endif %}" href="{{ url_for('select_platform', platform='contentflow') }}">
+                        <i class="bi bi-collection-play"></i> AI Utility
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_section == 'metadata' %}active{% endif %}" href="{{ url_for('metadata.home') }}">
+                        <i class="bi bi-database"></i> Metadata
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_section == 'training' %}active{% endif %}" href="{{ url_for('select_platform', platform='training') }}">
+                        <i class="bi bi-mortarboard"></i> Training Lab
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_section == 'store' %}active{% endif %}" href="{{ url_for('select_platform', platform='store') }}">
+                        <i class="bi bi-shop"></i> AI Store
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Login/Logout Buttons in Top Right Corner -->
+    <div class="auth-buttons">
+        {% if current_user.is_authenticated %}
+        <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle"></i> {{ current_user.username }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('your_info') }}">Your Profile</a></li>
+                {% if current_user.is_admin %}
+                <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </div>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-outline-light">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-light">Register</a>
+        {% endif %}
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Banner Section -->
+    {% if not hide_banner %}
+    <div class="banner">
+        <div class="container">
+            <h1>{% block banner_title %}MediaMap AI{% endblock %}</h1>
+            <p>{% block banner_subtitle %}Advanced media analysis and content management{% endblock %}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content with Sidebar -->
+    <div class="container">
+        <div class="row">
+            <!-- Left Sidebar -->
+            {% if not hide_left_sidebar %}
+            <div class="col-md-3 mb-4">
+                <div class="sidebar">
+                    <div class="sidebar-section">
+                        <h3>Navigation</h3>
+                        <nav class="nav flex-column">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus"></i> Register
+                            </a>
+                            <a class="nav-link" href="{{ url_for('landing_page1') }}">
+                                <i class="bi bi-house"></i> Landing Page 1
+                            </a>
+                            <a class="nav-link" href="{{ url_for('landing_page2') }}">
+                                <i class="bi bi-house"></i> Landing Page 2
+                            </a>
+                            <a class="nav-link" href="{{ url_for('mediamap_home') }}">
+                                <i class="bi bi-map"></i> Mediamap
+                            </a>
+                            <a class="nav-link" href="{{ url_for('ai_utility') }}">
+                                <i class="bi bi-cpu"></i> AI Utility
+                            </a>
+                            <a class="nav-link" href="/analyze">
+                                <i class="bi bi-graph-up"></i> Analyze
+                            </a>
+                            <a class="nav-link" href="/chat">
+                                <i class="bi bi-chat-dots"></i> Chat
+                            </a>
+                        </nav>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>Organization Info</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Overview</span>
+                            <button id="refresh-org-info" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="org-overview" class="mb-3">
+                            {% if org_info and org_info.Organization_Overview %}
+                                {{ org_info.Organization_Overview }}
+                            {% else %}
+                                Loading...
+                            {% endif %}
+                        </div>
+                        
+                        <h5 class="text-muted mb-2">Projects</h5>
+                        <div id="org-projects" class="mb-3">
+                            {% if org_info and org_info.Key_Projects %}
+                                <ul class="list-group list-group-flush">
+                                    {% for project in org_info.Key_Projects %}
+                                        <li class="list-group-item px-0">{{ project }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No projects available</p>
+                            {% endif %}
+                        </div>
+                        
+                        <h5 class="text-muted mb-2">Team</h5>
+                        <div id="org-team">
+                            {% if org_info and org_info.Team_Members %}
+                                <ul class="list-group list-group-flush">
+                                    {% for member in org_info.Team_Members %}
+                                        <li class="list-group-item px-0">{{ member }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No team members available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('feedback') }}" class="btn feedback-btn">
+                        <i class="bi bi-chat-right-text"></i> Send Feedback
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Main Content Area -->
+            <div class="{% if hide_left_sidebar and hide_right_sidebar %}col-md-12{% elif hide_left_sidebar or hide_right_sidebar %}col-md-9{% else %}col-md-6{% endif %} mb-4">
+                <div class="content-area">
+                    {% block main_content %}{% endblock %}
+                </div>
+            </div>
+            
+            <!-- Right Sidebar -->
+            {% if not hide_right_sidebar %}
+            <div class="col-md-3 mb-4">
+                <div class="sidebar">
+                    <div class="sidebar-section">
+                        <h3>Recent Activity</h3>
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action px-0 border-0">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Media Analysis</h6>
+                                    <small>3 days ago</small>
+                                </div>
+                                <p class="mb-1">Analyzed TikTok video performance</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action px-0 border-0">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">AI Chat</h6>
+                                    <small>5 days ago</small>
+                                </div>
+                                <p class="mb-1">Discussed content strategy</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action px-0 border-0">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Lesson Completed</h6>
+                                    <small>1 week ago</small>
+                                </div>
+                                <p class="mb-1">Content Distribution Strategies</p>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>Progress</h3>
+                        <p class="text-muted mb-2">Lessons Completed</p>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+                        </div>
+                        
+                        <p class="text-muted mb-2 mt-3">Media Analyzed</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">40%</div>
+                        </div>
+                        
+                        <p class="text-muted mb-2 mt-3">AI Interactions</p>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">80%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>Recommended Tools</h3>
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action px-0 border-0">
+                                <i class="bi bi-camera-video text-primary me-2"></i> Video Analyzer
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action px-0 border-0">
+                                <i class="bi bi-bar-chart text-success me-2"></i> Engagement Tracker
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action px-0 border-0">
+                                <i class="bi bi-people text-info me-2"></i> Audience Insights
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>Develop AI</h3>
+                    <p>A comprehensive set of AI tools for professionals.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2025 Develop AI. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listener to refresh button
+            const refreshBtn = document.getElementById('refresh-org-info');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    refreshOrgInfo();
+                });
+            }
+        });
+        
+        function refreshOrgInfo() {
+            // Show loading state
+            const refreshBtn = document.getElementById('refresh-org-info');
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin"></i> Loading...';
+                refreshBtn.disabled = true;
+            }
+            
+            // Add animate-spin class if needed
+            if (!document.querySelector('style#spin-style')) {
+                const style = document.createElement('style');
+                style.id = 'spin-style';
+                style.textContent = `
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                    .animate-spin {
+                        animation: spin 1s linear infinite;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Call the correct endpoint with refresh=true
+            fetch(`/api/org-info?refresh=true&_=${Date.now()}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Refreshed organization info:', data);
+                    updateSidebarInfo(data);
+                })
+                .catch(error => {
+                    console.error('Error refreshing organization info:', error);
+                })
+                .finally(() => {
+                    // Reset button state
+                    if (refreshBtn) {
+                        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
+                        refreshBtn.disabled = false;
+                    }
+                });
+        }
+        
+        function updateSidebarInfo(info) {
+            // Update organization overview
+            const overviewEl = document.getElementById('org-overview');
+            if (overviewEl && info.Organization_Overview) {
+                overviewEl.textContent = info.Organization_Overview;
+            }
+            
+            // Update projects list
+            const projectsEl = document.getElementById('org-projects');
+            if (projectsEl && info.Key_Projects) {
+                if (info.Key_Projects.length === 0) {
+                    projectsEl.innerHTML = '<p class="text-muted">No projects available</p>';
+                } else {
+                    projectsEl.innerHTML = '<ul class="list-group list-group-flush">' + 
+                        info.Key_Projects.map(project => 
+                            `<li class="list-group-item px-0">${project}</li>`
+                        ).join('') + 
+                        '</ul>';
+                }
+            }
+            
+            // Update team members list
+            const teamEl = document.getElementById('org-team');
+            if (teamEl && info.Team_Members) {
+                if (info.Team_Members.length === 0) {
+                    teamEl.innerHTML = '<p class="text-muted">No team members available</p>';
+                } else {
+                    teamEl.innerHTML = '<ul class="list-group list-group-flush">' + 
+                        info.Team_Members.map(member => 
+                            `<li class="list-group-item px-0">${member}</li>`
+                        ).join('') + 
+                        '</ul>';
+                }
+            }
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

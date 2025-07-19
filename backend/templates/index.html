@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Home - MediaMap{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-messages {
+        height: 400px !important; /* Fixed height with !important to override any other styles */
+        max-height: 400px !important;
+        overflow-y: auto;
+        padding: 1rem;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        margin-bottom: 1rem;
+    }
+    .message {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    .user-message {
+        background-color: #e8f0fe;
+        margin-left: 2rem;
+        margin-right: 0.5rem;
+    }
+    .assistant-message {
+        background-color: #f1f1f1;
+        margin-right: 2rem;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="chat-messages" class="chat-messages">
+    <!-- Example messages -->
+    <div class="message assistant-message">
+        <p>Hello! It's great to meet someone from Paul Media. How can I assist you today?</p>
+    </div>
+</div>
+<div class="input-group">
+    <input type="text" id="chat-input" class="form-control" placeholder="Type your message...">
+    <button class="btn btn-primary" onclick="sendMessage()">
+        <i class="bi bi-send"></i> Send
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentChatId = null;
+    
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        if (!message) return;
+
+        input.value = '';
+        appendMessage('user', message);
+
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                chat_id: currentChatId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentChatId = data.chat_id;
+                appendMessage('assistant', data.response);
+            } else {
+                appendMessage('error', `Error: ${data.error}`);
+            }
+        })
+        .catch(error => {
+            appendMessage('error', `Error: ${error}`);
+        });
+    }
+
+    function appendMessage(role, content) {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message`;
+        messageDiv.innerHTML = `<p>${content}</p>`;
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    function scrollToBottom() {
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // Load chat history on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadChatHistory();
+    });
+
+    function loadChatHistory() {
+        // Use the new route
+        fetch('/api/user_chats')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error("Error loading chats:", data.error);
+                return;
+            }
+            
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            
+            const chats = data.chats || [];
+            
+            if (chats.length > 0) {
+                // Use the most recent chat
+                const latestChat = chats[0];
+                currentChatId = latestChat.id;
+                
+                if (latestChat.messages && latestChat.messages.length > 0) {
+                    latestChat.messages.forEach(msg => {
+                        appendMessage(msg.role, msg.content);
+                    });
+                    
+                    // Scroll to bottom after loading messages
+                    setTimeout(scrollToBottom, 100);
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching chat history:", error);
+        });
+    }
+</script>
+{% endblock %} 
