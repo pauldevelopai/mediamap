@@ -44,6 +44,8 @@ class Chat(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     title = db.Column(db.String(255), nullable=True)  # Optional title based on content
+    fact_sheet = db.Column(db.Text, nullable=True)  # Stores extracted company info
+    strategies = db.Column(db.Text, nullable=True)  # Stores generated strategies
     
     # Relationships
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
@@ -54,6 +56,8 @@ class Chat(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'title': self.title,
+            'fact_sheet': self.fact_sheet,
+            'strategies': self.strategies,
             'messages': [message.to_dict() for message in self.messages]
         }
 

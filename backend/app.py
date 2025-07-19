@@ -21,6 +21,7 @@ import sys
 from functools import wraps
 from sqlalchemy import Column, Boolean, text
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import joinedload
 
 # Create the ai_utility blueprint
 ai_utility_bp = Blueprint('ai_utility', __name__, url_prefix='/ai-utility')
@@ -201,232 +202,41 @@ def save_chat_to_db(chat_id, chat_data):
         print(f"Error saving chat to database: {e}")
         return None
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db.session.get(User, int(user_id))
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        user = User(
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password)
-        )
-        db.session.add(user)
-        db.session.commit()
-        
-        return redirect(url_for('login'))
-    
-    return render_template('register.html')
-
-@app.route('/')
-def index():
-    # Redirect to login page directly
-    return redirect(url_for('login'))
-
-@app.route('/landing-page-1')
-def landing_page1():
-    # Content & Development Suite
-    return render_template('landing_page1.html')
-
-@app.route('/landing-page-2')
-def landing_page2():
-    # Security & Justice Suite
-    return render_template('landing_page2.html')
-
-@app.route('/select_platform/<platform>')
-def select_platform(platform):
-    session['platform'] = platform
-    
-    if platform == 'mediamap' or platform == 'implement_ai':
-        return redirect(url_for('mediamap_home'))
-    elif platform == 'language':
-        return redirect(url_for('translate_page'))
-    elif platform == 'ai_utility' or platform == 'contentflow':
-        return redirect(url_for('ai_utility.index'))
-    elif platform == 'training':
-        return redirect(url_for('training_lab'))
-    elif platform == 'store':
-        return redirect(url_for('ai_store'))
-    else:
-        flash('Invalid platform selection.', 'danger')
-        return redirect(url_for('landing_page1'))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """Login route that redirects to landing_page1 after successful login"""
-    if current_user.is_authenticated:
-        # Check if user is admin and redirect accordingly
-        if hasattr(current_user, 'is_admin') and current_user.is_admin:
-            return redirect(url_for('admin_dashboard'))
-        # Redirect to landing_page1 if already logged in
-        return redirect(url_for('landing_page1'))
-    
-    # Handle login form submission
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        user = User.query.filter_by(username=username).first()
-        
-        # Check if the user exists
-        if user:
-            # We need to determine which attribute stores the password
-            # Let's try the common attribute names
-            password_verified = False
-            
-            # Inspect the user object to find potential password fields
-            user_dict = user.__dict__
-            password_field = None
-            
-            # List of potential password field names
-            potential_fields = ['password_hash', 'hashed_password', 'pwd', 'pwd_hash', 'password_digest']
-            
-            for field in potential_fields:
-                if field in user_dict:
-                    password_field = field
-                    break
-            
-            # If we found a password field, verify the password
-            if password_field and check_password_hash(getattr(user, password_field), password):
-                login_user(user)
-                
-                # Update last login time
-                user.last_login = datetime.utcnow()
-                db.session.commit()
-                
-                # Check if user is admin and redirect accordingly
-                if hasattr(user, 'is_admin') and user.is_admin:
-                    return redirect(url_for('admin_dashboard'))
-                
-                # Redirect to landing_page1 after successful login
-                return redirect(url_for('landing_page1'))
-            else:
-                # If no proper password field was found or password didn't match
-                flash('Invalid username or password.', 'danger')
+def get_or_create_active_chat(chat_id):
+    import uuid
+    if not chat_id:
+        chat_id = str(uuid.uuid4())
+        print(f"[chat] Generated new chat_id: {chat_id}")
+    if chat_id not in active_chats:
+        chat = None
+        try:
+            chat = db.session.get(Chat, int(chat_id))
+        except Exception:
+            pass
+        if chat and chat.user_id == getattr(current_user, 'id', None):
+            active_chats[chat_id] = {
+                'messages': [msg.to_dict() for msg in chat.messages]
+            }
+            print(f"[chat] Loaded chat_id {chat_id} from DB.")
         else:
-            flash('Invalid username or password.', 'danger')
-    
-    # Render the login template
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    """Logout and clear platform selection"""
-    logout_user()
-    session.pop('platform', None)
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
-
-# Platform-specific routes with access control
-@app.route('/mediamap')
-@login_required
-def mediamap_home():
-    """Implement AI home page"""
-    session['platform'] = 'implement_ai'
-    
-    # Get organization info from the synthesize_org_info function
-    response = synthesize_org_info()
-    org_info = response.get_json() if hasattr(response, 'get_json') else None
-    
-    return render_template('mediamap_home.html', active_page='dashboard', org_info=org_info)
-
-@app.route('/ai-utility')
-@login_required
-def ai_utility():
-    """AI Utility home page"""
-    # Set the platform in session
-    session['platform'] = 'ai_utility'
-    # Render the complete ai_utility template
-    return render_template('ai_utility.html', hide_right_sidebar=True)
-
-@app.route('/analyze', methods=['POST'])
-@login_required
-def analyze_media():
-    try:
-        data = request.json
-        media_url = data.get('media_url')
-        
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT_ANALYSIS},
-                {"role": "user", "content": f"""Please analyze this media content: {media_url}
-
-                Consider:
-                - Content quality and originality
-                - Visual/audio elements (if applicable)
-                - Engagement potential
-                - Target audience fit
-                - Areas for improvement"""}
-            ]
-        )
-        
-        analysis = response.choices[0].message.content
-        
-        # Save to database
-        media_analysis = MediaAnalysis(
-            media_url=media_url,
-            analysis_result=analysis,
-            user_id=current_user.id
-        )
-        db.session.add(media_analysis)
-        db.session.commit()
-        
-        return jsonify({
-            "success": True,
-            "analysis": analysis
-        })
-    
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+            active_chats[chat_id] = {'messages': []}
+            print(f"[chat] Initialized new chat_id {chat_id} in memory.")
+    else:
+        print(f"[chat] Using existing chat_id {chat_id} from memory.")
+    return chat_id, active_chats[chat_id]
 
 @app.route('/chat', methods=['POST'])
 def chat():
     message = request.json.get('message', '')
-    chat_id = request.json.get('chat_id', None)
-    
-    if not message:
-        return jsonify({
-            'success': False,
-            'error': 'No message provided'
-        }), 400
-    
-    # Get or create a chat
-    if chat_id:
-        if chat_id in active_chats:
-            chat_data = active_chats[chat_id]
-        else:
-            try:
-                # Try to load from database - ensure it belongs to current user
-                chat = db.session.get(Chat, int(chat_id))
-                if chat and chat.user_id == current_user.id:
-                    chat_data = {
-                        'messages': [msg.to_dict() for msg in chat.messages]
-                    }
-                    active_chats[chat_id] = chat_data
-                else:
-                    active_chats[chat_id] = {'messages': []}
-            except:
-                active_chats[chat_id] = {'messages': []}
-    else:
-        # Generate a temporary ID for the new chat
-        chat_id = str(uuid.uuid4())
-        active_chats[chat_id] = {'messages': []}
-    
+    chat_id, chat_data = get_or_create_active_chat(request.json.get('chat_id', None))
+
     # Add user message
-    active_chats[chat_id]['messages'].append({
+    chat_data['messages'].append({
         'role': 'user',
         'content': message
     })
+    # Save after user message
+    save_chat_to_db(chat_id, chat_data)
     
     # Strong system prompt for media business AI consulting
     SYSTEM_PROMPT_MEDIA_BIZ = (
@@ -441,7 +251,7 @@ def chat():
     chat_history = [
         {"role": "system", "content": SYSTEM_PROMPT_MEDIA_BIZ}
     ]
-    for msg in active_chats[chat_id]['messages']:
+    for msg in chat_data['messages']:
         chat_history.append({"role": msg['role'], "content": msg['content']})
     
     try:
@@ -451,10 +261,12 @@ def chat():
         )
         ai_reply = response.choices[0].message.content
         # Add AI reply to chat
-        active_chats[chat_id]['messages'].append({
+        chat_data['messages'].append({
             'role': 'assistant',
             'content': ai_reply
         })
+        # Save after AI message
+        save_chat_to_db(chat_id, chat_data)
         return jsonify({
             'success': True,
             'reply': ai_reply,
@@ -1555,6 +1367,57 @@ def feedback():
         
     # For GET requests, just render the template
     return render_template('feedback.html')
+
+@app.route('/extract_facts', methods=['POST'])
+def extract_facts():
+    chat_id = request.json.get('chat_id')
+    if not chat_id:
+        return jsonify({'success': False, 'error': 'No chat_id provided'}), 400
+    chat = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat_id).first()
+    if not chat:
+        return jsonify({'success': False, 'error': 'Chat not found'}), 404
+    # Gather all messages as context
+    chat_text = '\n'.join([f"{m.role}: {m.content}" for m in chat.messages])
+    prompt = (
+        "Extract the most important facts about this company from the following conversation. "
+        "Focus on business name, mission, goals, challenges, products/services, audience, and any other relevant details. "
+        "Return the facts as a clear, structured fact sheet.\n\n" + chat_text
+    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "system", "content": "You are an expert business analyst."}, {"role": "user", "content": prompt}]
+        )
+        fact_sheet = response.choices[0].message.content
+        chat.fact_sheet = fact_sheet
+        db.session.commit()
+        return jsonify({'success': True, 'fact_sheet': fact_sheet})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/develop_strategies', methods=['POST'])
+def develop_strategies():
+    chat_id = request.json.get('chat_id')
+    if not chat_id:
+        return jsonify({'success': False, 'error': 'No chat_id provided'}), 400
+    chat = Chat.query.filter_by(id=chat_id).first()
+    if not chat or not chat.fact_sheet:
+        return jsonify({'success': False, 'error': 'Fact sheet not found for this chat'}), 404
+    prompt = (
+        "Given the following company fact sheet, develop a set of actionable strategies to help the business grow, improve, or solve its challenges. "
+        "Be specific and practical.\n\nFact Sheet:\n" + chat.fact_sheet
+    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "system", "content": "You are an expert business strategist."}, {"role": "user", "content": prompt}]
+        )
+        strategies = response.choices[0].message.content
+        chat.strategies = strategies
+        db.session.commit()
+        return jsonify({'success': True, 'strategies': strategies})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')
