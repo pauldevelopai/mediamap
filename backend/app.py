@@ -67,7 +67,10 @@ def add_post():
 load_dotenv()
 
 # Initialize Flask app
-app = Flask(__name__)
+import os
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')
 
 # Create instance directory if it doesn't exist
@@ -86,6 +89,11 @@ login_manager.login_message = None  # This will disable the message entirely
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+# User loader for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 SYSTEM_PROMPT_ANALYSIS = """You are an expert media analyst with deep knowledge of content analysis, 
 cultural context, and media trends. When analyzing media:
@@ -1336,6 +1344,138 @@ def training_lab():
 @app.route('/crimecast')
 def crimecast():
     return render_template('crimecast.html')
+
+# Root route - redirect to landing page
+@app.route('/')
+def root():
+    return redirect(url_for('landing_page1'))
+
+# Login route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if not username or not password:
+            flash('Please enter both username and password.', 'danger')
+            return render_template('login.html')
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user, remember=request.form.get('remember'))
+            user.last_login = datetime.now(timezone.utc)
+            db.session.commit()
+            
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('landing_page1'))
+        else:
+            flash('Invalid username or password.', 'danger')
+    
+    return render_template('login.html')
+
+# Register route
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate input
+        if not all([username, email, password, confirm_password]):
+            flash('All fields are required.', 'danger')
+            return render_template('register.html')
+        
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return render_template('register.html')
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'danger')
+            return render_template('register.html')
+        
+        # Check if user already exists
+        existing_user = User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first()
+        
+        if existing_user:
+            flash('Username or email already exists.', 'danger')
+            return render_template('register.html')
+        
+        try:
+            # Create new user
+            new_user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash(password),
+                created_at=datetime.now(timezone.utc)
+            )
+            
+            db.session.add(new_user)
+            db.session.commit()
+            
+            flash('Registration successful! You can now log in.', 'success')
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash('Registration failed. Please try again.', 'danger')
+            print(f"Registration error: {str(e)}")
+    
+    return render_template('register.html')
+
+# Logout route
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('landing_page1'))
+
+# Landing pages
+@app.route('/landing-page-1')
+def landing_page1():
+    return render_template('landing_page1.html')
+
+@app.route('/landing-page-2')  
+def landing_page2():
+    return render_template('landing_page2.html')
+
+@app.route('/mediamap-home')
+def mediamap_home():
+    return render_template('mediamap_home.html')
+
+@app.route('/ai-utility')
+def ai_utility():
+    return render_template('ai_utility.html')
+
+# Platform selector route
+@app.route('/platform/<platform>')
+def select_platform(platform):
+    """Route for different platform pages"""
+    platform_templates = {
+        'mediamap': 'mediamap_home.html',
+        'language': 'language_ai.html', 
+        'contentflow': 'content_flow.html',
+        'justice': 'justice_ai.html',
+        'guardpass': 'guardpass.html',
+        'crimecast': 'crimecast.html',
+        'training': 'training_lab.html',
+        'store': 'ai_store.html'
+    }
+    
+    template = platform_templates.get(platform)
+    if template:
+        return render_template(template, active_section=platform)
+    else:
+        # Fallback to a generic platform page or 404
+        return render_template('platform_not_found.html', platform=platform), 404
 
 @app.route('/ai-store')
 def ai_store():

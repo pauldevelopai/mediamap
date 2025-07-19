@@ -1,0 +1,12 @@
+[
+  {
+    "id": "module1",
+    "title": "AI Basics",
+    "description": "Intro to AI for media orgs."
+  },
+  {
+    "id": "module2",
+    "title": "AI Ethics",
+    "description": "Ethics in AI adoption."
+  }
+]
