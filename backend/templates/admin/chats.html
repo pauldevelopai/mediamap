@@ -18,8 +18,9 @@
                         <th>Title</th>
                         <th>User</th>
                         <th>Messages</th>
+                        <th>Company Info</th>
+                        <th>Strategies</th>
                         <th>Created</th>
-                        <th>Updated</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -29,21 +30,39 @@
                         <td>{{ chat.id }}</td>
                         <td>{{ chat.title or 'Untitled Chat' }}</td>
                         <td>
-                            {% if chat.user %}
+                            {% if chat.user_id %}
                             <a href="{{ url_for('admin_user_detail', user_id=chat.user_id) }}">
-                                {{ chat.user.username }}
+                                {{ chat.user.username if chat.user else 'Unknown' }}
                             </a>
                             {% else %}
-                            Unknown
+                            <span class="text-muted">Anonymous</span>
                             {% endif %}
                         </td>
                         <td>{{ chat.messages|length }}</td>
+                        <td>
+                            {% if chat.fact_sheet %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Extracted</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if chat.strategies %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-lightbulb"></i> Developed</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-dash-circle"></i> None</span>
+                            {% endif %}
+                        </td>
                         <td>{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>{{ chat.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
                             <a href="{{ url_for('admin_chat_detail', chat_id=chat.id) }}" class="btn btn-sm btn-info">
                                 <i class="bi bi-eye"></i> View
                             </a>
+                            {% if not chat.fact_sheet %}
+                            <button class="btn btn-sm btn-success ms-1" onclick="quickExtractFacts({{ chat.id }}, this)" title="Extract Company Info">
+                                <i class="bi bi-file-text"></i>
+                            </button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -64,6 +83,80 @@
             order: [[0, 'desc']]
         });
     });
+    
+    async function quickExtractFacts(chatId, button) {
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+        
+        try {
+            const response = await fetch('/extract_facts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ chat_id: chatId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update the status in the table
+                const row = button.closest('tr');
+                const statusCell = row.cells[4]; // Company Info column
+                statusCell.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Extracted</span>';
+                
+                // Remove the extract button
+                button.remove();
+                
+                showToast('Company information extracted successfully!', 'success');
+            } else {
+                showToast('Failed to extract company information: ' + data.error, 'error');
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+            }
+        } catch (error) {
+            showToast('Network error occurred.', 'error');
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+    
+    function showToast(message, type) {
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        const toastId = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
+        
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        const toast = new bootstrap.Toast(document.getElementById(toastId));
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+            this.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '1055';
+        document.body.appendChild(container);
+        return container;
+    }
 </script>
 {% endblock %}
 

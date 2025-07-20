@@ -1345,10 +1345,42 @@ def training_lab():
 def crimecast():
     return render_template('crimecast.html')
 
-# Root route - redirect to landing page
+# Root route - redirect based on user role
 @app.route('/')
 def root():
-    return redirect(url_for('landing_page1'))
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        # Redirect authenticated users based on their role
+        if hasattr(current_user, 'is_admin') and current_user.is_admin:
+            return redirect(url_for('landing_page1'))  # Full interface for admins
+        else:
+            return redirect(url_for('user_dashboard'))  # Simple chat for regular users
+    else:
+        # Redirect unauthenticated users to landing page
+        return redirect(url_for('landing_page1'))
+
+# User Dashboard - Simple chat interface for regular users
+@app.route('/user-dashboard')
+@login_required
+def user_dashboard():
+    """Simple dashboard for regular users - just the chat interface"""
+    if hasattr(current_user, 'is_admin') and current_user.is_admin:
+        # Admins get redirected to the full landing page
+        return redirect(url_for('landing_page1'))
+    
+    # Regular users get the simple chat interface
+    return render_template('user_dashboard.html')
+
+@app.route('/my-chats')
+@login_required
+def my_chats():
+    """Simple chat history for regular users"""
+    if hasattr(current_user, 'is_admin') and current_user.is_admin:
+        # Admins use the full chat management interface
+        return redirect(url_for('get_chats'))
+    
+    # Get user's chats
+    chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).all()
+    return render_template('user_chats.html', chats=chats)
 
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
@@ -1371,7 +1403,12 @@ def login():
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
-            return redirect(url_for('landing_page1'))
+            
+            # Redirect based on user role
+            if hasattr(user, 'is_admin') and user.is_admin:
+                return redirect(url_for('landing_page1'))  # Full interface for admins
+            else:
+                return redirect(url_for('user_dashboard'))  # Simple chat for regular users
         else:
             flash('Invalid username or password.', 'danger')
     
@@ -1441,6 +1478,12 @@ def logout():
 # Landing pages
 @app.route('/landing-page-1')
 def landing_page1():
+    # Redirect regular users to their simplified dashboard
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+            return redirect(url_for('user_dashboard'))
+    
+    # Only admins and unauthenticated users see the full landing page
     return render_template('landing_page1.html')
 
 @app.route('/landing-page-2')  
@@ -1449,16 +1492,29 @@ def landing_page2():
 
 @app.route('/mediamap-home')
 def mediamap_home():
+    # Redirect regular users to their simplified dashboard
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+            return redirect(url_for('user_dashboard'))
     return render_template('mediamap_home.html')
 
 @app.route('/ai-utility')
 def ai_utility():
+    # Redirect regular users to their simplified dashboard
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+            return redirect(url_for('user_dashboard'))
     return render_template('ai_utility.html')
 
 # Platform selector route
 @app.route('/platform/<platform>')
 def select_platform(platform):
     """Route for different platform pages"""
+    # Redirect regular users to their simplified dashboard
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+            return redirect(url_for('user_dashboard'))
+    
     platform_templates = {
         'mediamap': 'mediamap_home.html',
         'language': 'language_ai.html', 
