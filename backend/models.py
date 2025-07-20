@@ -156,4 +156,21 @@ class LoginEvent(db.Model):
     success = db.Column(db.Boolean, default=True)
     failure_reason = db.Column(db.String(255), nullable=True)
     
-    user = db.relationship('User', backref=db.backref('login_events', lazy=True)) 
+    user = db.relationship('User', backref=db.backref('login_events', lazy=True))
+
+class Feedback(db.Model):
+    __tablename__ = 'feedback'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    username = db.Column(db.String(80), nullable=False)  # Store username for reference
+    feedback_type = db.Column(db.String(20), nullable=False)  # bug, feature, improvement, general
+    subject = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    allow_followup = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='new')  # new, reviewed, in_progress, resolved
+    admin_notes = db.Column(db.Text, nullable=True)  # For admin to add notes
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('feedback_submissions', lazy=True)) 

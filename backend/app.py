@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location
+from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback
 import os
 from openai import OpenAI
 import json
@@ -248,11 +248,27 @@ def chat():
     
     # Strong system prompt for media business AI consulting
     SYSTEM_PROMPT_MEDIA_BIZ = (
-        "You are an expert AI consultant for media businesses. "
-        "Your job is to ask the user about their media business, their goals, challenges, and what they want to achieve. "
-        "Always steer the conversation toward how AI can help them improve, grow, or solve their problems. "
-        "Be proactive in suggesting AI-driven solutions, but always ask clarifying questions to understand their business better. "
-        "Keep the conversation focused on media, content, audience, and business improvement with AI."
+        "You are Highlander, an expert AI business consultant specializing in media companies. "
+        "CONVERSATION STYLE: "
+        "- Keep responses concise and actionable (2-4 sentences max) "
+        "- Never repeat greetings or introductions unless it's truly the first message "
+        "- Be direct and professional - skip pleasantries if you've already been introduced "
+        "- Build on previous conversation context naturally "
+        "- Ask ONE focused follow-up question per response "
+        "\n"
+        "YOUR EXPERTISE: "
+        "- Media business strategy and operations "
+        "- AI implementation for content creation, audience analysis, workflow optimization "
+        "- Digital transformation and automation "
+        "- Revenue optimization and growth strategies "
+        "\n"
+        "APPROACH: "
+        "- Listen for business challenges and immediately suggest specific AI solutions "
+        "- Reference previous conversation points to show you remember the context "
+        "- Provide concrete, implementable advice rather than general statements "
+        "- Focus on ROI and practical business impact "
+        "\n"
+        "NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."
     )
     
     # Prepare chat history for OpenAI
@@ -1080,6 +1096,7 @@ def admin_dashboard():
     analysis_count = MediaAnalysis.query.count()
     chat_count = Chat.query.count()
     lesson_count = Lesson.query.count()
+    feedback_count = Feedback.query.count()
     
     # Count admin users
     admin_count = 0
@@ -1099,6 +1116,7 @@ def admin_dashboard():
         analysis_count=analysis_count,
         chat_count=chat_count,
         lesson_count=lesson_count,
+        feedback_count=feedback_count,
         recent_users=recent_users,
         admin_count=admin_count,
         flask_version=flask_version
@@ -1224,6 +1242,36 @@ def toggle_admin(user_id):
     status = 'granted' if user.is_admin else 'removed'
     flash(f'Admin status {status} for {user.username}', 'success')
     return redirect(url_for('admin_users'))
+
+@app.route('/admin/feedback')
+@login_required
+@admin_required
+def admin_feedback():
+    """Admin page to view all user feedback"""
+    feedback_list = Feedback.query.order_by(Feedback.created_at.desc()).all()
+    return render_template('admin/feedback.html', feedback_list=feedback_list)
+
+@app.route('/admin/feedback/<int:feedback_id>')
+@login_required
+@admin_required
+def admin_feedback_detail(feedback_id):
+    """Admin page to view details of specific feedback"""
+    feedback = Feedback.query.get_or_404(feedback_id)
+    return render_template('admin/feedback_detail.html', feedback=feedback)
+
+@app.route('/admin/feedback/<int:feedback_id>/update', methods=['POST'])
+@login_required
+@admin_required
+def update_feedback_status(feedback_id):
+    """Update feedback status and admin notes"""
+    feedback = Feedback.query.get_or_404(feedback_id)
+    
+    feedback.status = request.form.get('status', feedback.status)
+    feedback.admin_notes = request.form.get('admin_notes', feedback.admin_notes)
+    
+    db.session.commit()
+    flash('Feedback updated successfully', 'success')
+    return redirect(url_for('admin_feedback_detail', feedback_id=feedback_id))
 
 @app.route('/content-calendar')
 @login_required
@@ -1565,13 +1613,35 @@ def feedback():
     return render_template('feedback.html')
 
 @app.route('/extract_facts', methods=['POST'])
+@login_required
 def extract_facts():
     chat_id = request.json.get('chat_id')
     if not chat_id:
         return jsonify({'success': False, 'error': 'No chat_id provided'}), 400
-    chat = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat_id).first()
+    
+    # Try to convert chat_id to integer if it's a string
+    try:
+        if isinstance(chat_id, str):
+            # Check if it's a UUID string, if so, try to find by user's latest chat
+            if not chat_id.isdigit():
+                # Get the user's most recent chat
+                chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
+                if not chat:
+                    return jsonify({'success': False, 'error': 'No chats found for this user'}), 404
+            else:
+                chat_id = int(chat_id)
+                chat = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat_id, user_id=current_user.id).first()
+        else:
+            chat = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat_id, user_id=current_user.id).first()
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Invalid chat_id format'}), 400
+    
     if not chat:
-        return jsonify({'success': False, 'error': 'Chat not found'}), 404
+        return jsonify({'success': False, 'error': 'Chat not found or access denied'}), 404
+    
+    if not chat.messages:
+        return jsonify({'success': False, 'error': 'No messages found in this chat'}), 400
+    
     # Gather all messages as context
     chat_text = '\n'.join([f"{m.role}: {m.content}" for m in chat.messages])
     prompt = (
@@ -1592,13 +1662,35 @@ def extract_facts():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/develop_strategies', methods=['POST'])
+@login_required
 def develop_strategies():
     chat_id = request.json.get('chat_id')
     if not chat_id:
         return jsonify({'success': False, 'error': 'No chat_id provided'}), 400
-    chat = Chat.query.filter_by(id=chat_id).first()
-    if not chat or not chat.fact_sheet:
-        return jsonify({'success': False, 'error': 'Fact sheet not found for this chat'}), 404
+    
+    # Try to convert chat_id to integer if it's a string  
+    try:
+        if isinstance(chat_id, str):
+            # Check if it's a UUID string, if so, try to find by user's latest chat
+            if not chat_id.isdigit():
+                # Get the user's most recent chat
+                chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
+                if not chat:
+                    return jsonify({'success': False, 'error': 'No chats found for this user'}), 404
+            else:
+                chat_id = int(chat_id)
+                chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
+        else:
+            chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Invalid chat_id format'}), 400
+    
+    if not chat:
+        return jsonify({'success': False, 'error': 'Chat not found or access denied'}), 404
+        
+    if not chat.fact_sheet:
+        return jsonify({'success': False, 'error': 'Please extract company information first before developing strategies'}), 400
+        
     prompt = (
         "Given the following company fact sheet, develop a set of actionable strategies to help the business grow, improve, or solve its challenges. "
         "Be specific and practical.\n\nFact Sheet:\n" + chat.fact_sheet
@@ -1614,6 +1706,52 @@ def develop_strategies():
         return jsonify({'success': True, 'strategies': strategies})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/submit-feedback', methods=['POST'])
+@login_required
+def submit_feedback():
+    """Handle user feedback submission"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['type', 'subject', 'message']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Create new feedback record
+        new_feedback = Feedback(
+            user_id=current_user.id,
+            username=current_user.username,
+            feedback_type=data['type'],
+            subject=data['subject'],
+            message=data['message'],
+            allow_followup=data.get('followup', False)
+        )
+        
+        db.session.add(new_feedback)
+        db.session.commit()
+        
+        # Log the feedback for immediate visibility
+        print(f"📢 NEW FEEDBACK from {current_user.username}:")
+        print(f"   Type: {data['type']}")
+        print(f"   Subject: {data['subject']}")
+        print(f"   Message: {data['message']}")
+        print(f"   Follow-up OK: {data.get('followup', False)}")
+        print(f"   Timestamp: {new_feedback.created_at}")
+        print("-" * 50)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Feedback submitted successfully',
+            'feedback_id': new_feedback.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error submitting feedback: {str(e)}")
+        return jsonify({'success': False, 'error': 'Failed to submit feedback'}), 500
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')
