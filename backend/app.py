@@ -125,6 +125,29 @@ SYSTEM_PROMPT_SYNTHESIS = """You are an organizational analyst. Extract key info
 
 Return the information in JSON format with these categories. Only include information that has been explicitly mentioned or can be directly inferred."""
 
+SYSTEM_PROMPT_MEDIA_BIZ = """You are Highlander, an expert AI business consultant specializing in media companies.
+
+CONVERSATION STYLE:
+- Keep responses concise and actionable (2-4 sentences max)
+- Never repeat greetings or introductions unless it's truly the first message
+- Be direct and professional - skip pleasantries if you've already been introduced
+- Build on previous conversation context naturally
+- Ask ONE focused follow-up question per response
+
+YOUR EXPERTISE:
+- Media business strategy and operations
+- AI implementation for content creation, audience analysis, workflow optimization
+- Digital transformation and automation
+- Revenue optimization and growth strategies
+
+APPROACH:
+- Listen for business challenges and immediately suggest specific AI solutions
+- Reference previous conversation points to show you remember the context
+- Provide concrete, implementable advice rather than general statements
+- Focus on ROI and practical business impact
+
+NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."""
+
 app.register_blueprint(auth)
 app.register_blueprint(ai_utility_bp)
 app.register_blueprint(metadata_bp)
@@ -215,22 +238,36 @@ def get_or_create_active_chat(chat_id):
     if not chat_id:
         chat_id = str(uuid.uuid4())
         print(f"[chat] Generated new chat_id: {chat_id}")
+    
+    # Convert to string to ensure consistency
+    chat_id = str(chat_id)
+    
     if chat_id not in active_chats:
         chat = None
-        try:
-            chat = db.session.get(Chat, int(chat_id))
-        except Exception:
-            pass
+        # Try to load from database if it's a numeric ID
+        if chat_id.isdigit():
+            try:
+                chat = db.session.get(Chat, int(chat_id))
+            except Exception:
+                pass
+        
         if chat and chat.user_id == getattr(current_user, 'id', None):
+            # Load full conversation history from database
+            messages = []
+            for msg in sorted(chat.messages, key=lambda x: x.created_at):
+                messages.append(msg.to_dict())
+            
             active_chats[chat_id] = {
-                'messages': [msg.to_dict() for msg in chat.messages]
+                'messages': messages,
+                'db_chat_id': chat.id  # Track the database ID
             }
-            print(f"[chat] Loaded chat_id {chat_id} from DB.")
+            print(f"[chat] Loaded chat_id {chat_id} from DB with {len(messages)} messages.")
         else:
             active_chats[chat_id] = {'messages': []}
             print(f"[chat] Initialized new chat_id {chat_id} in memory.")
     else:
-        print(f"[chat] Using existing chat_id {chat_id} from memory.")
+        print(f"[chat] Using existing chat_id {chat_id} from memory with {len(active_chats[chat_id]['messages'])} messages.")
+    
     return chat_id, active_chats[chat_id]
 
 @app.route('/chat', methods=['POST'])
@@ -246,44 +283,52 @@ def chat():
     # Save after user message
     save_chat_to_db(chat_id, chat_data)
     
-    # Strong system prompt for media business AI consulting
-    SYSTEM_PROMPT_MEDIA_BIZ = (
-        "You are Highlander, an expert AI business consultant specializing in media companies. "
-        "CONVERSATION STYLE: "
-        "- Keep responses concise and actionable (2-4 sentences max) "
-        "- Never repeat greetings or introductions unless it's truly the first message "
-        "- Be direct and professional - skip pleasantries if you've already been introduced "
-        "- Build on previous conversation context naturally "
-        "- Ask ONE focused follow-up question per response "
-        "\n"
-        "YOUR EXPERTISE: "
-        "- Media business strategy and operations "
-        "- AI implementation for content creation, audience analysis, workflow optimization "
-        "- Digital transformation and automation "
-        "- Revenue optimization and growth strategies "
-        "\n"
-        "APPROACH: "
-        "- Listen for business challenges and immediately suggest specific AI solutions "
-        "- Reference previous conversation points to show you remember the context "
-        "- Provide concrete, implementable advice rather than general statements "
-        "- Focus on ROI and practical business impact "
-        "\n"
-        "NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."
-    )
-    
-    # Prepare chat history for OpenAI
+    # Prepare chat history for OpenAI - include ALL previous messages for full context
     chat_history = [
         {"role": "system", "content": SYSTEM_PROMPT_MEDIA_BIZ}
     ]
-    for msg in chat_data['messages']:
-        chat_history.append({"role": msg['role'], "content": msg['content']})
+    
+    # Add conversation context summary if this is a longer conversation
+    if len(chat_data['messages']) > 10:
+        # Get recent context (last 8 messages) + summary of earlier context
+        recent_messages = chat_data['messages'][-8:]
+        earlier_messages = chat_data['messages'][:-8]
+        
+        # Create a summary of earlier conversation
+        if earlier_messages:
+            earlier_context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in earlier_messages[-10:]])
+            summary_prompt = f"Summarize this earlier conversation context in 2-3 sentences, focusing on business details, challenges, and solutions discussed:\n{earlier_context}"
+            
+            try:
+                summary_response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "Summarize conversation context concisely, focusing on business details."},
+                        {"role": "user", "content": summary_prompt}
+                    ]
+                )
+                context_summary = summary_response.choices[0].message.content
+                chat_history.append({"role": "system", "content": f"Previous conversation context: {context_summary}"})
+            except:
+                pass  # If summary fails, continue without it
+        
+        # Add recent messages
+        for msg in recent_messages:
+            chat_history.append({"role": msg['role'], "content": msg['content']})
+    else:
+        # For shorter conversations, include all messages
+        for msg in chat_data['messages']:
+            chat_history.append({"role": msg['role'], "content": msg['content']})
     
     try:
         response = client.chat.completions.create(
             model="gpt-4",
-            messages=chat_history
+            messages=chat_history,
+            temperature=0.7,  # Slightly more focused responses
+            max_tokens=300    # Enforce shorter responses
         )
         ai_reply = response.choices[0].message.content
+        
         # Add AI reply to chat
         chat_data['messages'].append({
             'role': 'assistant',
