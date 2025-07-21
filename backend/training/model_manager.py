@@ -378,7 +378,10 @@ def get_model_manager() -> HighlanderModelManager:
     global model_manager
     if model_manager is None:
         openai_key = os.getenv('OPENAI_API_KEY')
+        # Use absolute path to training models directory
+        models_dir = os.path.join(os.path.dirname(__file__), "models")
         model_manager = HighlanderModelManager(
+            models_dir=models_dir,
             openai_api_key=openai_key,
             use_custom_model=True
         )

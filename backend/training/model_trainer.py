@@ -7,6 +7,9 @@ Uses transformer architecture with custom fine-tuning on collected data.
 
 import os
 import json
+os.environ["WANDB_DISABLED"] = "true"
+os.environ["WANDB_MODE"] = "disabled"
+
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -20,12 +23,9 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime
-try:
-    import wandb
-    WANDB_AVAILABLE = True
-except ImportError:
-    WANDB_AVAILABLE = False
-    wandb = None
+# Disable wandb completely
+WANDB_AVAILABLE = False
+wandb = None
 from sklearn.model_selection import train_test_split
 import yaml
 
@@ -255,15 +255,10 @@ class HighlanderModelTrainer:
         # Create datasets
         datasets = self.create_datasets()
         
-        # Initialize wandb if configured and available
-        if self.config['monitoring']['use_wandb'] and WANDB_AVAILABLE:
-            wandb.init(
-                project=self.config['monitoring']['project_name'],
-                name=self.config['monitoring']['run_name'],
-                config=self.config
-            )
-        elif self.config['monitoring']['use_wandb'] and not WANDB_AVAILABLE:
-            logger.warning("Wandb is configured but not available. Training will continue without wandb logging.")
+        # Disable wandb completely for now
+        if self.config['monitoring']['use_wandb']:
+            logger.info("Wandb disabled - training will proceed without logging")
+        os.environ["WANDB_DISABLED"] = "true"
         
         # Set up training arguments
         training_args = TrainingArguments(
@@ -273,9 +268,9 @@ class HighlanderModelTrainer:
             per_device_train_batch_size=self.config['training']['batch_size'],
             per_device_eval_batch_size=self.config['training']['batch_size'],
             gradient_accumulation_steps=self.config['training']['gradient_accumulation_steps'],
-            learning_rate=self.config['training']['learning_rate'],
-            weight_decay=self.config['training']['weight_decay'],
-            max_grad_norm=self.config['training']['max_grad_norm'],
+            learning_rate=float(self.config['training']['learning_rate']),
+            weight_decay=float(self.config['training']['weight_decay']),
+            max_grad_norm=float(self.config['training']['max_grad_norm']),
             warmup_steps=self.config['training']['warmup_steps'],
             logging_steps=self.config['training']['logging_steps'],
             save_steps=self.config['training']['save_steps'],
@@ -289,7 +284,7 @@ class HighlanderModelTrainer:
             gradient_checkpointing=self.config['optimization']['use_gradient_checkpointing'],
             dataloader_num_workers=self.config['optimization']['dataloader_num_workers'],
             remove_unused_columns=False,
-            report_to="wandb" if (self.config['monitoring']['use_wandb'] and WANDB_AVAILABLE) else None
+            report_to=None
         )
         
         # Data collator
