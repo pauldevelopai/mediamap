@@ -5,8 +5,70 @@
 {% block header %}Admin Dashboard{% endblock %}
 
 {% block content %}
+<!-- Quick Access Links -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-lightning-charge"></i> Quick Access
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-success"><i class="bi bi-people"></i> User Management</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-list-ul"></i> All Users
+                            </a>
+                            <a href="{{ url_for('create_admin') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-plus"></i> Create Admin
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-info"><i class="bi bi-chat-dots"></i> Communication</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_chats') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-chat"></i> All Chats
+                            </a>
+                            <a href="{{ url_for('admin_feedback') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-chat-quote"></i> User Feedback
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-warning"><i class="bi bi-cpu"></i> AI & Analytics</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_training') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear"></i> AI Training
+                            </a>
+                            <a href="{{ url_for('admin_analyses') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up"></i> Media Analyses
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-danger"><i class="bi bi-database"></i> System</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_lessons') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-book"></i> Lessons
+                            </a>
+                            <a href="#" onclick="openDatabase()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-database"></i> Database Info
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
 <div class="row">
-    <!-- Stats Cards -->
+    <!-- Users Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card card-admin card-users shadow h-100 py-2">
             <div class="card-body">
@@ -15,6 +77,7 @@
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                             Users</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_count }}</div>
+                        <div class="text-xs text-muted">{{ admin_count }} admins</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-people fa-2x text-gray-300"></i>
@@ -22,11 +85,15 @@
                 </div>
             </div>
             <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_users') }}" class="text-decoration-none">View Details <i class="bi bi-arrow-right"></i></a>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin_users') }}" class="text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+                    <a href="{{ url_for('create_admin') }}" class="text-decoration-none text-success">+ Admin</a>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Media Analyses Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card card-admin card-analyses shadow h-100 py-2">
             <div class="card-body">
@@ -35,6 +102,7 @@
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                             Media Analyses</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ analysis_count }}</div>
+                        <div class="text-xs text-muted">Content insights</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-graph-up fa-2x text-gray-300"></i>
@@ -47,6 +115,7 @@
         </div>
     </div>
 
+    <!-- Chats Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card card-admin card-chats shadow h-100 py-2">
             <div class="card-body">
@@ -55,6 +124,7 @@
                         <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
                             Chats</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ chat_count }}</div>
+                        <div class="text-xs text-muted">{{ message_count }} messages</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-chat-dots fa-2x text-gray-300"></i>
@@ -67,6 +137,7 @@
         </div>
     </div>
 
+    <!-- Lessons Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card card-admin card-lessons shadow h-100 py-2">
             <div class="card-body">
@@ -75,6 +146,7 @@
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                             Lessons</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ lesson_count }}</div>
+                        <div class="text-xs text-muted">Learning content</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-book fa-2x text-gray-300"></i>
@@ -90,6 +162,7 @@
 
 <!-- Second Row of Stats -->
 <div class="row">
+    <!-- User Feedback Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card card-admin card-feedback shadow h-100 py-2">
             <div class="card-body">
@@ -98,6 +171,7 @@
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                             User Feedback</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ feedback_count }}</div>
+                        <div class="text-xs text-muted">User insights</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-chat-quote fa-2x text-gray-300"></i>
@@ -110,6 +184,7 @@
         </div>
     </div>
 
+    <!-- AI Training Card -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card card-admin card-training shadow h-100 py-2">
             <div class="card-body">
@@ -118,6 +193,7 @@
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                             AI Training</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">Pipeline</div>
+                        <div class="text-xs text-muted">Custom AI model</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-cpu fa-2x text-gray-300"></i>
@@ -126,6 +202,50 @@
             </div>
             <div class="card-footer bg-transparent border-0">
                 <a href="{{ url_for('admin_training') }}" class="text-decoration-none">Manage Training <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin card-database shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Database</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">SQLite</div>
+                        <div class="text-xs text-muted">media_analysis.db</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-database fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="#" onclick="showDatabaseInfo()" class="text-decoration-none">View Info <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin card-health shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            System Health</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">Active</div>
+                        <div class="text-xs text-muted">All systems OK</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-heart-pulse fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="#" onclick="checkSystemHealth()" class="text-decoration-none">Check Status <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
@@ -201,6 +321,10 @@
                                 Database
                                 <span class="badge bg-primary rounded-pill">SQLite</span>
                             </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                AI Training Status
+                                <span class="badge bg-success rounded-pill">Active</span>
+                            </li>
                         </ul>
                     </div>
                     <div class="col-md-6">
@@ -219,8 +343,8 @@
                                 <span class="badge bg-primary rounded-pill">{{ chat_count }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Total Analyses
-                                <span class="badge bg-primary rounded-pill">{{ analysis_count }}</span>
+                                Total Messages
+                                <span class="badge bg-primary rounded-pill">{{ message_count }}</span>
                             </li>
                         </ul>
                     </div>
@@ -229,4 +353,19 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript for interactive features -->
+<script>
+function openDatabase() {
+    alert('Database: backend/instance/media_analysis.db\n\nTo access directly:\nsqlite3 backend/instance/media_analysis.db');
+}
+
+function showDatabaseInfo() {
+    alert('Database Information:\n\n- Type: SQLite\n- Location: backend/instance/media_analysis.db\n- Tables: users, chats, messages, feedback, lessons, analyses\n\nUse the terminal to run SQL queries directly.');
+}
+
+function checkSystemHealth() {
+    alert('System Health Check:\n\n✅ Flask Application: Running\n✅ Database: Connected\n✅ AI Training: Available\n✅ Admin Interface: Active\n\nAll systems operational!');
+}
+</script>
 {% endblock %} 

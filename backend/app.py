@@ -1142,6 +1142,7 @@ def admin_dashboard():
     chat_count = Chat.query.count()
     lesson_count = Lesson.query.count()
     feedback_count = Feedback.query.count()
+    message_count = Message.query.count()
     
     # Count admin users
     admin_count = 0
@@ -1162,6 +1163,7 @@ def admin_dashboard():
         chat_count=chat_count,
         lesson_count=lesson_count,
         feedback_count=feedback_count,
+        message_count=message_count,
         recent_users=recent_users,
         admin_count=admin_count,
         flask_version=flask_version
@@ -1333,7 +1335,17 @@ def collect_training_data():
     try:
         from training.data_collector import DataCollector
         
-        collector = DataCollector()
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, 'instance', 'media_analysis.db')
+        data_dir = os.path.join(os.path.dirname(basedir), 'data')
+        output_dir = os.path.join(basedir, 'training', 'training_data')
+        
+        collector = DataCollector(
+            db_path=db_path,
+            data_dir=data_dir,
+            output_dir=output_dir
+        )
         stats = collector.collect_all_data()
         
         return jsonify({
@@ -1359,7 +1371,17 @@ def start_training():
         import threading
         
         def train_model():
-            trainer = HighlanderModelTrainer()
+            import os
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            config_path = os.path.join(basedir, 'training', 'training_config.yaml')
+            data_dir = os.path.join(basedir, 'training', 'training_data')
+            output_dir = os.path.join(basedir, 'training', 'models')
+            
+            trainer = HighlanderModelTrainer(
+                config_path=config_path,
+                data_dir=data_dir,
+                output_dir=output_dir
+            )
             model_path = trainer.train_model()
             print(f"Training completed: {model_path}")
         
@@ -1389,10 +1411,25 @@ def training_status():
         model_info = manager.get_model_info()
         performance_metrics = manager.get_performance_metrics()
         
+        # Check for recent training errors
+        training_errors = []
+        try:
+            # Look for any recent error logs or failed training attempts
+            import os
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            log_file = os.path.join(basedir, 'training', 'training_errors.log')
+            if os.path.exists(log_file):
+                with open(log_file, 'r') as f:
+                    recent_errors = f.readlines()[-10:]  # Last 10 lines
+                    training_errors = [line.strip() for line in recent_errors if line.strip()]
+        except:
+            pass
+        
         return jsonify({
             'success': True,
             'model_info': model_info,
-            'performance_metrics': performance_metrics
+            'performance_metrics': performance_metrics,
+            'training_errors': training_errors
         })
     except Exception as e:
         return jsonify({
@@ -1425,6 +1462,77 @@ def deploy_model():
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+
+@app.route('/admin/training/preview-data')
+@login_required
+@admin_required
+def preview_training_data():
+    """Preview the collected training data"""
+    try:
+        import json
+        import os
+        
+        # Try to find the training data file
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        training_data_path = os.path.join(basedir, 'training', 'training_data', 'processed', 'training_dataset.json')
+        
+        if not os.path.exists(training_data_path):
+            return jsonify({
+                'success': False,
+                'message': 'No training data found. Please run data collection first.'
+            }), 404
+        
+        with open(training_data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Return a preview (first 10 examples) to avoid overwhelming the browser
+        preview_data = {
+            'total_examples': len(data),
+            'preview_examples': data[:10] if len(data) > 10 else data,
+            'full_data_available': len(data) > 10
+        }
+        
+        return jsonify({
+            'success': True,
+            'data': preview_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error loading training data: {str(e)}'
+        }), 500
+
+@app.route('/admin/training/download-data')
+@login_required
+@admin_required
+def download_training_data():
+    """Download the complete training data as JSON file"""
+    try:
+        import os
+        from flask import send_file
+        
+        training_data_path = os.path.join(basedir, 'training', 'training_data', 'processed', 'training_dataset.json')
+        
+        if not os.path.exists(training_data_path):
+            return jsonify({
+                'success': False,
+                'message': 'No training data found. Please run data collection first.'
+            }), 404
+        
+        return send_file(
+            training_data_path,
+            as_attachment=True,
+            download_name='training_data.json',
+            mimetype='application/json'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error downloading training data: {str(e)}'
         }), 500
 
 @app.route('/content-calendar')

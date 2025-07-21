@@ -1,0 +1,28 @@
+data:
+  min_examples: 100
+  test_split: 0.1
+  train_split: 0.8
+  val_split: 0.1
+model:
+  base_model: microsoft/DialoGPT-medium
+  max_length: 512
+  vocab_size: 50257
+monitoring:
+  project_name: highlander-ai
+  run_name: training_20250721_154722
+  use_wandb: false
+optimization:
+  dataloader_num_workers: 4
+  use_fp16: true
+  use_gradient_checkpointing: true
+training:
+  batch_size: 4
+  eval_steps: 500
+  gradient_accumulation_steps: 2
+  learning_rate: 5.0e-05
+  logging_steps: 100
+  max_grad_norm: 1.0
+  num_epochs: 3
+  save_steps: 1000
+  warmup_steps: 500
+  weight_decay: 0.01

@@ -20,7 +20,12 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime
-import wandb
+try:
+    import wandb
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
+    wandb = None
 from sklearn.model_selection import train_test_split
 import yaml
 
@@ -250,13 +255,15 @@ class HighlanderModelTrainer:
         # Create datasets
         datasets = self.create_datasets()
         
-        # Initialize wandb if configured
-        if self.config['monitoring']['use_wandb']:
+        # Initialize wandb if configured and available
+        if self.config['monitoring']['use_wandb'] and WANDB_AVAILABLE:
             wandb.init(
                 project=self.config['monitoring']['project_name'],
                 name=self.config['monitoring']['run_name'],
                 config=self.config
             )
+        elif self.config['monitoring']['use_wandb'] and not WANDB_AVAILABLE:
+            logger.warning("Wandb is configured but not available. Training will continue without wandb logging.")
         
         # Set up training arguments
         training_args = TrainingArguments(
@@ -282,7 +289,7 @@ class HighlanderModelTrainer:
             gradient_checkpointing=self.config['optimization']['use_gradient_checkpointing'],
             dataloader_num_workers=self.config['optimization']['dataloader_num_workers'],
             remove_unused_columns=False,
-            report_to="wandb" if self.config['monitoring']['use_wandb'] else None
+            report_to="wandb" if (self.config['monitoring']['use_wandb'] and WANDB_AVAILABLE) else None
         )
         
         # Data collator

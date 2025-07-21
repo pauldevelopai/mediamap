@@ -48,6 +48,23 @@
                     <i class="bi bi-collection me-1"></i>Collect Training Data
                 </button>
                 <div id="collection-status" class="mt-3" style="display: none;"></div>
+                
+                <!-- Data Preview and Download Section -->
+                <div id="data-preview-section" class="mt-3" style="display: none;">
+                    <hr>
+                    <h6><i class="bi bi-eye me-1"></i>Review Collected Data</h6>
+                    <div class="btn-group" role="group">
+                        <button id="preview-data-btn" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-eye me-1"></i>Preview Data
+                        </button>
+                        <button id="download-data-btn" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-download me-1"></i>Download JSON
+                        </button>
+                    </div>
+                    <div id="data-preview-content" class="mt-3" style="display: none;">
+                        <!-- Preview content will be loaded here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -97,6 +114,25 @@
                 <div id="performance-metrics">
                     <!-- Performance metrics will be loaded here -->
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Training Errors Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-exclamation-triangle me-2"></i>Training Errors & Logs</h5>
+            </div>
+            <div class="card-body">
+                <div id="training-errors">
+                    <!-- Training errors will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
             </div>
         </div>
     </div>
@@ -168,6 +204,8 @@ document.getElementById('collect-data-btn').addEventListener('click', async func
                     </ul>
                 </div>
             `;
+            // Show data preview section
+            document.getElementById('data-preview-section').style.display = 'block';
         } else {
             statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.error}</div>`;
         }
@@ -177,6 +215,76 @@ document.getElementById('collect-data-btn').addEventListener('click', async func
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
+});
+
+// Data Preview
+document.getElementById('preview-data-btn').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    const previewDiv = document.getElementById('data-preview-content');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Loading...';
+    previewDiv.style.display = 'block';
+    previewDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading data preview...</div>';
+    
+    try {
+        const response = await fetch('/admin/training/preview-data');
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            let previewHtml = `
+                <div class="alert alert-info">
+                    <strong>Training Data Preview</strong><br>
+                    Total examples: ${data.total_examples}<br>
+                    Showing first ${data.preview_examples.length} examples
+                </div>
+            `;
+            
+            data.preview_examples.forEach((example, index) => {
+                previewHtml += `
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <strong>Example ${index + 1}</strong>
+                        </div>
+                        <div class="card-body">
+                            <pre class="mb-0" style="max-height: 200px; overflow-y: auto; font-size: 0.8em;">${JSON.stringify(example, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (data.full_data_available) {
+                previewHtml += `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Only showing first 10 examples. Use the download button to get the complete dataset.
+                    </div>
+                `;
+            }
+            
+            previewDiv.innerHTML = previewHtml;
+        } else {
+            previewDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.message}</div>`;
+        }
+    } catch (error) {
+        previewDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// Data Download
+document.getElementById('download-data-btn').addEventListener('click', function() {
+    // Create a temporary link to trigger the download
+    const link = document.createElement('a');
+    link.href = '/admin/training/download-data';
+    link.download = 'training_data.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 });
 
 // Model Training
@@ -272,6 +380,7 @@ async function loadTrainingStatus() {
             displayModelInfo(result.model_info);
             displayPerformanceMetrics(result.performance_metrics);
             displayPipelineStatus(result.model_info);
+            displayTrainingErrors(result.training_errors || []);
         }
     } catch (error) {
         console.error('Error loading training status:', error);
@@ -321,6 +430,43 @@ function displayModelInfo(modelInfo) {
         </div>
     `;
     
+    div.innerHTML = html;
+}
+
+function displayTrainingErrors(errors) {
+    const div = document.getElementById('training-errors');
+    
+    if (!errors || errors.length === 0) {
+        div.innerHTML = `
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>No Training Errors</strong> - All training processes are running smoothly.
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Training Errors Detected</strong> - Please review the following issues:
+        </div>
+        <div class="list-group">
+    `;
+    
+    errors.forEach((error, index) => {
+        html += `
+            <div class="list-group-item list-group-item-danger">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">Error ${index + 1}</h6>
+                    <small>${new Date().toLocaleString()}</small>
+                </div>
+                <p class="mb-1">${error}</p>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
     div.innerHTML = html;
 }
 

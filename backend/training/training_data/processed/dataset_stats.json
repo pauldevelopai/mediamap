@@ -1,9 +1,9 @@
 {
-  "total_examples": 500,
-  "total_tokens": 44918,
+  "total_examples": 4350,
+  "total_tokens": 168451,
   "sources": {
-    "user_conversations": 446,
+    "user_conversations": 4296,
     "pdf_documents": 54
   },
-  "created_at": "2025-07-20T14:10:31.820086"
+  "created_at": "2025-07-21T15:47:11.609389"
 }
