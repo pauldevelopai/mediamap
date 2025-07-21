@@ -1318,6 +1318,115 @@ def update_feedback_status(feedback_id):
     flash('Feedback updated successfully', 'success')
     return redirect(url_for('admin_feedback_detail', feedback_id=feedback_id))
 
+@app.route('/admin/training')
+@login_required
+@admin_required
+def admin_training():
+    """Admin page for AI model training management"""
+    return render_template('admin/training.html')
+
+@app.route('/admin/training/collect-data', methods=['POST'])
+@login_required
+@admin_required
+def collect_training_data():
+    """Collect data for training"""
+    try:
+        from training.data_collector import DataCollector
+        
+        collector = DataCollector()
+        stats = collector.collect_all_data()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Data collection completed successfully',
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/start-training', methods=['POST'])
+@login_required
+@admin_required
+def start_training():
+    """Start model training"""
+    try:
+        from training.model_trainer import HighlanderModelTrainer
+        
+        # Start training in background
+        import threading
+        
+        def train_model():
+            trainer = HighlanderModelTrainer()
+            model_path = trainer.train_model()
+            print(f"Training completed: {model_path}")
+        
+        training_thread = threading.Thread(target=train_model)
+        training_thread.daemon = True
+        training_thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Model training started in background'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/status')
+@login_required
+@admin_required
+def training_status():
+    """Get training status and model information"""
+    try:
+        from training.model_manager import get_model_manager
+        
+        manager = get_model_manager()
+        model_info = manager.get_model_info()
+        performance_metrics = manager.get_performance_metrics()
+        
+        return jsonify({
+            'success': True,
+            'model_info': model_info,
+            'performance_metrics': performance_metrics
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/deploy-model', methods=['POST'])
+@login_required
+@admin_required
+def deploy_model():
+    """Deploy latest trained model"""
+    try:
+        from training.model_manager import get_model_manager
+        
+        manager = get_model_manager()
+        success = manager.update_model()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Model deployed successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to deploy model'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/content-calendar')
 @login_required
 def content_calendar():

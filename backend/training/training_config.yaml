@@ -1,0 +1,32 @@
+model:
+  base_model: 'microsoft/DialoGPT-medium'  # Good for conversational AI
+  max_length: 512
+  vocab_size: 50257
+
+training:
+  batch_size: 2  # Smaller batch size for limited data
+  learning_rate: 3e-5  # Slightly lower learning rate for stability
+  num_epochs: 5  # More epochs since we have good quality data
+  warmup_steps: 50  # Reduced warmup for smaller dataset
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 50
+  gradient_accumulation_steps: 4  # Effective batch size of 8
+  max_grad_norm: 1.0
+  weight_decay: 0.01
+
+data:
+  train_split: 0.8
+  val_split: 0.15
+  test_split: 0.05
+  min_examples: 50  # Lower threshold since we have quality data
+
+optimization:
+  use_fp16: false  # Disable for CPU training
+  use_gradient_checkpointing: true
+  dataloader_num_workers: 2
+
+monitoring:
+  use_wandb: false  # Keep it simple for now
+  project_name: 'highlander-ai'
+  run_name: 'highlander_v1' 

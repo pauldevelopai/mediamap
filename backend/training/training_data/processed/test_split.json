@@ -1,0 +1,47 @@
+[
+  {
+    "input": "we are broke",
+    "output": "I understand your situation. Implementing AI for cost optimization is crucial. You could automate routine tasks, such as content scheduling, data analysis, and reporting, which can reduce overheads. Have you identified areas in your operations where AI could be most beneficial?",
+    "context": {
+      "chat_id": 18,
+      "user_type": "real_user",
+      "timestamp": "2025-07-20 12:07:06.762005",
+      "fact_sheet": null,
+      "strategies": null
+    },
+    "source": "user_conversation"
+  },
+  {
+    "input": "we are broke",
+    "output": "I understand your situation. Implementing AI for cost optimization is crucial. You could automate routine tasks, such as content scheduling, data analysis, and reporting, which can reduce overheads. Have you identified areas in your operations where AI could be most beneficial?",
+    "context": {
+      "chat_id": 18,
+      "user_type": "real_user",
+      "timestamp": "2025-07-20 12:04:06.648995",
+      "fact_sheet": null,
+      "strategies": null
+    },
+    "source": "user_conversation"
+  },
+  {
+    "input": "Provide insights about AI development based on this content: inspiring it to continue promoting the public interest. Iryna Vidanava, Co-founder of CityDog magazine, Belarus, and Business Viability Advisor at IMS. A media development worker’s view Media developm...",
+    "output": "inspiring it to continue promoting the public interest. Iryna Vidanava, Co-founder of CityDog magazine, Belarus, and Business Viability Advisor at IMS. A media development worker’s view Media development actors advocate for public interest journalism because we believe it helps citizens to claim their rights. However, the independent news organisations and digital media start-ups we work with are always stretched thin, either because they are small and emerging media or they face constant external challenges to their integrity and sustainability. In the parts of the world where IMS works, journalists and media outlets that strive for ethical, value-driven journalism operate in harsh conditions. They are shunned and attacked by the authorities, adding to the financial pressures created by weak economies and a lack of available resources. Unsurprisingly, they seldom have a chance to plan their journalism strategically. Values, value, and impact is a tool for media outlets to chart their journey from story idea to the impactful use of news that can improve public participation. Media development agencies can integrate the approach presented in this handbook into our programming, so that media partners with the requisite passion have the funds, time, space, and peace of mind to design and test their strategies while still paying the bills. Values, value, and impact goes hand in glove with IMS’ Impact Framework for Media Projects toolkit . I think of them as the body and the soul of public interest journalism: the Impact Framework’s product development approach provides the material to keep the body of the media sector healthy, while Values, value, and impact channels the more abstract but principled soul of journalism. Let us keep this body and soul together to realise our vision of impactful public interest content! Waqas Naeem, journalist and media development consultant, PakistanThe author’s view Values, value, and impact builds on a tough lesson that five colleagues and I learned after we pooled our savings to launch a current affairs magazine in Namibia in 2004. For several years, we won awards for our journalism and made a small profit without loans or grants. We knew intuitively why our readers and advertisers valued our brand of public interest journalism. Or so we thought. When the time came to take our venture to the next level, differences emerged in our understandings of our values and strategic direction, things that we had taken for granted as a disruptive start-up brimming with energy and ideas. Our sweat capital had run dry but we struggled to step off the production treadmill and find the time or headspace to chart a clear way forward. We just kept going, until, eventually, the magazine folded. Lesson learned! This handbook aims to help other media avoid a similar fate. Few teams working for small media operations will have the time and space to follow the handbook’s step-by-step guide from start to finish. If you are a member of such a team, try to use the handbook intuitively: adapt the steps that speak to your specific needs at a particular time and integrate them into existing workflows as much as possible.",
+    "context": {
+      "source_file": "2025_Values-value-and-impact-handbook-final.txt",
+      "chunk_index": 2
+    },
+    "source": "pdf_document"
+  },
+  {
+    "input": "my business is called Develop ai",
+    "output": "Hello, I'm Highlander, an expert AI consultant. As I understand it, your business, Develop AI, is centered around artificial intelligence. Can you please elaborate on the specific services you provide or products you develop? \n\nAdditionally, it would be helpful to know more about your current challenges, your clientele, and your ultimate goals for the business. This information will help me better understand the role of AI in your business and how it might be leveraged for growth.",
+    "context": {
+      "chat_id": 14,
+      "user_type": "real_user",
+      "timestamp": "2025-07-20 11:01:11.847762",
+      "fact_sheet": null,
+      "strategies": null
+    },
+    "source": "user_conversation"
+  }
+]

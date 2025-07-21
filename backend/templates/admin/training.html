@@ -1,0 +1,417 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}AI Model Training - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-cpu me-2"></i>AI Model Training Management</h1>
+    <div class="badge bg-primary">Highlander AI Training Pipeline</div>
+</div>
+
+<!-- Training Pipeline Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-diagram-3 me-2"></i>Training Pipeline Status</h5>
+            </div>
+            <div class="card-body">
+                <div id="pipeline-status">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading pipeline status...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Collection Section -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-database me-2"></i>Data Collection</h5>
+            </div>
+            <div class="card-body">
+                <p>Collect and process training data from:</p>
+                <ul>
+                    <li>User conversations</li>
+                    <li>PDF documents</li>
+                    <li>Research papers</li>
+                    <li>User feedback</li>
+                </ul>
+                <button id="collect-data-btn" class="btn btn-primary">
+                    <i class="bi bi-collection me-1"></i>Collect Training Data
+                </button>
+                <div id="collection-status" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-gear me-2"></i>Model Training</h5>
+            </div>
+            <div class="card-body">
+                <p>Train custom AI model with collected data:</p>
+                <ul>
+                    <li>Fine-tune transformer model</li>
+                    <li>Optimize for AI advice</li>
+                    <li>Validate performance</li>
+                </ul>
+                <button id="start-training-btn" class="btn btn-success">
+                    <i class="bi bi-play me-1"></i>Start Training
+                </button>
+                <div id="training-status" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Management Section -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-robot me-2"></i>Model Information</h5>
+            </div>
+            <div class="card-body">
+                <div id="model-info">
+                    <!-- Model info will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-speedometer2 me-2"></i>Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div id="performance-metrics">
+                    <!-- Performance metrics will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deployment Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-cloud-upload me-2"></i>Model Deployment</h5>
+            </div>
+            <div class="card-body">
+                <p>Deploy the latest trained model to production:</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Deploying a new model will replace the current production model. 
+                    Make sure the new model has been properly tested.
+                </div>
+                <button id="deploy-model-btn" class="btn btn-warning">
+                    <i class="bi bi-cloud-upload me-1"></i>Deploy Latest Model
+                </button>
+                <div id="deployment-status" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load initial status
+document.addEventListener('DOMContentLoaded', function() {
+    loadTrainingStatus();
+    
+    // Set up auto-refresh every 30 seconds
+    setInterval(loadTrainingStatus, 30000);
+});
+
+// Data Collection
+document.getElementById('collect-data-btn').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    const statusDiv = document.getElementById('collection-status');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Collecting...';
+    statusDiv.style.display = 'block';
+    statusDiv.innerHTML = '<div class="alert alert-info">Collecting training data...</div>';
+    
+    try {
+        const response = await fetch('/admin/training/collect-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Success!</strong> Data collection completed.
+                    <ul class="mt-2 mb-0">
+                        <li>Conversations: ${result.stats.conversations}</li>
+                        <li>PDFs: ${result.stats.pdfs}</li>
+                        <li>Research: ${result.stats.research_papers}</li>
+                        <li>Feedback: ${result.stats.feedback_entries}</li>
+                        <li>Total Tokens: ${result.stats.total_tokens}</li>
+                    </ul>
+                </div>
+            `;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.error}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// Model Training
+document.getElementById('start-training-btn').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    const statusDiv = document.getElementById('training-status');
+    
+    if (!confirm('Training a model can take several hours. Are you sure you want to start?')) {
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Starting...';
+    statusDiv.style.display = 'block';
+    statusDiv.innerHTML = '<div class="alert alert-info">Starting model training...</div>';
+    
+    try {
+        const response = await fetch('/admin/training/start-training', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Training Started!</strong> ${result.message}
+                    <br><small>Check the server logs for progress updates.</small>
+                </div>
+            `;
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.error}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// Model Deployment
+document.getElementById('deploy-model-btn').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    const statusDiv = document.getElementById('deployment-status');
+    
+    if (!confirm('This will replace the current production model. Are you sure?')) {
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Deploying...';
+    statusDiv.style.display = 'block';
+    statusDiv.innerHTML = '<div class="alert alert-info">Deploying model...</div>';
+    
+    try {
+        const response = await fetch('/admin/training/deploy-model', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            statusDiv.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+            // Refresh status
+            setTimeout(loadTrainingStatus, 2000);
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.error}</div>`;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// Load training status
+async function loadTrainingStatus() {
+    try {
+        const response = await fetch('/admin/training/status');
+        const result = await response.json();
+        
+        if (result.success) {
+            displayModelInfo(result.model_info);
+            displayPerformanceMetrics(result.performance_metrics);
+            displayPipelineStatus(result.model_info);
+        }
+    } catch (error) {
+        console.error('Error loading training status:', error);
+    }
+}
+
+function displayModelInfo(modelInfo) {
+    const div = document.getElementById('model-info');
+    
+    let html = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Model Status</h6>
+                <p><strong>Custom Model Loaded:</strong> 
+                    <span class="badge ${modelInfo.custom_model_loaded ? 'bg-success' : 'bg-secondary'}">
+                        ${modelInfo.custom_model_loaded ? 'Yes' : 'No'}
+                    </span>
+                </p>
+                <p><strong>OpenAI Available:</strong> 
+                    <span class="badge ${modelInfo.openai_available ? 'bg-success' : 'bg-secondary'}">
+                        ${modelInfo.openai_available ? 'Yes' : 'No'}
+                    </span>
+                </p>
+                <p><strong>Using Custom Model:</strong> 
+                    <span class="badge ${modelInfo.use_custom_model ? 'bg-primary' : 'bg-secondary'}">
+                        ${modelInfo.use_custom_model ? 'Yes' : 'No'}
+                    </span>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6>Training Info</h6>
+    `;
+    
+    if (modelInfo.training_date) {
+        html += `<p><strong>Training Date:</strong> ${new Date(modelInfo.training_date).toLocaleString()}</p>`;
+    }
+    
+    if (modelInfo.data_stats) {
+        html += `
+            <p><strong>Training Examples:</strong> ${modelInfo.data_stats.train_examples || 'N/A'}</p>
+            <p><strong>Validation Examples:</strong> ${modelInfo.data_stats.val_examples || 'N/A'}</p>
+        `;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    div.innerHTML = html;
+}
+
+function displayPerformanceMetrics(metrics) {
+    const div = document.getElementById('performance-metrics');
+    
+    if (metrics.message) {
+        div.innerHTML = `<p class="text-muted">${metrics.message}</p>`;
+        return;
+    }
+    
+    let healthColor = 'success';
+    if (metrics.model_health === 'degraded') healthColor = 'warning';
+    if (metrics.model_health === 'unhealthy') healthColor = 'danger';
+    
+    div.innerHTML = `
+        <p><strong>Total Requests:</strong> ${metrics.total_requests}</p>
+        <p><strong>Custom Model Usage:</strong> ${metrics.custom_model_usage}</p>
+        <p><strong>OpenAI Fallback:</strong> ${metrics.openai_fallback_usage}</p>
+        <p><strong>Error Rate:</strong> ${metrics.error_rate}</p>
+        <p><strong>Avg Response Time:</strong> ${metrics.avg_response_time}</p>
+        <p><strong>Model Health:</strong> 
+            <span class="badge bg-${healthColor}">${metrics.model_health}</span>
+        </p>
+    `;
+}
+
+function displayPipelineStatus(modelInfo) {
+    const div = document.getElementById('pipeline-status');
+    
+    const steps = [
+        {
+            name: 'Data Collection',
+            status: 'completed',
+            description: 'Collect user conversations, PDFs, and research'
+        },
+        {
+            name: 'Data Processing',
+            status: 'completed',
+            description: 'Clean and format training data'
+        },
+        {
+            name: 'Model Training',
+            status: modelInfo.custom_model_loaded ? 'completed' : 'pending',
+            description: 'Train custom AI model'
+        },
+        {
+            name: 'Model Deployment',
+            status: modelInfo.custom_model_loaded ? 'completed' : 'pending',
+            description: 'Deploy model to production'
+        }
+    ];
+    
+    let html = '<div class="row">';
+    
+    steps.forEach((step, index) => {
+        const statusColor = step.status === 'completed' ? 'success' : 
+                           step.status === 'running' ? 'warning' : 'secondary';
+        const statusIcon = step.status === 'completed' ? 'check-circle' : 
+                          step.status === 'running' ? 'arrow-repeat' : 'circle';
+        
+        html += `
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-${statusIcon} text-${statusColor}" style="font-size: 2rem;"></i>
+                        <h6 class="mt-2">${step.name}</h6>
+                        <p class="text-muted small">${step.description}</p>
+                        <span class="badge bg-${statusColor}">${step.status}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    div.innerHTML = html;
+}
+</script>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %} 
