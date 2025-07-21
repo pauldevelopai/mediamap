@@ -1,0 +1,14 @@
+{
+  "model_name": "Highlander AI",
+  "description": "Expert AI business consultant for media companies",
+  "max_length": 512,
+  "temperature": 0.7,
+  "specialized_knowledge": [
+    "AI implementation strategies",
+    "Media business operations",
+    "Digital transformation",
+    "ROI optimization"
+  ],
+  "conversation_style": "Professional, direct, actionable advice",
+  "memory_enabled": true
+}
