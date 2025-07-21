@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-07-21T19:18:37.837356",
+  "total_tests": 10,
+  "successful_tests": 10,
+  "failed_tests": 0,
+  "avg_response_time": 5.245208740234375e-07,
+  "custom_model_responses": 0,
+  "openai_responses": 0,
+  "results": [
+    {
+      "question": "How can I implement AI in my media company?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 1.1920928955078125e-06,
+      "success": true
+    },
+    {
+      "question": "What's the ROI of AI automation for content creation?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 9.5367431640625e-07,
+      "success": true
+    },
+    {
+      "question": "How do I optimize my digital transformation strategy?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 1.1920928955078125e-06,
+      "success": true
+    },
+    {
+      "question": "What AI tools should I use for audience analysis?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 0.0,
+      "success": true
+    },
+    {
+      "question": "How can I improve my content workflow with AI?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 0.0,
+      "success": true
+    },
+    {
+      "question": "What are the best practices for AI implementation?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 0.0,
+      "success": true
+    },
+    {
+      "question": "How do I measure AI success in media companies?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 0.0,
+      "success": true
+    },
+    {
+      "question": "What AI solutions work best for small media businesses?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 0.0,
+      "success": true
+    },
+    {
+      "question": "How can I automate my content calendar with AI?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 9.5367431640625e-07,
+      "success": true
+    },
+    {
+      "question": "What's the cost-benefit analysis of AI tools?",
+      "response": "I'm currently unavailable. Please try again later.",
+      "source": "error",
+      "response_time": 9.5367431640625e-07,
+      "success": true
+    }
+  ]
+}
