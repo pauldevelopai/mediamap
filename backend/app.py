@@ -1,9 +1,14 @@
+import os
+# Disable wandb completely before importing anything else
+os.environ["WANDB_DISABLED"] = "true"
+os.environ["WANDB_MODE"] = "disabled"
+os.environ["WANDB_SILENT"] = "true"
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, Blueprint, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback
-import os
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
@@ -283,51 +288,23 @@ def chat():
     # Save after user message
     save_chat_to_db(chat_id, chat_data)
     
-    # Prepare chat history for OpenAI - include ALL previous messages for full context
-    chat_history = [
-        {"role": "system", "content": SYSTEM_PROMPT_MEDIA_BIZ}
-    ]
-    
-    # Add conversation context summary if this is a longer conversation
-    if len(chat_data['messages']) > 10:
-        # Get recent context (last 8 messages) + summary of earlier context
-        recent_messages = chat_data['messages'][-8:]
-        earlier_messages = chat_data['messages'][:-8]
-        
-        # Create a summary of earlier conversation
-        if earlier_messages:
-            earlier_context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in earlier_messages[-10:]])
-            summary_prompt = f"Summarize this earlier conversation context in 2-3 sentences, focusing on business details, challenges, and solutions discussed:\n{earlier_context}"
-            
-            try:
-                summary_response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "Summarize conversation context concisely, focusing on business details."},
-                        {"role": "user", "content": summary_prompt}
-                    ]
-                )
-                context_summary = summary_response.choices[0].message.content
-                chat_history.append({"role": "system", "content": f"Previous conversation context: {context_summary}"})
-            except:
-                pass  # If summary fails, continue without it
-        
-        # Add recent messages
-        for msg in recent_messages:
-            chat_history.append({"role": msg['role'], "content": msg['content']})
-    else:
-        # For shorter conversations, include all messages
-        for msg in chat_data['messages']:
-            chat_history.append({"role": msg['role'], "content": msg['content']})
-    
     try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=chat_history,
-            temperature=0.7,  # Slightly more focused responses
-            max_tokens=300    # Enforce shorter responses
+        # Try to use the trained model first, fallback to OpenAI
+        from training.model_manager import generate_highlander_response
+        
+        # Prepare conversation history for the model
+        conversation_history = []
+        for msg in chat_data['messages'][:-1]:  # Exclude the current message
+            conversation_history.append({
+                'role': msg['role'],
+                'content': msg['content']
+            })
+        
+        # Generate response using trained model or OpenAI fallback
+        ai_reply, response_source = generate_highlander_response(
+            message=message,
+            conversation_history=conversation_history
         )
-        ai_reply = response.choices[0].message.content
         
         # Add AI reply to chat
         chat_data['messages'].append({
@@ -336,16 +313,82 @@ def chat():
         })
         # Save after AI message
         save_chat_to_db(chat_id, chat_data)
+        
         return jsonify({
             'success': True,
             'reply': ai_reply,
-            'chat_id': chat_id
+            'chat_id': chat_id,
+            'model_source': response_source  # 'custom_model' or 'openai'
         })
+        
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        # Fallback to original OpenAI method if model manager fails
+        print(f"Model manager failed, falling back to OpenAI: {e}")
+        
+        # Prepare chat history for OpenAI - include ALL previous messages for full context
+        chat_history = [
+            {"role": "system", "content": SYSTEM_PROMPT_MEDIA_BIZ}
+        ]
+        
+        # Add conversation context summary if this is a longer conversation
+        if len(chat_data['messages']) > 10:
+            # Get recent context (last 8 messages) + summary of earlier context
+            recent_messages = chat_data['messages'][-8:]
+            earlier_messages = chat_data['messages'][:-8]
+            
+            # Create a summary of earlier conversation
+            if earlier_messages:
+                earlier_context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in earlier_messages[-10:]])
+                summary_prompt = f"Summarize this earlier conversation context in 2-3 sentences, focusing on business details, challenges, and solutions discussed:\n{earlier_context}"
+                
+                try:
+                    summary_response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[
+                            {"role": "system", "content": "Summarize conversation context concisely, focusing on business details."},
+                            {"role": "user", "content": summary_prompt}
+                        ]
+                    )
+                    context_summary = summary_response.choices[0].message.content
+                    chat_history.append({"role": "system", "content": f"Previous conversation context: {context_summary}"})
+                except:
+                    pass  # If summary fails, continue without it
+            
+            # Add recent messages
+            for msg in recent_messages:
+                chat_history.append({"role": msg['role'], "content": msg['content']})
+        else:
+            # For shorter conversations, include all messages
+            for msg in chat_data['messages']:
+                chat_history.append({"role": msg['role'], "content": msg['content']})
+        
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=chat_history,
+                temperature=0.7,  # Slightly more focused responses
+                max_tokens=300    # Enforce shorter responses
+            )
+            ai_reply = response.choices[0].message.content
+            
+            # Add AI reply to chat
+            chat_data['messages'].append({
+                'role': 'assistant',
+                'content': ai_reply
+            })
+            # Save after AI message
+            save_chat_to_db(chat_id, chat_data)
+            return jsonify({
+                'success': True,
+                'reply': ai_reply,
+                'chat_id': chat_id,
+                'model_source': 'openai_fallback'
+            })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
 
 @app.route('/chats')
 @login_required
@@ -1334,6 +1377,7 @@ def collect_training_data():
     """Collect data for training"""
     try:
         from training.data_collector import DataCollector
+        from training.training_history import get_training_history
         
         import os
         basedir = os.path.abspath(os.path.dirname(__file__))
@@ -1341,6 +1385,20 @@ def collect_training_data():
         data_dir = os.path.join(os.path.dirname(basedir), 'data')
         output_dir = os.path.join(basedir, 'training', 'training_data')
         
+        # Check training history to see what's new
+        history = get_training_history()
+        retrain_analysis = history.should_retrain(output_dir, min_new_data_threshold=5)
+        
+        if not retrain_analysis['should_retrain']:
+            return jsonify({
+                'success': True,
+                'message': 'No new data to collect. All data has already been used for training.',
+                'stats': retrain_analysis['new_data'],
+                'retrain_analysis': retrain_analysis,
+                'no_new_data': True
+            })
+        
+        # Collect only new data
         collector = DataCollector(
             db_path=db_path,
             data_dir=data_dir,
@@ -1348,10 +1406,14 @@ def collect_training_data():
         )
         stats = collector.collect_all_data()
         
+        # Update the stats with new data information
+        stats['new_data_analysis'] = retrain_analysis
+        
         return jsonify({
             'success': True,
-            'message': 'Data collection completed successfully',
-            'stats': stats
+            'message': f'Data collection completed. Found {retrain_analysis["total_new_items"]} new items.',
+            'stats': stats,
+            'retrain_analysis': retrain_analysis
         })
     except Exception as e:
         return jsonify({
@@ -1366,6 +1428,21 @@ def start_training():
     """Start model training"""
     try:
         from training.model_trainer import HighlanderModelTrainer
+        from training.training_history import get_training_history
+        
+        # Check if there's enough new data to warrant training
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        data_dir = os.path.join(basedir, 'training', 'training_data')
+        
+        history = get_training_history()
+        retrain_analysis = history.should_retrain(data_dir, min_new_data_threshold=5)
+        
+        if not retrain_analysis['should_retrain']:
+            return jsonify({
+                'success': False,
+                'error': f'Not enough new data to warrant training. {retrain_analysis["reason"]}'
+            }), 400
         
         # Start training in background
         import threading
@@ -1383,6 +1460,23 @@ def start_training():
                 output_dir=output_dir
             )
             model_path = trainer.train_model()
+            
+            # Record the training session
+            training_data_path = os.path.join(data_dir, 'processed', 'training_dataset.json')
+            training_stats = {
+                'total_examples': retrain_analysis['new_data']['total_tokens'],
+                'new_conversations': retrain_analysis['new_data']['conversations'],
+                'new_pdfs': retrain_analysis['new_data']['pdfs'],
+                'new_research': retrain_analysis['new_data']['research_papers'],
+                'new_feedback': retrain_analysis['new_data']['feedback_entries']
+            }
+            
+            history.record_training_session(
+                training_data_path=training_data_path,
+                model_path=model_path,
+                training_stats=training_stats
+            )
+            
             print(f"Training completed: {model_path}")
         
         training_thread = threading.Thread(target=train_model)
@@ -1391,7 +1485,8 @@ def start_training():
         
         return jsonify({
             'success': True,
-            'message': 'Model training started in background'
+            'message': f'Model training started in background. {retrain_analysis["reason"]}',
+            'retrain_analysis': retrain_analysis
         })
     except Exception as e:
         return jsonify({
@@ -1406,17 +1501,42 @@ def training_status():
     """Get training status and model information"""
     try:
         from training.model_manager import get_model_manager
+        import os
+        import json
         
         manager = get_model_manager()
         model_info = manager.get_model_info()
         performance_metrics = manager.get_performance_metrics()
         
+        # Check for training completion by reading metadata
+        training_completed = False
+        training_metadata = None
+        try:
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            metadata_file = os.path.join(basedir, 'training', 'models', 'training_metadata.json')
+            if os.path.exists(metadata_file):
+                with open(metadata_file, 'r') as f:
+                    training_metadata = json.load(f)
+                    training_completed = True
+        except Exception as e:
+            print(f"Error reading training metadata: {e}")
+        
+        # Update model_info to reflect actual training status
+        if training_completed and training_metadata:
+            model_info['training_completed'] = True
+            model_info['training_date'] = training_metadata.get('training_completed_at')
+            model_info['training_examples'] = training_metadata.get('training_examples')
+            model_info['training_loss'] = training_metadata.get('performance', {}).get('training_loss')
+            model_info['validation_accuracy'] = training_metadata.get('performance', {}).get('validation_accuracy')
+            model_info['training_steps'] = training_metadata.get('performance', {}).get('training_steps')
+            model_info['data_stats'] = training_metadata.get('data_stats')
+        else:
+            model_info['training_completed'] = False
+        
         # Check for recent training errors
         training_errors = []
         try:
             # Look for any recent error logs or failed training attempts
-            import os
-            basedir = os.path.abspath(os.path.dirname(__file__))
             log_file = os.path.join(basedir, 'training', 'training_errors.log')
             if os.path.exists(log_file):
                 with open(log_file, 'r') as f:
@@ -1429,7 +1549,8 @@ def training_status():
             'success': True,
             'model_info': model_info,
             'performance_metrics': performance_metrics,
-            'training_errors': training_errors
+            'training_errors': training_errors,
+            'training_metadata': training_metadata
         })
     except Exception as e:
         return jsonify({
@@ -1444,20 +1565,123 @@ def deploy_model():
     """Deploy latest trained model"""
     try:
         from training.model_manager import get_model_manager
+        import os
+        import shutil
         
+        # Get the latest trained model
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        models_dir = os.path.join(basedir, 'training', 'models')
+        deployment_dir = os.path.join(models_dir, 'deployment')
+        
+        # Find the latest model checkpoint
+        model_checkpoints = []
+        for item in os.listdir(models_dir):
+            item_path = os.path.join(models_dir, item)
+            if os.path.isdir(item_path) and item.startswith('checkpoint-'):
+                model_checkpoints.append(item_path)
+        
+        if not model_checkpoints:
+            return jsonify({
+                'success': False,
+                'error': 'No trained models found. Please complete training first.'
+            }), 404
+        
+        # Get the latest checkpoint (highest number)
+        latest_checkpoint = max(model_checkpoints, key=lambda x: int(x.split('-')[-1]))
+        
+        # Create deployment directory
+        os.makedirs(deployment_dir, exist_ok=True)
+        
+        # Copy model files to deployment
+        if os.path.exists(os.path.join(deployment_dir, 'model')):
+            shutil.rmtree(os.path.join(deployment_dir, 'model'))
+        
+        shutil.copytree(latest_checkpoint, os.path.join(deployment_dir, 'model'))
+        
+        # Create deployment info
+        deployment_info = {
+            'model_path': os.path.join(deployment_dir, 'model'),
+            'deployed_at': datetime.now().isoformat(),
+            'checkpoint_source': latest_checkpoint
+        }
+        
+        with open(os.path.join(deployment_dir, 'deployment_info.json'), 'w') as f:
+            json.dump(deployment_info, f, indent=2)
+        
+        # Update the model manager
         manager = get_model_manager()
         success = manager.update_model()
         
         if success:
             return jsonify({
                 'success': True,
-                'message': 'Model deployed successfully'
+                'message': 'Model deployed successfully',
+                'model_path': deployment_info['model_path'],
+                'deployed_at': deployment_info['deployed_at']
             })
         else:
             return jsonify({
                 'success': False,
-                'error': 'Failed to deploy model'
+                'error': 'Model deployed but failed to load'
             }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/model-status')
+@login_required
+@admin_required
+def model_status():
+    """Get current model status and usage statistics"""
+    try:
+        from training.model_manager import get_model_manager
+        from training.training_history import get_training_history
+        
+        manager = get_model_manager()
+        model_info = manager.get_model_info()
+        performance_metrics = manager.get_performance_metrics()
+        
+        # Get training history
+        history = get_training_history()
+        training_summary = history.get_training_summary()
+        
+        return jsonify({
+            'success': True,
+            'model_info': model_info,
+            'performance_metrics': performance_metrics,
+            'training_summary': training_summary
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/history')
+@login_required
+@admin_required
+def training_history():
+    """Get detailed training history"""
+    try:
+        from training.training_history import get_training_history
+        import os
+        
+        history = get_training_history()
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        data_dir = os.path.join(basedir, 'training', 'training_data')
+        
+        # Get current retrain analysis
+        retrain_analysis = history.should_retrain(data_dir, min_new_data_threshold=5)
+        
+        return jsonify({
+            'success': True,
+            'training_summary': history.get_training_summary(),
+            'retrain_analysis': retrain_analysis,
+            'full_history': history.history
+        })
     except Exception as e:
         return jsonify({
             'success': False,
