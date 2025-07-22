@@ -370,6 +370,26 @@ NEVER say 'Hello' again after the first interaction. Always continue the convers
             'model_health': 'healthy' if error_percentage < 5 else 'degraded'
         }
 
+    def load_from_huggingface(self, model_name="paulmcnally/highlander-ai-model"):
+        """Load model from Hugging Face Hub"""
+        try:
+            from transformers import AutoTokenizer, AutoModelForCausalLM
+            
+            print(f"Loading model from Hugging Face Hub: {model_name}")
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.model = AutoModelForCausalLM.from_pretrained(model_name)
+            
+            # Set up for inference
+            self.model.eval()
+            if torch.cuda.is_available():
+                self.model = self.model.cuda()
+            
+            print("✅ Model loaded successfully from Hugging Face Hub!")
+            return True
+        except Exception as e:
+            print(f"❌ Error loading from Hugging Face Hub: {e}")
+            return False
+
 # Global model manager instance
 model_manager = None
 

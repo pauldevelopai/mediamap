@@ -1,0 +1,8 @@
+{
+  "model_path": "/Users/paulmcnally/Developai Dropbox/Paul McNally/ON THE COMPUTER/PYTHON 2025/mediamap/backend/training/models/deployment/model",
+  "deployed_at": "2025-07-21T19:20:00",
+  "checkpoint_source": "checkpoint-500",
+  "model_type": "custom_highlander",
+  "training_steps": 500,
+  "base_model": "microsoft/DialoGPT-medium"
+}
