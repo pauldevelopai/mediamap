@@ -2239,6 +2239,29 @@ def submit_feedback():
         print(f"Error submitting feedback: {str(e)}")
         return jsonify({'success': False, 'error': 'Failed to submit feedback'}), 500
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for load balancers and monitoring"""
+    try:
+        # Basic health checks
+        from training.model_manager import get_model_manager
+        
+        manager = get_model_manager()
+        model_info = manager.get_model_info()
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'model_loaded': model_info.get('model_loaded', False),
+            'version': '1.0.0'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')
     app.run(host='0.0.0.0', port=8000, debug=True) 
