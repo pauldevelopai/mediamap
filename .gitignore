@@ -58,9 +58,15 @@ Thumbs.db
 *.h5
 *.hdf5
 
-# Training checkpoints
+# Training checkpoints and deployment
 backend/training/models/checkpoints/
+backend/training/models/deployment/
 backend/training/models/deployment/model/
+
+# Training data and metadata
+backend/training/training_data/pdfs/*_metadata.json
+backend/training/training_data/processed/dataset_stats.json
+backend/instance/media_analysis.db
 
 # Logs
 *.log
