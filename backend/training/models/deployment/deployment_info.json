@@ -1,7 +1,0 @@
-{
-  "deployed_at": "2025-07-20T14:30:00Z",
-  "model_path": "models/deployment/model",
-  "status": "deployed",
-  "version": "1.0.0",
-  "ready_for_production": true
-}

@@ -1,9 +1,0 @@
-{
-  "total_examples": 4350,
-  "total_tokens": 168451,
-  "sources": {
-    "user_conversations": 4296,
-    "pdf_documents": 54
-  },
-  "created_at": "2025-07-21T15:47:11.609389"
-}
