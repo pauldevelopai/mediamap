@@ -92,8 +92,15 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = None  # This will disable the message entirely
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# Initialize OpenAI client (only if API key is available)
+openai_api_key = os.getenv('OPENAI_API_KEY')
+client = None
+if openai_api_key:
+    try:
+        client = OpenAI(api_key=openai_api_key)
+    except Exception as e:
+        print(f"Warning: Could not initialize OpenAI client: {e}")
+        client = None
 
 # User loader for Flask-Login
 @login_manager.user_loader
@@ -240,9 +247,22 @@ def save_chat_to_db(chat_id, chat_data):
 
 def get_or_create_active_chat(chat_id):
     import uuid
+    
+    # If no chat_id provided, try to get the user's most recent active chat
     if not chat_id:
-        chat_id = str(uuid.uuid4())
-        print(f"[chat] Generated new chat_id: {chat_id}")
+        if hasattr(current_user, 'id') and current_user.id:
+            # Get the user's most recent chat from database
+            latest_chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
+            if latest_chat:
+                chat_id = str(latest_chat.id)
+                print(f"[chat] Using existing chat_id {chat_id} from user's latest chat")
+            else:
+                # Create new chat if user has no previous chats
+                chat_id = str(uuid.uuid4())
+                print(f"[chat] Generated new chat_id: {chat_id} for new user")
+        else:
+            chat_id = str(uuid.uuid4())
+            print(f"[chat] Generated new chat_id: {chat_id} for anonymous user")
     
     # Convert to string to ensure consistency
     chat_id = str(chat_id)
@@ -289,41 +309,8 @@ def chat():
     save_chat_to_db(chat_id, chat_data)
     
     try:
-        # Try to use the trained model first, fallback to OpenAI
-        from training.model_manager import generate_highlander_response
-        
-        # Prepare conversation history for the model
-        conversation_history = []
-        for msg in chat_data['messages'][:-1]:  # Exclude the current message
-            conversation_history.append({
-                'role': msg['role'],
-                'content': msg['content']
-            })
-        
-        # Generate response using trained model or OpenAI fallback
-        ai_reply, response_source = generate_highlander_response(
-            message=message,
-            conversation_history=conversation_history
-        )
-        
-        # Add AI reply to chat
-        chat_data['messages'].append({
-            'role': 'assistant',
-            'content': ai_reply
-        })
-        # Save after AI message
-        save_chat_to_db(chat_id, chat_data)
-        
-        return jsonify({
-            'success': True,
-            'reply': ai_reply,
-            'chat_id': chat_id,
-            'model_source': response_source  # 'custom_model' or 'openai'
-        })
-        
-    except Exception as e:
-        # Fallback to original OpenAI method if model manager fails
-        print(f"Model manager failed, falling back to OpenAI: {e}")
+        # Use OpenAI directly for now (bypass custom model issues)
+        print(f"Using OpenAI for chat response")
         
         # Prepare chat history for OpenAI - include ALL previous messages for full context
         chat_history = [
@@ -389,6 +376,12 @@ def chat():
                 'success': False,
                 'error': str(e)
             }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/chats')
 @login_required
@@ -420,6 +413,8 @@ def api_user_chats():
             'title': chat.title,
             'created_at': chat.created_at.isoformat(),
             'updated_at': chat.updated_at.isoformat(),
+            'fact_sheet': chat.fact_sheet,
+            'strategies': chat.strategies,
             'messages': messages
         })
     
@@ -1882,15 +1877,8 @@ def crimecast():
 # Root route - redirect based on user role
 @app.route('/')
 def root():
-    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
-        # Redirect authenticated users based on their role
-        if hasattr(current_user, 'is_admin') and current_user.is_admin:
-            return redirect(url_for('landing_page1'))  # Full interface for admins
-        else:
-            return redirect(url_for('user_dashboard'))  # Simple chat for regular users
-    else:
-        # Redirect unauthenticated users to landing page
-        return redirect(url_for('landing_page1'))
+    # For now, always show the login page for debugging
+    return render_template('auth_landing.html')
 
 # User Dashboard - Simple chat interface for regular users
 @app.route('/user-dashboard')
@@ -2007,7 +1995,7 @@ def register():
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('landing_page1'))
+    return redirect(url_for('root'))
 
 # Landing pages
 @app.route('/landing-page-1')
@@ -2102,36 +2090,62 @@ def feedback():
 @login_required
 def extract_facts():
     chat_id = request.json.get('chat_id')
-    if not chat_id:
-        return jsonify({'success': False, 'error': 'No chat_id provided'}), 400
     
-    # Try to convert chat_id to integer if it's a string
-    try:
-        if isinstance(chat_id, str):
-            # Check if it's a UUID string, if so, try to find by user's latest chat
-            if not chat_id.isdigit():
-                # Get the user's most recent chat
-                chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
-                if not chat:
-                    return jsonify({'success': False, 'error': 'No chats found for this user'}), 404
-            else:
-                chat_id = int(chat_id)
-                chat = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat_id, user_id=current_user.id).first()
-        else:
-            chat = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat_id, user_id=current_user.id).first()
-    except ValueError:
-        return jsonify({'success': False, 'error': 'Invalid chat_id format'}), 400
+    # Get all chats for this user to build complete conversation history
+    all_chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.asc()).all()
     
-    if not chat:
-        return jsonify({'success': False, 'error': 'Chat not found or access denied'}), 404
+    print(f"[EXTRACT_FACTS] Found {len(all_chats)} chats for user {current_user.id}")
     
-    if not chat.messages:
-        return jsonify({'success': False, 'error': 'No messages found in this chat'}), 400
+    if not all_chats:
+        return jsonify({'success': False, 'error': 'No chats found for this user'}), 404
     
-    # Gather all messages as context
-    chat_text = '\n'.join([f"{m.role}: {m.content}" for m in chat.messages])
+    # Build conversation history from all chats
+    all_messages = []
+    for chat in all_chats:
+        # Load messages for this chat
+        chat_with_messages = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat.id).first()
+        if chat_with_messages and chat_with_messages.messages:
+            all_messages.extend(chat_with_messages.messages)
+            print(f"[EXTRACT_FACTS] Chat {chat.id}: {len(chat_with_messages.messages)} messages")
+    
+    print(f"[EXTRACT_FACTS] Total messages: {len(all_messages)}")
+    
+    if not all_messages:
+        return jsonify({'success': False, 'error': 'No messages found in any chats'}), 400
+    
+    # If we have too many messages, create a summary of older conversations and keep recent ones detailed
+    if len(all_messages) > 100:
+        # Keep the most recent 30 messages detailed
+        recent_messages = all_messages[-30:]
+        older_messages = all_messages[:-30]
+        
+        # Create a summary of older conversations
+        older_text = '\n'.join([f"{m.role}: {m.content}" for m in older_messages])
+        
+        # First, create a summary of older conversations
+        try:
+            summary_response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert business analyst. Create a concise summary of the key business information discussed."},
+                    {"role": "user", "content": f"Summarize the key business information from this conversation history:\n\n{older_text}"}
+                ],
+                max_tokens=1000
+            )
+            older_summary = summary_response.choices[0].message.content
+        except Exception as e:
+            # If summarization fails, just use the last 50 messages
+            recent_messages = all_messages[-50:]
+            older_summary = ""
+        
+        # Combine summary with recent detailed messages
+        recent_text = '\n'.join([f"{m.role}: {m.content}" for m in recent_messages])
+        chat_text = f"Previous conversations summary:\n{older_summary}\n\nRecent detailed conversation:\n{recent_text}"
+    else:
+        # If we have fewer messages, use them all
+        chat_text = '\n'.join([f"{m.role}: {m.content}" for m in all_messages])
     prompt = (
-        "Extract the most important facts about this company from the following conversation. "
+        "Extract the most important facts about this company from the following conversation history. "
         "Focus on business name, mission, goals, challenges, products/services, audience, and any other relevant details. "
         "Return the facts as a clear, structured fact sheet.\n\n" + chat_text
     )
@@ -2141,8 +2155,12 @@ def extract_facts():
             messages=[{"role": "system", "content": "You are an expert business analyst."}, {"role": "user", "content": prompt}]
         )
         fact_sheet = response.choices[0].message.content
-        chat.fact_sheet = fact_sheet
+        
+        # Store the fact sheet in the most recent chat
+        latest_chat = all_chats[-1]
+        latest_chat.fact_sheet = fact_sheet
         db.session.commit()
+        
         return jsonify({'success': True, 'fact_sheet': fact_sheet})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -2150,36 +2168,62 @@ def extract_facts():
 @app.route('/develop_strategies', methods=['POST'])
 @login_required
 def develop_strategies():
-    chat_id = request.json.get('chat_id')
-    if not chat_id:
-        return jsonify({'success': False, 'error': 'No chat_id provided'}), 400
+    # Get all chats for this user to build complete conversation history
+    all_chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.asc()).all()
     
-    # Try to convert chat_id to integer if it's a string  
-    try:
-        if isinstance(chat_id, str):
-            # Check if it's a UUID string, if so, try to find by user's latest chat
-            if not chat_id.isdigit():
-                # Get the user's most recent chat
-                chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
-                if not chat:
-                    return jsonify({'success': False, 'error': 'No chats found for this user'}), 404
-            else:
-                chat_id = int(chat_id)
-                chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
-        else:
-            chat = Chat.query.filter_by(id=chat_id, user_id=current_user.id).first()
-    except ValueError:
-        return jsonify({'success': False, 'error': 'Invalid chat_id format'}), 400
+    if not all_chats:
+        return jsonify({'success': False, 'error': 'No chats found for this user'}), 404
     
-    if not chat:
-        return jsonify({'success': False, 'error': 'Chat not found or access denied'}), 404
-        
-    if not chat.fact_sheet:
+    # Check if we have a fact sheet from the most recent chat
+    latest_chat = all_chats[-1]
+    if not latest_chat.fact_sheet:
         return jsonify({'success': False, 'error': 'Please extract company information first before developing strategies'}), 400
+    
+    # Build conversation history for context
+    all_messages = []
+    for chat in all_chats:
+        # Load messages for this chat
+        chat_with_messages = Chat.query.options(joinedload(Chat.messages)).filter_by(id=chat.id).first()
+        if chat_with_messages and chat_with_messages.messages:
+            all_messages.extend(chat_with_messages.messages)
+    
+    # If we have too many messages, create a summary of older conversations and keep recent ones detailed
+    if len(all_messages) > 80:
+        # Keep the most recent 20 messages detailed
+        recent_messages = all_messages[-20:]
+        older_messages = all_messages[:-20]
         
+        # Create a summary of older conversations
+        older_text = '\n'.join([f"{m.role}: {m.content}" for m in older_messages])
+        
+        # First, create a summary of older conversations
+        try:
+            summary_response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert business strategist. Create a concise summary of the key business context discussed."},
+                    {"role": "user", "content": f"Summarize the key business context from this conversation history:\n\n{older_text}"}
+                ],
+                max_tokens=800
+            )
+            older_summary = summary_response.choices[0].message.content
+        except Exception as e:
+            # If summarization fails, just use the last 30 messages
+            recent_messages = all_messages[-30:]
+            older_summary = ""
+        
+        # Combine summary with recent detailed messages
+        recent_text = '\n'.join([f"{m.role}: {m.content}" for m in recent_messages])
+        conversation_context = f"Previous conversations summary:\n{older_summary}\n\nRecent detailed conversation:\n{recent_text}"
+    else:
+        # If we have fewer messages, use them all
+        conversation_context = '\n'.join([f"{m.role}: {m.content}" for m in all_messages])
+    
     prompt = (
-        "Given the following company fact sheet, develop a set of actionable strategies to help the business grow, improve, or solve its challenges. "
-        "Be specific and practical.\n\nFact Sheet:\n" + chat.fact_sheet
+        "Given the following company fact sheet and recent conversation context, develop a set of actionable strategies "
+        "to help the business grow, improve, or solve its challenges. Be specific and practical.\n\n"
+        f"Fact Sheet:\n{latest_chat.fact_sheet}\n\n"
+        f"Recent Conversation Context:\n{conversation_context}"
     )
     try:
         response = client.chat.completions.create(
@@ -2187,9 +2231,57 @@ def develop_strategies():
             messages=[{"role": "system", "content": "You are an expert business strategist."}, {"role": "user", "content": prompt}]
         )
         strategies = response.choices[0].message.content
-        chat.strategies = strategies
+        latest_chat.strategies = strategies
         db.session.commit()
         return jsonify({'success': True, 'strategies': strategies})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/save_company_info', methods=['POST'])
+@login_required
+def save_company_info():
+    """Save company information to database"""
+    try:
+        data = request.json
+        content = data.get('content')
+        
+        if not content:
+            return jsonify({'success': False, 'error': 'No content provided'}), 400
+        
+        # Get the user's latest chat to save the company info
+        latest_chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
+        
+        if latest_chat:
+            latest_chat.fact_sheet = content
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Company information saved to database'})
+        else:
+            return jsonify({'success': False, 'error': 'No chat found to save to'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/save_strategies', methods=['POST'])
+@login_required
+def save_strategies():
+    """Save AI strategies to database"""
+    try:
+        data = request.json
+        content = data.get('content')
+        
+        if not content:
+            return jsonify({'success': False, 'error': 'No content provided'}), 400
+        
+        # Get the user's latest chat to save the strategies
+        latest_chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).first()
+        
+        if latest_chat:
+            latest_chat.strategies = content
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'AI strategies saved to database'})
+        else:
+            return jsonify({'success': False, 'error': 'No chat found to save to'}), 404
+            
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -2264,4 +2356,7 @@ def health_check():
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')
+    # Handle subdirectory deployment
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
     app.run(host='0.0.0.0', port=8000, debug=True) 
