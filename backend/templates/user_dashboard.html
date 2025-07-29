@@ -36,6 +36,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex-wrap: wrap;
         }
         
         .chat-container {
@@ -317,45 +318,59 @@
         
         /* Mobile-specific improvements */
         @media (max-width: 768px) {
+            .top-bar {
+                padding: 0.5rem 0;
+            }
+            
+            .top-bar .brand {
+                font-size: 1.2rem;
+            }
+            
+            .user-info {
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            
+            .user-info button {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
             .chat-body {
                 flex-direction: column;
-                padding: 0.5rem;
-                gap: 0.5rem;
+                padding: 1rem;
+                gap: 1rem;
                 height: auto;
-                min-height: 80vh;
-                max-height: 90vh;
-                overflow-y: auto;
+                min-height: 70vh;
             }
             
             .chat-main {
                 min-width: auto;
                 flex: 1;
-                max-height: 50vh;
             }
             
             .chat-sidebar {
                 min-width: auto;
-                max-height: 40vh;
+                max-height: none;
                 order: 2;
-                overflow-y: auto;
             }
             
             .info-box {
-                max-height: 35vh;
-                margin-bottom: 0.5rem;
-                overflow: hidden;
+                max-height: 400px;
+                margin-bottom: 1rem;
             }
             
             .info-box-content {
-                max-height: 30vh;
-                height: 30vh;
+                max-height: 350px;
+                height: 350px;
                 -webkit-overflow-scrolling: touch;
-                overflow-y: scroll !important;
+                overflow-y: auto !important;
                 border: 2px solid #e9ecef;
             }
             
             .chat-messages {
-                max-height: 35vh;
+                max-height: 40vh;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
@@ -363,7 +378,6 @@
             .chat-input {
                 flex-direction: column;
                 gap: 0.5rem;
-                margin-top: 0.5rem;
             }
             
             .chat-input input {
@@ -379,26 +393,6 @@
             .action-buttons button {
                 width: 100%;
                 margin: 0;
-            }
-            
-            /* Force scrollbars on mobile */
-            .info-box-content::-webkit-scrollbar {
-                width: 8px !important;
-                display: block !important;
-            }
-            
-            .info-box-content::-webkit-scrollbar-track {
-                background: #f0f0f0 !important;
-                border-radius: 4px !important;
-            }
-            
-            .info-box-content::-webkit-scrollbar-thumb {
-                background: #888 !important;
-                border-radius: 4px !important;
-            }
-            
-            .info-box-content::-webkit-scrollbar-thumb:hover {
-                background: #666 !important;
             }
         }
         
