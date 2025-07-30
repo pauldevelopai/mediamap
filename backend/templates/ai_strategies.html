@@ -253,6 +253,131 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.tertiary {
+            background: var(--gray-600);
+            color: white;
+        }
+
+        .action-btn.tertiary:hover {
+            background: var(--gray-700);
+            transform: translateY(-2px);
+        }
+
+        /* Saved Strategies */
+        .saved-strategies-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .saved-strategy-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .saved-strategy-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .strategy-header h4 {
+            margin: 0;
+            color: var(--gray-800);
+            font-weight: 600;
+        }
+
+        .strategy-meta {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .strategy-date {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .strategy-content {
+            color: var(--gray-700);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .strategy-notes {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            font-size: 0.9rem;
+            color: var(--gray-700);
+        }
+
+        /* Strategy Preview */
+        .strategy-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-300);
+        }
     </style>
 </head>
 <body>
@@ -280,11 +405,15 @@
                 </a>
                 <a href="{{ url_for('user_dashboard') }}" class="btn-secondary">
                     <i class="bi bi-house"></i>
-                    Dashboard
+                    Home
                 </a>
                 <a href="{{ url_for('company_info') }}" class="btn-secondary">
                     <i class="bi bi-building"></i>
                     Company Info
+                </a>
+                <a href="{{ url_for('today_news') }}" class="btn-secondary">
+                    <i class="bi bi-newspaper"></i>
+                    Today's News
                 </a>
                 <a href="{{ url_for('logout') }}" class="btn-primary">
                     <i class="bi bi-box-arrow-right"></i>
@@ -303,19 +432,52 @@
             </div>
             
             <div class="content-body">
-                {% if strategies_data and strategies_data != "No AI strategies available yet. Start a conversation with Highlander to develop AI strategies for your business." %}
-                    <div class="strategies-data">{{ strategies_data }}</div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class="bi bi-lightbulb"></i>
-                        <h3>No AI Strategies Available</h3>
-                        <p>Start a conversation with Highlander to develop AI strategies for your business.</p>
-                        <a href="{{ url_for('user_dashboard') }}" class="btn-start-chat">
-                            <i class="bi bi-plus-circle"></i>
-                            Start New Conversation
-                        </a>
+                <!-- Action Buttons -->
+                <div class="action-buttons mb-4">
+                    <button id="generate-new-btn" class="action-btn primary">
+                        <i class="bi bi-magic"></i>
+                        Generate New Strategy
+                    </button>
+                    <button id="save-strategy-btn" class="action-btn secondary" style="display: none;">
+                        <i class="bi bi-bookmark-plus"></i>
+                        Save Strategy
+                    </button>
+                    <button id="view-saved-btn" class="action-btn tertiary">
+                        <i class="bi bi-collection"></i>
+                        View Saved Strategies
+                    </button>
+                </div>
+
+                <!-- Current Strategy Display -->
+                <div id="current-strategy-section">
+                    {% if strategies_data and strategies_data != "No AI strategies available yet. Start a conversation with Highlander to develop AI strategies for your business." %}
+                        <div class="strategies-data" id="current-strategy">{{ strategies_data }}</div>
+                    {% else %}
+                        <div class="empty-state" id="empty-state">
+                            <i class="bi bi-lightbulb"></i>
+                            <h3>No AI Strategies Available</h3>
+                            <p>Start a conversation with Highlander to develop AI strategies for your business.</p>
+                            <a href="{{ url_for('user_dashboard') }}" class="btn-start-chat">
+                                <i class="bi bi-plus-circle"></i>
+                                Start New Conversation
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Saved Strategies Section -->
+                <div id="saved-strategies-section" style="display: none;">
+                    <div class="saved-strategies-header">
+                        <h3><i class="bi bi-collection me-2"></i>Saved Strategies</h3>
+                        <button id="back-to-current-btn" class="btn-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            Back to Current
+                        </button>
                     </div>
-                {% endif %}
+                    <div id="saved-strategies-list">
+                        <!-- Saved strategies will be loaded here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -367,7 +529,279 @@
         </div>
     </div>
 
+    <!-- Save Strategy Modal -->
+    <div class="modal fade" id="saveStrategyModal" tabindex="-1" aria-labelledby="saveStrategyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saveStrategyModalLabel">
+                        <i class="bi bi-bookmark-plus me-2"></i>Save AI Strategy
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveStrategyForm">
+                        <div class="mb-3">
+                            <label for="strategyTitle" class="form-label">Strategy Title</label>
+                            <input type="text" class="form-control" id="strategyTitle" name="title" placeholder="Enter a descriptive title for this strategy" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="strategyCategory" class="form-label">Category</label>
+                            <select class="form-select" id="strategyCategory" name="category">
+                                <option value="content_creation">Content Creation</option>
+                                <option value="automation">Automation</option>
+                                <option value="analytics">Analytics & Insights</option>
+                                <option value="customer_engagement">Customer Engagement</option>
+                                <option value="operations">Operations</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="general" selected>General</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="strategyPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="strategyPriority" name="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="strategyNotes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="strategyNotes" name="notes" rows="3" placeholder="Add any additional notes or context about this strategy"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Strategy Content</label>
+                            <div class="strategy-preview p-3 bg-light rounded">
+                                <div id="strategyContentPreview"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmSaveStrategy">Save Strategy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Global variables
+        let currentStrategyContent = '';
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there's current strategy content
+            const currentStrategy = document.getElementById('current-strategy');
+            if (currentStrategy) {
+                currentStrategyContent = currentStrategy.innerHTML;
+                document.getElementById('save-strategy-btn').style.display = 'inline-flex';
+            }
+            
+            // Load saved strategies
+            loadSavedStrategies();
+        });
+
+        // Generate new strategy
+        document.getElementById('generate-new-btn').addEventListener('click', async function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+                btn.disabled = true;
+                
+                const response = await fetch('/generate-new-strategy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update the current strategy display
+                    currentStrategyContent = data.strategy;
+                    
+                    // Hide empty state if it exists
+                    const emptyState = document.getElementById('empty-state');
+                    if (emptyState) {
+                        emptyState.style.display = 'none';
+                    }
+                    
+                    // Show current strategy
+                    const currentStrategySection = document.getElementById('current-strategy-section');
+                    currentStrategySection.innerHTML = `
+                        <div class="strategies-data" id="current-strategy">${data.strategy}</div>
+                    `;
+                    
+                    // Show save button
+                    document.getElementById('save-strategy-btn').style.display = 'inline-flex';
+                    
+                    // Show success message
+                    showMessage('New strategy generated successfully!', 'success');
+                } else {
+                    showMessage(data.error || 'Failed to generate new strategy', 'error');
+                }
+            } catch (error) {
+                console.error('Error generating strategy:', error);
+                showMessage('Error generating new strategy', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Save strategy
+        document.getElementById('save-strategy-btn').addEventListener('click', function() {
+            if (!currentStrategyContent) {
+                showMessage('No strategy content to save', 'error');
+                return;
+            }
+            
+            // Populate the modal with current strategy content
+            document.getElementById('strategyContentPreview').innerHTML = currentStrategyContent;
+            document.getElementById('strategyTitle').value = 'AI Strategy - ' + new Date().toLocaleDateString();
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('saveStrategyModal'));
+            modal.show();
+        });
+
+        // Confirm save strategy
+        document.getElementById('confirmSaveStrategy').addEventListener('click', async function() {
+            const form = document.getElementById('saveStrategyForm');
+            const formData = new FormData(form);
+            
+            const saveData = {
+                title: formData.get('title'),
+                content: currentStrategyContent,
+                category: formData.get('category'),
+                priority: formData.get('priority'),
+                notes: formData.get('notes')
+            };
+            
+            try {
+                const response = await fetch('/save-strategy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(saveData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Strategy saved successfully!', 'success');
+                    
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('saveStrategyModal')).hide();
+                    
+                    // Reset form
+                    form.reset();
+                    
+                    // Reload saved strategies
+                    loadSavedStrategies();
+                } else {
+                    showMessage(data.error || 'Failed to save strategy', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving strategy:', error);
+                showMessage('Error saving strategy', 'error');
+            }
+        });
+
+        // View saved strategies
+        document.getElementById('view-saved-btn').addEventListener('click', function() {
+            document.getElementById('current-strategy-section').style.display = 'none';
+            document.getElementById('saved-strategies-section').style.display = 'block';
+            loadSavedStrategies();
+        });
+
+        // Back to current strategy
+        document.getElementById('back-to-current-btn').addEventListener('click', function() {
+            document.getElementById('saved-strategies-section').style.display = 'none';
+            document.getElementById('current-strategy-section').style.display = 'block';
+        });
+
+        // Load saved strategies
+        async function loadSavedStrategies() {
+            try {
+                const response = await fetch('/get-saved-strategies');
+                const data = await response.json();
+                
+                const strategiesList = document.getElementById('saved-strategies-list');
+                
+                if (data.success && data.strategies.length > 0) {
+                    strategiesList.innerHTML = data.strategies.map(strategy => `
+                        <div class="saved-strategy-card">
+                            <div class="strategy-header">
+                                <h4>${strategy.title}</h4>
+                                <div class="strategy-meta">
+                                    <span class="badge bg-primary">${strategy.category}</span>
+                                    <span class="badge bg-${getPriorityColor(strategy.priority)}">${strategy.priority}</span>
+                                    <span class="strategy-date">${new Date(strategy.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div class="strategy-content">
+                                ${strategy.content.substring(0, 300)}${strategy.content.length > 300 ? '...' : ''}
+                            </div>
+                            ${strategy.notes ? `<div class="strategy-notes"><strong>Notes:</strong> ${strategy.notes}</div>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    strategiesList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-collection"></i>
+                            <h3>No Saved Strategies</h3>
+                            <p>Save strategies you like to access them later.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading saved strategies:', error);
+                document.getElementById('saved-strategies-list').innerHTML = `
+                    <div class="error-state">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <h3>Error Loading Strategies</h3>
+                        <p>There was an error loading your saved strategies.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Helper functions
+        function getPriorityColor(priority) {
+            switch (priority) {
+                case 'high': return 'danger';
+                case 'medium': return 'warning';
+                case 'low': return 'success';
+                default: return 'secondary';
+            }
+        }
+
+        function showMessage(message, type) {
+            // Create a simple toast notification
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 5000);
+        }
+
         function submitFeedback() {
             const form = document.getElementById('feedbackForm');
             const formData = new FormData(form);

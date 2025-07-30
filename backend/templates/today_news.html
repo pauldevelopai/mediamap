@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's News - MediaMap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #1e40af;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #06b6d4;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            text-decoration: none;
+        }
+
+        .brand:hover {
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .username {
+            color: var(--gray-800);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: #d97706;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            margin-bottom: 0;
+        }
+
+
+
+        .news-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .news-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .refresh-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .refresh-btn:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .news-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .news-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .news-source {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .news-source-icon {
+            color: var(--primary-color);
+        }
+
+        .news-date {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-left: auto;
+        }
+
+        .news-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+
+        .news-description {
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .news-link {
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .news-link:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-600);
+        }
+
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--danger-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-600);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--gray-400);
+            margin-bottom: 1rem;
+        }
+
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1.5rem;
+            }
+            
+            .chat-header h1 {
+                font-size: 2rem;
+            }
+            
+            .chat-header p {
+                display: none;
+            }
+            
+            .user-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .nav-buttons {
+                justify-content: center;
+            }
+            
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .news-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="brand">
+                <i class="bi bi-robot"></i>
+                MediaMap AI
+            </a>
+            <div class="user-info">
+                <span class="username">
+                    <i class="bi bi-person-circle me-1"></i>
+                    {{ current_user.username }}
+                </span>
+            </div>
+            <div class="user-actions">
+                <button class="btn-secondary" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                    <i class="bi bi-chat-quote"></i>
+                    Feedback
+                </button>
+                <a href="{{ url_for('my_chats') }}" class="btn-secondary">
+                    <i class="bi bi-chat-text"></i>
+                    My Chats
+                </a>
+                <a href="{{ url_for('company_info') }}" class="btn-secondary">
+                    <i class="bi bi-building"></i>
+                    Company Info
+                </a>
+                <a href="{{ url_for('ai_strategies') }}" class="btn-secondary">
+                    <i class="bi bi-lightbulb"></i>
+                    AI Strategies
+                </a>
+                <a href="{{ url_for('today_news') }}" class="btn-secondary">
+                    <i class="bi bi-newspaper"></i>
+                    Today's News
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn-primary">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1><i class="bi bi-newspaper me-3"></i>Today's News</h1>
+            <p>Relevant news stories based on your conversations with Highlander</p>
+        </div>
+
+        <!-- News Container -->
+        <div class="news-container">
+            <div class="news-header">
+                <h2 class="news-title">
+                    <i class="bi bi-newspaper"></i>
+                    Relevant News Stories
+                </h2>
+                <button id="refresh-news-btn" class="refresh-btn">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Find Today's News
+                </button>
+            </div>
+            
+            <div id="news-content">
+                {% if existing_news %}
+                    <div class="news-grid">
+                        {% for article in existing_news %}
+                        <div class="news-card">
+                            <div class="news-source">
+                                <i class="bi bi-newspaper news-source-icon"></i>
+                                <span>{{ article.source_name or 'Unknown Source' }}</span>
+                                <span class="news-date">{{ article.published_at.strftime('%b %d, %Y, %I:%M %p') if article.published_at else 'Unknown date' }}</span>
+                            </div>
+                            <h3 class="news-title">{{ article.title }}</h3>
+                            <p class="news-description">{{ article.description or 'No description available.' }}</p>
+                            <a href="{{ article.url }}" target="_blank" class="news-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Read Full Article
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading relevant news stories...</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feedbackModalLabel">
+                        <i class="bi bi-chat-quote me-2"></i>Send Feedback
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="feedbackForm">
+                        <div class="mb-3">
+                            <label for="feedbackType" class="form-label">Feedback Type</label>
+                            <select class="form-select" id="feedbackType" name="type" required>
+                                <option value="">Select type...</option>
+                                <option value="bug">Bug Report</option>
+                                <option value="feature">Feature Request</option>
+                                <option value="improvement">Improvement Suggestion</option>
+                                <option value="general">General Feedback</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="feedbackMessage" class="form-label">Message</label>
+                            <textarea class="form-control" id="feedbackMessage" name="message" rows="4" placeholder="Please describe your feedback..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="feedbackRating" class="form-label">Rating (Optional)</label>
+                            <select class="form-select" id="feedbackRating" name="rating">
+                                <option value="">Select rating...</option>
+                                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                <option value="4">⭐⭐⭐⭐ Very Good</option>
+                                <option value="3">⭐⭐⭐ Good</option>
+                                <option value="2">⭐⭐ Fair</option>
+                                <option value="1">⭐ Poor</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitFeedback">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Load news on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNews();
+        });
+
+        // Refresh news button
+        document.getElementById('refresh-news-btn').addEventListener('click', function() {
+            loadNews();
+        });
+
+        async function loadNews() {
+            const newsContent = document.getElementById('news-content');
+            const refreshBtn = document.getElementById('refresh-news-btn');
+            
+            // Show loading state
+            newsContent.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Finding relevant news stories...</p>
+                </div>
+            `;
+            
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Finding News...';
+            
+            try {
+                const response = await fetch('/find-news', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.news && data.news.length > 0) {
+                    displayNews(data.news);
+                    if (data.cached) {
+                        // Show a subtle indicator that news was loaded from cache
+                        const refreshBtn = document.getElementById('refresh-news-btn');
+                        refreshBtn.innerHTML = '<i class="bi bi-clock"></i> Last Updated: Today';
+                        setTimeout(() => {
+                            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Find Today\'s News';
+                        }, 3000);
+                    }
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading news:', error);
+                showErrorState();
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Find Today\'s News';
+            }
+        }
+
+        function displayNews(news) {
+            const newsContent = document.getElementById('news-content');
+            
+            const newsHTML = `
+                <div class="news-grid">
+                    ${news.map(article => `
+                        <div class="news-card">
+                            <div class="news-source">
+                                <i class="bi bi-newspaper news-source-icon"></i>
+                                <span>${article.source?.name || 'Unknown Source'}</span>
+                                <span class="news-date">${formatDate(article.publishedAt)}</span>
+                            </div>
+                            <h3 class="news-title">${article.title}</h3>
+                            <p class="news-description">${article.description || 'No description available.'}</p>
+                            <a href="${article.url}" target="_blank" class="news-link">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Read Full Article
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            newsContent.innerHTML = newsHTML;
+        }
+
+        function showEmptyState() {
+            const newsContent = document.getElementById('news-content');
+            newsContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-newspaper"></i>
+                    <h3>No News Found</h3>
+                    <p>Start a conversation with Highlander to get personalized news recommendations.</p>
+                    <a href="{{ url_for('user_dashboard') }}" class="nav-btn">
+                        <i class="bi bi-house"></i>
+                        Home
+                    </a>
+                </div>
+            `;
+        }
+
+        function showErrorState() {
+            const newsContent = document.getElementById('news-content');
+            newsContent.innerHTML = `
+                <div class="error-state">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3>Error Loading News</h3>
+                    <p>There was an error loading the news. Please try again.</p>
+                </div>
+            `;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown date';
+            
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return 'Unknown date';
+            }
+        }
+
+        // Feedback form submission
+        document.getElementById('submitFeedback').addEventListener('click', async function() {
+            const form = document.getElementById('feedbackForm');
+            const formData = new FormData(form);
+            
+            const feedbackData = {
+                type: formData.get('type'),
+                message: formData.get('message'),
+                rating: formData.get('rating') || null
+            };
+            
+            try {
+                const response = await fetch('/submit-feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(feedbackData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Thank you for your feedback!');
+                    bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+                    form.reset();
+                } else {
+                    alert('Error submitting feedback. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                alert('Error submitting feedback. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html> 

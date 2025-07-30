@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration
+from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
@@ -3120,6 +3120,282 @@ def ai_strategies():
         strategies_data = "No AI strategies available yet. Start a conversation with Highlander to develop AI strategies for your business."
     
     return render_template('ai_strategies.html', strategies_data=strategies_data)
+
+@app.route('/find-news', methods=['POST'])
+@login_required
+def find_news():
+    """Find relevant news based on user's chat history"""
+    try:
+        # Check if user already has recent news (within last 24 hours)
+        from datetime import timedelta
+        yesterday = datetime.utcnow() - timedelta(hours=24)
+        existing_news = News.query.filter_by(user_id=current_user.id).filter(News.created_at >= yesterday).all()
+        
+        if existing_news:
+            # Return existing news from database
+            news_data = [article.to_dict() for article in existing_news[:3]]
+            return jsonify({'success': True, 'news': news_data, 'cached': True})
+        
+        # Get all chats for this user to build complete conversation history
+        all_chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.desc()).all()
+        
+        if not all_chats:
+            return jsonify({'success': False, 'error': 'No conversation history found. Please chat with Highlander first.'})
+        
+        # Build conversation history
+        all_messages = []
+        for chat in all_chats:
+            for message in chat.messages:
+                all_messages.append(f"{message.role}: {message.content}")
+        
+        conversation_text = "\n".join(all_messages[-50:])  # Last 50 messages for context
+        
+        # Use OpenAI to analyze the conversation and extract relevant topics
+        if not client:
+            return jsonify({'success': False, 'error': 'OpenAI client not available'})
+        
+        # Create a prompt to extract relevant topics from the conversation
+        analysis_prompt = f"""
+        Based on the following conversation between a user and an AI assistant about their media business, 
+        extract 3-5 key topics, industries, or themes that would be relevant for finding news articles.
+        
+        Focus on:
+        - Industry sectors mentioned (media, journalism, technology, etc.)
+        - Specific companies or organizations discussed
+        - Geographic regions or markets mentioned
+        - Technology trends or challenges discussed
+        - Business challenges or opportunities mentioned
+        
+        Conversation:
+        {conversation_text}
+        
+        Return only a JSON array of relevant search terms, like:
+        ["media industry", "journalism technology", "AI in newsrooms", "digital transformation"]
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": analysis_prompt}],
+            temperature=0.3,
+            max_tokens=200
+        )
+        
+        # Parse the response to get search terms
+        try:
+            search_terms = json.loads(response.choices[0].message.content)
+        except:
+            # Fallback search terms if parsing fails
+            search_terms = ["media industry", "journalism", "AI technology"]
+        
+        # Use NewsAPI to find relevant articles
+        news_api_key = "a5e5898731c74bfe97bae546ef04dea6"  # Your NewsAPI key
+        
+        # Fetch real news using NewsAPI
+        articles = []
+        for term in search_terms[:3]:  # Use top 3 search terms
+            try:
+                url = f"https://newsapi.org/v2/everything"
+                params = {
+                    'q': term,
+                    'language': 'en',
+                    'sortBy': 'publishedAt',
+                    'pageSize': 5,
+                    'apiKey': news_api_key
+                }
+                
+                response = requests.get(url, params=params, timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('articles'):
+                        articles.extend(data['articles'][:2])  # Get top 2 articles per term
+            except Exception as e:
+                print(f"Error fetching news for term '{term}': {e}")
+                continue
+        
+        # Remove duplicates and limit to top 3
+        unique_articles = []
+        seen_urls = set()
+        for article in articles:
+            if article.get('url') and article['url'] not in seen_urls:
+                unique_articles.append(article)
+                seen_urls.add(article['url'])
+                if len(unique_articles) >= 3:
+                    break
+        
+        # If we don't have enough articles, add some fallback ones
+        while len(unique_articles) < 3:
+            unique_articles.append({
+                "title": "Media Industry Insights: Latest Trends and Developments",
+                "description": "Stay updated with the latest developments in the media industry, from technological innovations to business strategies.",
+                "url": "https://example.com/media-insights",
+                "publishedAt": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "source": {"name": "Media Weekly"}
+            })
+        
+        # Save articles to database
+        search_terms_str = json.dumps(search_terms)
+        for article in unique_articles[:3]:
+            try:
+                published_at = None
+                if article.get('publishedAt'):
+                    try:
+                        published_at = datetime.fromisoformat(article['publishedAt'].replace('Z', '+00:00'))
+                    except:
+                        published_at = datetime.utcnow()
+                
+                news_article = News(
+                    user_id=current_user.id,
+                    title=article.get('title', ''),
+                    description=article.get('description', ''),
+                    url=article.get('url', ''),
+                    source_name=article.get('source', {}).get('name', ''),
+                    published_at=published_at,
+                    search_terms=search_terms_str
+                )
+                db.session.add(news_article)
+            except Exception as e:
+                print(f"Error saving news article: {e}")
+                continue
+        
+        db.session.commit()
+        
+        # Return the saved articles
+        news_data = [article.to_dict() for article in unique_articles[:3]]
+        return jsonify({'success': True, 'news': news_data, 'cached': False})
+        
+    except Exception as e:
+        print(f"Error in find_news: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/today-news')
+@login_required
+def today_news():
+    """Display today's relevant news page"""
+    # Get user's recent news (within last 24 hours)
+    from datetime import timedelta
+    yesterday = datetime.utcnow() - timedelta(hours=24)
+    existing_news = News.query.filter_by(user_id=current_user.id).filter(News.created_at >= yesterday).order_by(News.created_at.desc()).limit(3).all()
+    
+    return render_template('today_news.html', existing_news=existing_news)
+
+@app.route('/save-strategy', methods=['POST'])
+@login_required
+def save_strategy():
+    """Save a strategy to the database"""
+    try:
+        data = request.get_json()
+        title = data.get('title', 'AI Strategy')
+        content = data.get('content', '')
+        category = data.get('category', 'general')
+        priority = data.get('priority', 'medium')
+        notes = data.get('notes', '')
+        
+        if not content.strip():
+            return jsonify({'success': False, 'error': 'Strategy content cannot be empty'})
+        
+        # Create new saved strategy
+        strategy = SavedStrategy(
+            user_id=current_user.id,
+            title=title,
+            content=content,
+            category=category,
+            priority=priority,
+            notes=notes
+        )
+        
+        db.session.add(strategy)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Strategy saved successfully!',
+            'strategy_id': strategy.id
+        })
+        
+    except Exception as e:
+        print(f"Error saving strategy: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/generate-new-strategy', methods=['POST'])
+@login_required
+def generate_new_strategy():
+    """Generate a new AI strategy based on user's chat history"""
+    try:
+        # Get all chats for this user to build complete conversation history
+        all_chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.desc()).all()
+        
+        if not all_chats:
+            return jsonify({'success': False, 'error': 'No conversation history found. Please chat with Highlander first.'})
+        
+        # Build conversation history
+        all_messages = []
+        for chat in all_chats:
+            for message in chat.messages:
+                all_messages.append(f"{message.role}: {message.content}")
+        
+        conversation_text = "\n".join(all_messages[-50:])  # Last 50 messages for context
+        
+        # Use OpenAI to generate new AI strategies
+        if not client:
+            return jsonify({'success': False, 'error': 'OpenAI client not available'})
+        
+        # Create a prompt to generate new AI strategies
+        strategy_prompt = f"""
+        Based on the following conversation between a user and an AI assistant about their media business, 
+        generate a comprehensive, actionable AI strategy that would help their business grow and improve.
+        
+        The strategy should be:
+        - Specific and actionable
+        - Relevant to their business context
+        - Focused on practical AI implementation
+        - Include clear steps and recommendations
+        - Address their specific challenges and goals
+        
+        Conversation context:
+        {conversation_text}
+        
+        Generate a detailed AI strategy with:
+        1. Strategy overview and objectives
+        2. Specific AI tools and technologies to implement
+        3. Step-by-step implementation plan
+        4. Expected outcomes and benefits
+        5. Potential challenges and mitigation strategies
+        
+        Make it comprehensive and immediately actionable.
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": strategy_prompt}],
+            temperature=0.7,
+            max_tokens=1500
+        )
+        
+        new_strategy = response.choices[0].message.content
+        
+        return jsonify({
+            'success': True, 
+            'strategy': new_strategy,
+            'message': 'New AI strategy generated successfully!'
+        })
+        
+    except Exception as e:
+        print(f"Error generating new strategy: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/get-saved-strategies')
+@login_required
+def get_saved_strategies():
+    """Get all saved strategies for the current user"""
+    try:
+        strategies = SavedStrategy.query.filter_by(user_id=current_user.id).order_by(SavedStrategy.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'strategies': [strategy.to_dict() for strategy in strategies]
+        })
+    except Exception as e:
+        print(f"Error getting saved strategies: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')

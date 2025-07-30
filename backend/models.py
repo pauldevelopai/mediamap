@@ -186,4 +186,70 @@ class NotionIntegration(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def __repr__(self):
-        return f'<NotionIntegration {self.workspace_id}>' 
+        return f'<NotionIntegration {self.workspace_id}>'
+
+class News(db.Model):
+    """Model for storing user's personalized news"""
+    __tablename__ = 'news'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(500), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    url = db.Column(db.String(1000), nullable=False)
+    source_name = db.Column(db.String(200), nullable=True)
+    published_at = db.Column(db.DateTime, nullable=True)
+    search_terms = db.Column(db.Text, nullable=True)  # Store the search terms used
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('news_articles', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'url': self.url,
+            'source': {'name': self.source_name},
+            'publishedAt': self.published_at.isoformat() if self.published_at else None,
+            'search_terms': self.search_terms,
+            'created_at': self.created_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<News {self.title[:50]}...>'
+
+class SavedStrategy(db.Model):
+    """Model for storing user's saved AI strategies"""
+    __tablename__ = 'saved_strategies'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(100), nullable=True)  # e.g., 'content_creation', 'automation', 'analytics'
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high
+    status = db.Column(db.String(20), default='draft')  # draft, active, completed, archived
+    notes = db.Column(db.Text, nullable=True)  # User notes about the strategy
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('saved_strategies', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'content': self.content,
+            'category': self.category,
+            'priority': self.priority,
+            'status': self.status,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<SavedStrategy {self.title[:50]}...>' 
