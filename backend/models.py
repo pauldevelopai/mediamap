@@ -252,4 +252,36 @@ class SavedStrategy(db.Model):
         }
     
     def __repr__(self):
-        return f'<SavedStrategy {self.title[:50]}...>' 
+        return f'<SavedStrategy {self.title[:50]}...>'
+
+class SavedNews(db.Model):
+    """Model for storing user's saved news articles"""
+    __tablename__ = 'saved_news'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(500), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    url = db.Column(db.String(1000), nullable=False)
+    source_name = db.Column(db.String(200), nullable=True)
+    published_at = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.Text, nullable=True)  # User notes about the article
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('saved_news', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'url': self.url,
+            'source_name': self.source_name,
+            'published_at': self.published_at.isoformat() if self.published_at else None,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<SavedNews {self.title[:50]}...>' 

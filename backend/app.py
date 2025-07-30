@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy
+from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
@@ -3395,6 +3395,77 @@ def get_saved_strategies():
         })
     except Exception as e:
         print(f"Error getting saved strategies: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/save-news', methods=['POST'])
+@login_required
+def save_news():
+    """Save a news article to the database"""
+    try:
+        data = request.get_json()
+        title = data.get('title', '')
+        description = data.get('description', '')
+        url = data.get('url', '')
+        source_name = data.get('source_name', '')
+        published_at = data.get('published_at', '')
+        notes = data.get('notes', '')
+        
+        if not title or not url:
+            return jsonify({'success': False, 'error': 'Title and URL are required'})
+        
+        # Parse published_at if provided
+        parsed_date = None
+        if published_at:
+            try:
+                parsed_date = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
+            except:
+                parsed_date = datetime.utcnow()
+        
+        # Check if news article already exists for this user
+        existing_news = SavedNews.query.filter_by(
+            user_id=current_user.id, 
+            url=url
+        ).first()
+        
+        if existing_news:
+            return jsonify({'success': False, 'error': 'This article is already saved'})
+        
+        # Create new saved news
+        news_article = SavedNews(
+            user_id=current_user.id,
+            title=title,
+            description=description,
+            url=url,
+            source_name=source_name,
+            published_at=parsed_date,
+            notes=notes
+        )
+        
+        db.session.add(news_article)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'News article saved successfully!',
+            'news_id': news_article.id
+        })
+        
+    except Exception as e:
+        print(f"Error saving news: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/get-saved-news')
+@login_required
+def get_saved_news():
+    """Get all saved news articles for the current user"""
+    try:
+        news_articles = SavedNews.query.filter_by(user_id=current_user.id).order_by(SavedNews.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'news': [article.to_dict() for article in news_articles]
+        })
+    except Exception as e:
+        print(f"Error getting saved news: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
