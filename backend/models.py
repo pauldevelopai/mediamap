@@ -174,3 +174,16 @@ class Feedback(db.Model):
     
     # Relationship
     user = db.relationship('User', backref=db.backref('feedback_submissions', lazy=True)) 
+
+class NotionIntegration(db.Model):
+    """Model for Notion integration settings"""
+    id = db.Column(db.Integer, primary_key=True)
+    notion_token = db.Column(db.String(500), nullable=False)
+    workspace_id = db.Column(db.String(100), nullable=False)
+    database_id = db.Column(db.String(100), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<NotionIntegration {self.workspace_id}>' 

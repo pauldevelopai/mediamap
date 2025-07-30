@@ -1,0 +1,172 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Notion Integration | MediaMap Admin{% endblock %}
+
+{% block header %}Notion Integration{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-link-45deg"></i> Notion Integration Setup
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> About Notion Integration</h6>
+                    <p class="mb-0">
+                        Connect MediaMap to your Notion workspace to automatically sync conversations, insights, and media analyses. 
+                        This allows you to maintain a centralized knowledge base of all your media development work.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ url_for('configure_notion') }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="notion_token" class="form-label">Notion Integration Token</label>
+                                <input type="password" class="form-control" id="notion_token" name="notion_token" 
+                                       value="{{ notion_integration.notion_token if notion_integration else '' }}" required>
+                                <div class="form-text">
+                                    Get this from <a href="https://www.notion.so/my-integrations" target="_blank">Notion Integrations</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="workspace_id" class="form-label">Workspace ID</label>
+                                <input type="text" class="form-control" id="workspace_id" name="workspace_id" 
+                                       value="{{ notion_integration.workspace_id if notion_integration else '' }}" required>
+                                <div class="form-text">
+                                    Found in your Notion workspace URL: notion.so/[workspace-id]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="database_id" class="form-label">Database ID (Optional)</label>
+                        <input type="text" class="form-control" id="database_id" name="database_id" 
+                               value="{{ notion_integration.database_id if notion_integration else '' }}">
+                        <div class="form-text">
+                            Optional: Specific database to sync data to. Leave empty to create new databases automatically.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Configuration
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="testConnection()">
+                            <i class="bi bi-connection"></i> Test Connection
+                        </button>
+                    </div>
+                </form>
+
+                {% if notion_integration %}
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-gear"></i> Integration Status</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p><strong>Status:</strong> 
+                                    <span class="badge bg-success">Active</span>
+                                </p>
+                                <p><strong>Workspace:</strong> {{ notion_integration.workspace_id }}</p>
+                                <p><strong>Last Updated:</strong> {{ notion_integration.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-lightning"></i> Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-success" onclick="syncRecentData()">
+                                <i class="bi bi-arrow-repeat"></i> Sync Recent Data
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="viewSyncHistory()">
+                                <i class="bi bi-clock-history"></i> View Sync History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Connection Test Modal -->
+<div class="modal fade" id="connectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Connection Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="connectionResult">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Testing connection...</span>
+                    </div>
+                    <p class="mt-2">Testing Notion connection...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function testConnection() {
+    const modal = new bootstrap.Modal(document.getElementById('connectionModal'));
+    modal.show();
+    
+    fetch('{{ url_for("test_notion_connection") }}')
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('connectionResult');
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> ${data.message}
+                    </div>
+                    <div class="mt-3">
+                        <h6>Connection Details:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>User:</strong> ${data.user_data.name || 'Unknown'}</li>
+                            <li><strong>Email:</strong> ${data.user_data.person?.email || 'N/A'}</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('connectionResult').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error: ${error.message}
+                </div>
+            `;
+        });
+}
+
+function syncRecentData() {
+    // TODO: Implement sync functionality
+    alert('Sync functionality coming soon!');
+}
+
+function viewSyncHistory() {
+    // TODO: Implement sync history view
+    alert('Sync history coming soon!');
+}
+</script>
+{% endblock %} 

@@ -99,6 +99,12 @@
                                 Create Admin
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ url_for('admin_notion') }}" class="nav-link {% if request.endpoint == 'admin_notion' %}active{% endif %}">
+                                <i class="bi bi-link-45deg me-2"></i>
+                                Notion Integration
+                            </a>
+                        </li>
                     </ul>
                     <hr>
                     <div class="dropdown">

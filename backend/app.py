@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback
+from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
@@ -29,6 +29,7 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload
 from bs4 import BeautifulSoup
 import html2text
+from notion_client import Client as NotionClient
 
 # Create the ai_utility blueprint
 ai_utility_bp = Blueprint('ai_utility', __name__, url_prefix='/ai-utility')
@@ -139,35 +140,53 @@ SYSTEM_PROMPT_SYNTHESIS = """You are an organizational analyst. Extract key info
 
 Return the information in JSON format with these categories. Only include information that has been explicitly mentioned or can be directly inferred."""
 
-SYSTEM_PROMPT_MEDIA_BIZ = """You are Highlander, an expert AI business consultant specializing in media companies.
+SYSTEM_PROMPT_MEDIA_BIZ = """You are Highlander, an expert AI consultant specializing in global media development and journalism. You have deep knowledge of the media industry, digital transformation, and AI implementation for newsrooms and media organizations.
 
 CONVERSATION STYLE:
-- Keep responses concise and actionable (2-4 sentences max)
-- Never repeat greetings or introductions unless it's truly the first message
-- Be direct and professional - skip pleasantries if you've already been introduced
-- Build on previous conversation context naturally
-- Ask ONE focused follow-up question per response
+- Act like an experienced journalist who asks probing, insightful questions
+- Show genuine curiosity about the user's media organization, challenges, and goals
+- Ask follow-up questions that dig deeper into their specific situation
+- Use journalistic techniques: who, what, where, when, why, how
+- Be understanding and empathetic while maintaining professional expertise
+- Reference current trends in global media development when relevant
 
 YOUR EXPERTISE:
-- Media business strategy and operations
-- AI implementation for content creation, audience analysis, workflow optimization
-- Digital transformation and automation
-- Revenue optimization and growth strategies
+- Global media development and journalism industry trends
+- AI implementation for newsrooms, content creation, and audience engagement
+- Digital transformation strategies for media organizations
+- Revenue models and business sustainability in media
+- Audience development and engagement strategies
+- Content strategy and editorial workflows
+- Technology adoption and innovation in media
 
-WEB BROWSING CAPABILITIES:
-- You can browse websites to gather current information
-- When users ask about specific websites, companies, or current events, you can fetch real-time data
-- Use the browse_website function to access up-to-date information
-- Always cite sources when using web data
+QUESTIONING APPROACH:
+- Start with broad questions to understand their context and role
+- Ask about their organization's size, audience, and current challenges
+- Probe into their specific pain points and goals
+- Explore their current technology stack and AI adoption level
+- Understand their competitive landscape and market position
+- Ask about their team structure and decision-making processes
+- Inquire about their audience demographics and engagement metrics
+- Explore their content strategy and distribution channels
 
-APPROACH:
-- Listen for business challenges and immediately suggest specific AI solutions
-- Reference previous conversation points to show you remember the context
-- Provide concrete, implementable advice rather than general statements
-- Focus on ROI and practical business impact
-- When information might be outdated, offer to browse current data
+RESPONSE STRUCTURE:
+- Acknowledge their situation with empathy
+- Provide specific, actionable insights based on media industry best practices
+- Ask 1-2 thoughtful follow-up questions that show you're listening
+- Reference relevant examples from the global media landscape
+- Offer to explore specific areas in more detail
 
-NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."""
+ALWAYS ASK QUESTIONS LIKE A JOURNALIST:
+- "What's the biggest challenge your newsroom is facing right now?"
+- "How has your audience behavior changed in the last year?"
+- "What's your current approach to content distribution?"
+- "What metrics matter most to your organization?"
+- "How do you currently measure audience engagement?"
+- "What's your biggest concern about AI adoption?"
+- "How does your team currently handle breaking news?"
+- "What's your biggest competitive threat?"
+
+NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally and ask probing questions that demonstrate your understanding of the global media development sector."""
 
 app.register_blueprint(auth)
 app.register_blueprint(ai_utility_bp)
@@ -2875,6 +2894,232 @@ def health_check():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
+
+@app.route('/admin/notion')
+@login_required
+@admin_required
+def admin_notion():
+    """Admin page for Notion integration management"""
+    notion_integration = NotionIntegration.query.first()
+    return render_template('admin/notion.html', notion_integration=notion_integration)
+
+@app.route('/admin/notion/configure', methods=['POST'])
+@login_required
+@admin_required
+def configure_notion():
+    """Configure Notion integration"""
+    try:
+        notion_token = request.form.get('notion_token')
+        workspace_id = request.form.get('workspace_id')
+        database_id = request.form.get('database_id')
+        
+        if not notion_token or not workspace_id:
+            flash('Notion token and workspace ID are required', 'error')
+            return redirect(url_for('admin_notion'))
+        
+        # Check if integration already exists
+        notion_integration = NotionIntegration.query.first()
+        if notion_integration:
+            notion_integration.notion_token = notion_token
+            notion_integration.workspace_id = workspace_id
+            notion_integration.database_id = database_id
+            notion_integration.updated_at = datetime.utcnow()
+        else:
+            notion_integration = NotionIntegration(
+                notion_token=notion_token,
+                workspace_id=workspace_id,
+                database_id=database_id
+            )
+            db.session.add(notion_integration)
+        
+        db.session.commit()
+        flash('Notion integration configured successfully!', 'success')
+        
+    except Exception as e:
+        flash(f'Error configuring Notion: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_notion'))
+
+@app.route('/admin/notion/test')
+@login_required
+@admin_required
+def test_notion_connection():
+    """Test Notion API connection"""
+    try:
+        notion_integration = NotionIntegration.query.first()
+        if not notion_integration:
+            return jsonify({'success': False, 'error': 'No Notion integration configured'})
+        
+        # Test the connection by making a simple API call
+        headers = {
+            'Authorization': f'Bearer {notion_integration.notion_token}',
+            'Notion-Version': '2022-06-28',
+            'Content-Type': 'application/json'
+        }
+        
+        # Test by getting user info
+        response = requests.get('https://api.notion.com/v1/users/me', headers=headers)
+        
+        if response.status_code == 200:
+            user_data = response.json()
+            return jsonify({
+                'success': True, 
+                'message': f'Connected successfully! User: {user_data.get("name", "Unknown")}',
+                'user_data': user_data
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'error': f'API Error: {response.status_code} - {response.text}'
+            })
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/notion/sync-chat/<int:chat_id>')
+@login_required
+@admin_required
+def sync_chat_to_notion(chat_id):
+    """Sync a specific chat to Notion"""
+    try:
+        # Get the chat
+        chat = Chat.query.get_or_404(chat_id)
+        notion_integration = NotionIntegration.query.first()
+        
+        if not notion_integration:
+            return jsonify({'success': False, 'error': 'No Notion integration configured'})
+        
+        # Initialize Notion client
+        notion = NotionClient(auth=notion_integration.notion_token)
+        
+        # Create a new page in Notion
+        page_data = {
+            "parent": {"type": "page_id", "page_id": notion_integration.workspace_id},
+            "properties": {
+                "title": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": f"MediaMap Chat #{chat.id} - {chat.created_at.strftime('%Y-%m-%d')}"
+                            }
+                        }
+                    ]
+                },
+                "Type": {
+                    "select": {
+                        "name": "AI Consultation"
+                    }
+                },
+                "Date": {
+                    "date": {
+                        "start": chat.created_at.isoformat()
+                    }
+                }
+            },
+            "children": [
+                {
+                    "object": "block",
+                    "type": "heading_2",
+                    "heading_2": {
+                        "rich_text": [
+                            {
+                                "type": "text",
+                                "text": {
+                                    "content": "Conversation Summary"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "object": "block",
+                    "type": "paragraph",
+                    "paragraph": {
+                        "rich_text": [
+                            {
+                                "type": "text",
+                                "text": {
+                                    "content": f"Chat ID: {chat.id}\nUser: {chat.user.username}\nDate: {chat.created_at.strftime('%Y-%m-%d %H:%M')}\nMessages: {len(chat.messages)}"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        
+        # Add conversation content
+        for message in chat.messages:
+            role = "User" if message.role == "user" else "AI Assistant"
+            page_data["children"].append({
+                "object": "block",
+                "type": "heading_3",
+                "heading_3": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": role
+                            }
+                        }
+                    ]
+                }
+            })
+            
+            page_data["children"].append({
+                "object": "block",
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": message.content[:2000]  # Limit content length
+                            }
+                        }
+                    ]
+                }
+            })
+        
+        # Create the page in Notion
+        response = notion.pages.create(**page_data)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Chat synced to Notion successfully! Page ID: {response["id"]}',
+            'notion_page_id': response["id"]
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/company-info')
+@login_required
+def company_info():
+    """Display company information page"""
+    # Get the most recent chat for this user
+    latest_chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.desc()).first()
+    
+    if latest_chat and latest_chat.fact_sheet:
+        company_data = latest_chat.fact_sheet
+    else:
+        company_data = "No company information available yet. Start a conversation with Highlander to extract company details."
+    
+    return render_template('company_info.html', company_data=company_data)
+
+@app.route('/ai-strategies')
+@login_required
+def ai_strategies():
+    """Display AI strategies page"""
+    # Get the most recent chat for this user
+    latest_chat = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.desc()).first()
+    
+    if latest_chat and latest_chat.strategies:
+        strategies_data = latest_chat.strategies
+    else:
+        strategies_data = "No AI strategies available yet. Start a conversation with Highlander to develop AI strategies for your business."
+    
+    return render_template('ai_strategies.html', strategies_data=strategies_data)
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')

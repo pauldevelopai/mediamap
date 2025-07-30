@@ -81,14 +81,15 @@
         }
 
         .username {
-            color: var(--gray-100);
-            font-weight: 500;
+            color: var(--gray-800);
+            font-weight: 600;
             font-size: 0.95rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .user-actions {
@@ -174,6 +175,13 @@
         .chat-header p {
             opacity: 0.9;
             font-size: 0.875rem;
+        }
+
+        /* Hide subtitle on mobile */
+        @media (max-width: 768px) {
+            .chat-header p {
+                display: none;
+            }
         }
 
         .chat-body {
@@ -620,6 +628,14 @@
                 <a href="{{ url_for('my_chats') }}" class="btn-secondary">
                     <i class="bi bi-chat-text"></i>
                     My Chats
+                </a>
+                <a href="{{ url_for('company_info') }}" class="btn-secondary">
+                    <i class="bi bi-building"></i>
+                    Company Info
+                </a>
+                <a href="{{ url_for('ai_strategies') }}" class="btn-secondary">
+                    <i class="bi bi-lightbulb"></i>
+                    AI Strategies
                 </a>
                 <a href="{{ url_for('logout') }}" class="btn-primary">
                     <i class="bi bi-box-arrow-right"></i>

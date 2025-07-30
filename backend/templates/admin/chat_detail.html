@@ -15,6 +15,9 @@
             <button class="btn btn-sm btn-warning me-2" onclick="developStrategies({{ chat.id }})">
                 <i class="bi bi-lightbulb"></i> Develop Strategies
             </button>
+            <button class="btn btn-sm btn-info me-2" onclick="syncToNotion({{ chat.id }})">
+                <i class="bi bi-link-45deg"></i> Sync to Notion
+            </button>
             <a href="{{ url_for('admin_chats') }}" class="btn btn-sm btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Chats
             </a>
@@ -320,6 +323,32 @@ function createToastContainer() {
     container.style.zIndex = '1055';
     document.body.appendChild(container);
     return container;
+}
+
+async function syncToNotion(chatId) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    button.disabled = true;
+    button.innerHTML = '<span class="loading-spinner me-2"></span>Syncing...';
+    
+    try {
+        const response = await fetch(`/admin/notion/sync-chat/${chatId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('Chat synced to Notion successfully!', 'success');
+        } else {
+            showToast(`Failed to sync: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        showToast('Network error occurred while syncing.', 'error');
+    } finally {
+        // Restore button state
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
 }
 </script>
 {% endblock %} 
