@@ -27,6 +27,8 @@ from functools import wraps
 from sqlalchemy import Column, Boolean, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload
+from bs4 import BeautifulSoup
+import html2text
 
 # Create the ai_utility blueprint
 ai_utility_bp = Blueprint('ai_utility', __name__, url_prefix='/ai-utility')
@@ -152,11 +154,18 @@ YOUR EXPERTISE:
 - Digital transformation and automation
 - Revenue optimization and growth strategies
 
+WEB BROWSING CAPABILITIES:
+- You can browse websites to gather current information
+- When users ask about specific websites, companies, or current events, you can fetch real-time data
+- Use the browse_website function to access up-to-date information
+- Always cite sources when using web data
+
 APPROACH:
 - Listen for business challenges and immediately suggest specific AI solutions
 - Reference previous conversation points to show you remember the context
 - Provide concrete, implementable advice rather than general statements
 - Focus on ROI and practical business impact
+- When information might be outdated, offer to browse current data
 
 NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."""
 
@@ -210,9 +219,13 @@ def save_chat_to_db(chat_id, chat_data):
             db.session.flush()  # Get the ID
             
             # Update the chat_id in memory to match the database ID
-            if chat_id in active_chats:
-                active_chats[str(chat.id)] = active_chats.pop(chat_id)
-                last_save_time[str(chat.id)] = last_save_time.pop(chat_id, time.time())
+            user_id = getattr(current_user, 'id', 'anonymous')
+            old_key = f"{user_id}_{chat_id}"
+            new_key = f"{user_id}_{chat.id}"
+            
+            if old_key in active_chats:
+                active_chats[new_key] = active_chats.pop(old_key)
+                last_save_time[new_key] = last_save_time.pop(old_key, time.time())
         
         # If there are messages, add them
         if 'messages' in chat_data:
@@ -267,7 +280,11 @@ def get_or_create_active_chat(chat_id):
     # Convert to string to ensure consistency
     chat_id = str(chat_id)
     
-    if chat_id not in active_chats:
+    # Create user-specific chat key to prevent cross-user contamination
+    user_id = getattr(current_user, 'id', 'anonymous')
+    user_chat_key = f"{user_id}_{chat_id}"
+    
+    if user_chat_key not in active_chats:
         chat = None
         # Try to load from database if it's a numeric ID
         if chat_id.isdigit():
@@ -282,18 +299,22 @@ def get_or_create_active_chat(chat_id):
             for msg in sorted(chat.messages, key=lambda x: x.created_at):
                 messages.append(msg.to_dict())
             
-            active_chats[chat_id] = {
+            active_chats[user_chat_key] = {
                 'messages': messages,
-                'db_chat_id': chat.id  # Track the database ID
+                'db_chat_id': chat.id,  # Track the database ID
+                'user_id': user_id  # Track the user ID
             }
-            print(f"[chat] Loaded chat_id {chat_id} from DB with {len(messages)} messages.")
+            print(f"[chat] Loaded chat_id {chat_id} from DB with {len(messages)} messages for user {user_id}.")
         else:
-            active_chats[chat_id] = {'messages': []}
-            print(f"[chat] Initialized new chat_id {chat_id} in memory.")
+            active_chats[user_chat_key] = {
+                'messages': [],
+                'user_id': user_id
+            }
+            print(f"[chat] Initialized new chat_id {chat_id} in memory for user {user_id}.")
     else:
-        print(f"[chat] Using existing chat_id {chat_id} from memory with {len(active_chats[chat_id]['messages'])} messages.")
+        print(f"[chat] Using existing chat_id {chat_id} from memory with {len(active_chats[user_chat_key]['messages'])} messages for user {user_id}.")
     
-    return chat_id, active_chats[chat_id]
+    return chat_id, active_chats[user_chat_key]
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -465,7 +486,7 @@ def process_with_ai(message, chat_history=None):
     try:
         # Build the messages array for context
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT_CHAT}
+            {"role": "system", "content": SYSTEM_PROMPT_MEDIA_BIZ}
         ]
         
         # Add chat history for context if available
@@ -498,6 +519,92 @@ def get_current_user_id():
         return current_user.id
     logger.info("No authenticated user")
     return None
+
+def browse_website(url):
+    """
+    Browse a website and extract readable content
+    Returns a dictionary with content and metadata
+    """
+    try:
+        # Validate URL
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        
+        # Set headers to mimic a browser
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # Fetch the webpage
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Parse HTML
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Remove script and style elements
+        for script in soup(["script", "style", "nav", "footer", "header"]):
+            script.decompose()
+        
+        # Extract title
+        title = soup.find('title')
+        title_text = title.get_text().strip() if title else "No title found"
+        
+        # Extract main content
+        # Try to find main content areas
+        main_content = ""
+        
+        # Look for common content containers
+        content_selectors = [
+            'main', 'article', '.content', '.main-content', '.post-content',
+            '.entry-content', '.article-content', '#content', '#main'
+        ]
+        
+        for selector in content_selectors:
+            content_elem = soup.select_one(selector)
+            if content_elem:
+                main_content = content_elem.get_text(separator='\n', strip=True)
+                break
+        
+        # If no main content found, get body text
+        if not main_content:
+            main_content = soup.get_text(separator='\n', strip=True)
+        
+        # Clean up the text
+        lines = main_content.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            line = line.strip()
+            if line and len(line) > 10:  # Only keep substantial lines
+                cleaned_lines.append(line)
+        
+        cleaned_content = '\n\n'.join(cleaned_lines)
+        
+        # Limit content length to avoid token limits
+        if len(cleaned_content) > 8000:
+            cleaned_content = cleaned_content[:8000] + "... [Content truncated]"
+        
+        return {
+            'success': True,
+            'url': url,
+            'title': title_text,
+            'content': cleaned_content,
+            'status_code': response.status_code,
+            'content_length': len(cleaned_content)
+        }
+        
+    except requests.exceptions.RequestException as e:
+        return {
+            'success': False,
+            'error': f"Failed to fetch website: {str(e)}",
+            'url': url
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f"Error processing website: {str(e)}",
+            'url': url
+        }
 
 @app.route('/synthesize')
 def synthesize_org_info():
@@ -1371,45 +1478,8 @@ def admin_training():
 def collect_training_data():
     """Collect data for training"""
     try:
-        from training.data_collector import DataCollector
-        from training.training_history import get_training_history
-        
-        import os
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        db_path = os.path.join(basedir, 'instance', 'media_analysis.db')
-        data_dir = os.path.join(os.path.dirname(basedir), 'data')
-        output_dir = os.path.join(basedir, 'training', 'training_data')
-        
-        # Check training history to see what's new
-        history = get_training_history()
-        retrain_analysis = history.should_retrain(output_dir, min_new_data_threshold=5)
-        
-        if not retrain_analysis['should_retrain']:
-            return jsonify({
-                'success': True,
-                'message': 'No new data to collect. All data has already been used for training.',
-                'stats': retrain_analysis['new_data'],
-                'retrain_analysis': retrain_analysis,
-                'no_new_data': True
-            })
-        
-        # Collect only new data
-        collector = DataCollector(
-            db_path=db_path,
-            data_dir=data_dir,
-            output_dir=output_dir
-        )
-        stats = collector.collect_all_data()
-        
-        # Update the stats with new data information
-        stats['new_data_analysis'] = retrain_analysis
-        
-        return jsonify({
-            'success': True,
-            'message': f'Data collection completed. Found {retrain_analysis["total_new_items"]} new items.',
-            'stats': stats,
-            'retrain_analysis': retrain_analysis
-        })
+        # Use the real data collection function
+        return real_collect_training_data()
     except Exception as e:
         return jsonify({
             'success': False,
@@ -1515,6 +1585,25 @@ def training_status():
                     training_completed = True
         except Exception as e:
             print(f"Error reading training metadata: {e}")
+        
+        # Get real training data statistics
+        try:
+            dataset_stats_file = os.path.join(basedir, 'training', 'training_data', 'processed', 'dataset_stats.json')
+            if os.path.exists(dataset_stats_file):
+                with open(dataset_stats_file, 'r') as f:
+                    real_stats = json.load(f)
+                    model_info['real_data_stats'] = real_stats
+                    model_info['total_examples'] = real_stats.get('total_examples', 0)
+                    model_info['total_tokens'] = real_stats.get('total_tokens', 0)
+            else:
+                model_info['real_data_stats'] = None
+                model_info['total_examples'] = 0
+                model_info['total_tokens'] = 0
+        except Exception as e:
+            print(f"Error reading real stats: {e}")
+            model_info['real_data_stats'] = None
+            model_info['total_examples'] = 0
+            model_info['total_tokens'] = 0
         
         # Update model_info to reflect actual training status
         if training_completed and training_metadata:
@@ -1928,7 +2017,7 @@ def login():
             
             # Redirect based on user role
             if hasattr(user, 'is_admin') and user.is_admin:
-                return redirect(url_for('landing_page1'))  # Full interface for admins
+                return redirect(url_for('admin_dashboard'))  # Admin dashboard for admins
             else:
                 return redirect(url_for('user_dashboard'))  # Simple chat for regular users
         else:
@@ -1980,7 +2069,7 @@ def register():
             db.session.commit()
             
             flash('Registration successful! You can now log in.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('root'))
             
         except Exception as e:
             db.session.rollback()
@@ -2330,6 +2419,438 @@ def submit_feedback():
         db.session.rollback()
         print(f"Error submitting feedback: {str(e)}")
         return jsonify({'success': False, 'error': 'Failed to submit feedback'}), 500
+
+@app.route('/browse_website', methods=['POST'])
+@login_required
+def api_browse_website():
+    """API endpoint to browse a website"""
+    try:
+        data = request.json
+        url = data.get('url', '').strip()
+        
+        if not url:
+            return jsonify({'success': False, 'error': 'URL is required'}), 400
+        
+        # Browse the website
+        result = browse_website(url)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'data': result
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result['error']
+            }), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/training/upload-pdf', methods=['POST'])
+@login_required
+@admin_required
+def upload_training_pdf():
+    """Upload PDF files for training data"""
+    try:
+        if 'pdf_file' not in request.files:
+            return jsonify({'success': False, 'error': 'No PDF file provided'}), 400
+        
+        file = request.files['pdf_file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        if not file.filename.lower().endswith('.pdf'):
+            return jsonify({'success': False, 'error': 'File must be a PDF'}), 400
+        
+        # Create training data directory if it doesn't exist
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        pdf_dir = os.path.join(basedir, 'training', 'training_data', 'pdfs')
+        os.makedirs(pdf_dir, exist_ok=True)
+        
+        # Save the PDF file
+        filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+        filepath = os.path.join(pdf_dir, filename)
+        file.save(filepath)
+        
+        # Extract text from PDF
+        try:
+            import PyPDF2
+            text_content = ""
+            with open(filepath, 'rb') as pdf_file:
+                pdf_reader = PyPDF2.PdfReader(pdf_file)
+                for page in pdf_reader.pages:
+                    text_content += page.extract_text() + "\n"
+            
+            # Save extracted text
+            text_filename = filename.replace('.pdf', '.txt')
+            text_filepath = os.path.join(pdf_dir, text_filename)
+            with open(text_filepath, 'w', encoding='utf-8') as text_file:
+                text_file.write(text_content)
+            
+            return jsonify({
+                'success': True,
+                'message': f'PDF uploaded and processed successfully: {filename}',
+                'filename': filename,
+                'text_filename': text_filename,
+                'pages': len(pdf_reader.pages),
+                'text_length': len(text_content)
+            })
+            
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to extract text from PDF: {str(e)}'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/training/upload-website', methods=['POST'])
+@login_required
+@admin_required
+def upload_training_website():
+    """Add website URLs for training data"""
+    try:
+        data = request.json
+        url = data.get('url', '').strip()
+        description = data.get('description', '').strip()
+        
+        if not url:
+            return jsonify({'success': False, 'error': 'URL is required'}), 400
+        
+        # Browse the website to get content
+        result = browse_website(url)
+        
+        if not result['success']:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to fetch website: {result["error"]}'
+            }), 400
+        
+        # Create training data directory if it doesn't exist
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        website_dir = os.path.join(basedir, 'training', 'training_data', 'websites')
+        os.makedirs(website_dir, exist_ok=True)
+        
+        # Save website content
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{url.replace('://', '_').replace('/', '_').replace('.', '_')}.json"
+        filepath = os.path.join(website_dir, filename)
+        
+        website_data = {
+            'url': url,
+            'title': result['title'],
+            'content': result['content'],
+            'description': description,
+            'uploaded_at': datetime.now().isoformat(),
+            'uploaded_by': current_user.username
+        }
+        
+        import json
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(website_data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Website content saved successfully: {result["title"]}',
+            'filename': filename,
+            'title': result['title'],
+            'content_length': len(result['content'])
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/training/list-uploads', methods=['GET'])
+@login_required
+@admin_required
+def list_training_uploads():
+    """List all uploaded training data"""
+    try:
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        training_dir = os.path.join(basedir, 'training', 'training_data')
+        
+        uploads = {
+            'pdfs': [],
+            'websites': []
+        }
+        
+        # List PDFs
+        pdf_dir = os.path.join(training_dir, 'pdfs')
+        if os.path.exists(pdf_dir):
+            for filename in os.listdir(pdf_dir):
+                if filename.endswith('.pdf'):
+                    filepath = os.path.join(pdf_dir, filename)
+                    stat = os.stat(filepath)
+                    uploads['pdfs'].append({
+                        'filename': filename,
+                        'size': stat.st_size,
+                        'uploaded_at': datetime.fromtimestamp(stat.st_mtime).isoformat()
+                    })
+        
+        # List websites
+        website_dir = os.path.join(training_dir, 'websites')
+        if os.path.exists(website_dir):
+            for filename in os.listdir(website_dir):
+                if filename.endswith('.json'):
+                    filepath = os.path.join(website_dir, filename)
+                    stat = os.stat(filepath)
+                    uploads['websites'].append({
+                        'filename': filename,
+                        'size': stat.st_size,
+                        'uploaded_at': datetime.fromtimestamp(stat.st_mtime).isoformat()
+                    })
+        
+        return jsonify({
+            'success': True,
+            'uploads': uploads
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/training/connect-notion', methods=['POST'])
+@login_required
+@admin_required
+def connect_notion():
+    """Connect to Notion and import pages for training"""
+    try:
+        data = request.json
+        notion_token = data.get('notion_token', '').strip()
+        database_id = data.get('database_id', '').strip()
+        
+        if not notion_token or not database_id:
+            return jsonify({'success': False, 'error': 'Notion token and database ID are required'}), 400
+        
+        # Test Notion connection
+        try:
+            from notion_client import Client
+            notion = Client(auth=notion_token)
+            
+            # Test connection by querying the database
+            response = notion.databases.query(database_id=database_id)
+            
+            if not response.get('results'):
+                return jsonify({'success': False, 'error': 'No pages found in the specified database'}), 400
+            
+            # Import pages for training
+            imported_pages = []
+            for page in response['results']:
+                try:
+                    # Get page content
+                    page_id = page['id']
+                    page_content = notion.pages.retrieve(page_id=page_id)
+                    
+                    # Get page blocks (content)
+                    blocks = notion.blocks.children.list(block_id=page_id)
+                    
+                    # Extract text content
+                    text_content = ""
+                    if page.get('properties', {}).get('title', {}).get('title'):
+                        text_content += page['properties']['title']['title'][0]['plain_text'] + "\n\n"
+                    
+                    for block in blocks['results']:
+                        if block['type'] == 'paragraph' and block['paragraph']['rich_text']:
+                            for text in block['paragraph']['rich_text']:
+                                text_content += text['plain_text'] + "\n"
+                        elif block['type'] == 'heading_1' and block['heading_1']['rich_text']:
+                            for text in block['heading_1']['rich_text']:
+                                text_content += "# " + text['plain_text'] + "\n"
+                        elif block['type'] == 'heading_2' and block['heading_2']['rich_text']:
+                            for text in block['heading_2']['rich_text']:
+                                text_content += "## " + text['plain_text'] + "\n"
+                        elif block['type'] == 'bulleted_list_item' and block['bulleted_list_item']['rich_text']:
+                            for text in block['bulleted_list_item']['rich_text']:
+                                text_content += "• " + text['plain_text'] + "\n"
+                        elif block['type'] == 'numbered_list_item' and block['numbered_list_item']['rich_text']:
+                            for text in block['numbered_list_item']['rich_text']:
+                                text_content += "1. " + text['plain_text'] + "\n"
+                    
+                    # Save to training data
+                    import os
+                    basedir = os.path.abspath(os.path.dirname(__file__))
+                    notion_dir = os.path.join(basedir, 'training', 'training_data', 'notion')
+                    os.makedirs(notion_dir, exist_ok=True)
+                    
+                    # Create filename from page title
+                    page_title = page.get('properties', {}).get('title', {}).get('title', [{}])[0].get('plain_text', 'untitled')
+                    safe_title = "".join(c for c in page_title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                    filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{safe_title[:50]}.json"
+                    filepath = os.path.join(notion_dir, filename)
+                    
+                    notion_data = {
+                        'page_id': page_id,
+                        'title': page_title,
+                        'content': text_content,
+                        'url': page.get('url', ''),
+                        'imported_at': datetime.now().isoformat(),
+                        'imported_by': current_user.username,
+                        'notion_database_id': database_id
+                    }
+                    
+                    import json
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        json.dump(notion_data, f, indent=2, ensure_ascii=False)
+                    
+                    imported_pages.append({
+                        'title': page_title,
+                        'filename': filename,
+                        'content_length': len(text_content)
+                    })
+                    
+                except Exception as e:
+                    print(f"Error importing page {page.get('id', 'unknown')}: {str(e)}")
+                    continue
+            
+            return jsonify({
+                'success': True,
+                'message': f'Successfully imported {len(imported_pages)} pages from Notion',
+                'imported_pages': imported_pages
+            })
+            
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to connect to Notion: {str(e)}'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/training/real-collect-data', methods=['POST'])
+@login_required
+@admin_required
+def real_collect_training_data():
+    """Collect real training data from all sources"""
+    try:
+        import os
+        import json
+        from datetime import datetime
+        
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        training_dir = os.path.join(basedir, 'training', 'training_data')
+        
+        # Ensure training directories exist
+        for subdir in ['conversations', 'pdfs', 'research', 'feedback', 'notion', 'websites', 'processed']:
+            os.makedirs(os.path.join(training_dir, subdir), exist_ok=True)
+        
+        stats = {
+            'conversations': 0,
+            'pdfs': 0,
+            'research': 0,
+            'feedback': 0,
+            'notion_pages': 0,
+            'websites': 0,
+            'total_examples': 0
+        }
+        
+        # 1. Collect real conversations from database
+        try:
+            from models import Chat, Message, User
+            conversations = Chat.query.all()
+            stats['conversations'] = len(conversations)
+            
+            # Save conversations to training data
+            conversations_file = os.path.join(training_dir, 'conversations', 'all_conversations.json')
+            conversations_data = []
+            
+            for chat in conversations:
+                messages = Message.query.filter_by(chat_id=chat.id).order_by(Message.created_at).all()
+                if messages:
+                    conversation = {
+                        'chat_id': chat.id,
+                        'user_id': chat.user_id,
+                        'title': chat.title,
+                        'created_at': chat.created_at.isoformat() if chat.created_at else None,
+                        'messages': [{'role': msg.role, 'content': msg.content} for msg in messages],
+                        'fact_sheet': chat.fact_sheet,
+                        'strategies': chat.strategies
+                    }
+                    conversations_data.append(conversation)
+            
+            with open(conversations_file, 'w', encoding='utf-8') as f:
+                json.dump(conversations_data, f, indent=2, ensure_ascii=False)
+                
+        except Exception as e:
+            print(f"Error collecting conversations: {e}")
+        
+        # 2. Count existing PDFs
+        pdf_dir = os.path.join(training_dir, 'pdfs')
+        if os.path.exists(pdf_dir):
+            pdf_files = [f for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
+            stats['pdfs'] = len(pdf_files)
+        
+        # 3. Count existing research papers
+        research_dir = os.path.join(training_dir, 'research')
+        if os.path.exists(research_dir):
+            research_files = [f for f in os.listdir(research_dir) if f.endswith('.json')]
+            stats['research'] = len(research_files)
+        
+        # 4. Count feedback entries
+        feedback_dir = os.path.join(training_dir, 'feedback')
+        if os.path.exists(feedback_dir):
+            feedback_files = [f for f in os.listdir(feedback_dir) if f.endswith('.json')]
+            stats['feedback'] = len(feedback_files)
+        
+        # 5. Count Notion pages
+        notion_dir = os.path.join(training_dir, 'notion')
+        if os.path.exists(notion_dir):
+            notion_files = [f for f in os.listdir(notion_dir) if f.endswith('.json')]
+            stats['notion_pages'] = len(notion_files)
+        
+        # 6. Count websites
+        website_dir = os.path.join(training_dir, 'websites')
+        if os.path.exists(website_dir):
+            website_files = [f for f in os.listdir(website_dir) if f.endswith('.json')]
+            stats['websites'] = len(website_files)
+        
+        # Calculate total examples
+        stats['total_examples'] = (
+            stats['conversations'] + 
+            stats['pdfs'] + 
+            stats['research'] + 
+            stats['feedback'] + 
+            stats['notion_pages'] + 
+            stats['websites']
+        )
+        
+        # Update dataset stats
+        dataset_stats = {
+            'total_examples': stats['total_examples'],
+            'total_tokens': stats['total_examples'] * 100,  # Rough estimate
+            'sources': {
+                'user_conversations': stats['conversations'],
+                'pdf_documents': stats['pdfs'],
+                'research_papers': stats['research'],
+                'feedback_entries': stats['feedback'],
+                'notion_pages': stats['notion_pages'],
+                'websites': stats['websites']
+            },
+            'collected_at': datetime.now().isoformat(),
+            'collected_by': current_user.username
+        }
+        
+        stats_file = os.path.join(training_dir, 'processed', 'dataset_stats.json')
+        with open(stats_file, 'w', encoding='utf-8') as f:
+            json.dump(dataset_stats, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Real data collection completed. Found {stats["total_examples"]} total examples.',
+            'stats': stats,
+            'dataset_stats': dataset_stats
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/health')
 def health_check():
