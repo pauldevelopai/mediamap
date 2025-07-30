@@ -8,13 +8,13 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback
+from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
 import urllib.parse
 import requests
-from auth import auth
+from backend.auth import auth
 import time
 import threading
 import uuid
@@ -317,6 +317,7 @@ def get_or_create_active_chat(chat_id):
     return chat_id, active_chats[user_chat_key]
 
 @app.route('/chat', methods=['POST'])
+@login_required
 def chat():
     message = request.json.get('message', '')
     chat_id, chat_data = get_or_create_active_chat(request.json.get('chat_id', None))

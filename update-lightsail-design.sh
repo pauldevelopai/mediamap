@@ -1,3 +1,24 @@
+#!/bin/bash
+
+# Your existing Lightsail instance details
+INSTANCE_IP="13.40.124.51"
+SSH_KEY="LightsailDefaultKey-eu-west-2.pem"
+
+echo "🎨 Updating MediaMap design on Lightsail instance..."
+echo "🌐 IP Address: $INSTANCE_IP"
+
+# Check if SSH key exists
+if [ ! -f "$SSH_KEY" ]; then
+    echo "❌ SSH key not found: $SSH_KEY"
+    echo "💡 Please download your Lightsail SSH key first"
+    exit 1
+fi
+
+echo "🔑 Using SSH key: $SSH_KEY"
+
+# Create a temporary file with the updated template
+echo "📝 Creating updated template..."
+cat > /tmp/user_dashboard_updated.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +58,6 @@
             min-height: 100vh;
             color: var(--gray-800);
             line-height: 1.6;
-            /* Optimize for Lightsail performance */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
@@ -52,7 +72,6 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            /* Optimize for mobile */
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
@@ -73,22 +92,6 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-        }
-
-        .username {
-            color: var(--gray-100);
-            font-weight: 500;
-            font-size: 0.95rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .user-actions {
@@ -180,23 +183,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-        }
-
-        .chat-status {
-            padding: 0.75rem 1.5rem;
-            background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            font-size: 0.875rem;
-            color: var(--gray-600);
-        }
-
-        .status-indicator .text-success {
-            color: var(--success-color) !important;
+            padding: 1.5rem;
         }
 
         .chat-messages {
@@ -206,21 +193,17 @@
             padding: 1.5rem;
             background: var(--gray-50);
             overflow-y: auto;
-            margin: 1.5rem;
+            margin-bottom: 1.5rem;
             max-height: 400px;
-            /* Optimize scrolling for Lightsail */
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
         }
-
-
 
         .message {
             margin-bottom: 1rem;
             padding: 1rem;
             border-radius: 12px;
             max-width: 85%;
-            /* Optimize for performance */
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
@@ -439,7 +422,6 @@
             overflow-y: auto;
             font-size: 0.875rem;
             line-height: 1.5;
-            /* Optimize scrolling for Lightsail */
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
         }
@@ -462,7 +444,7 @@
             background: var(--gray-400);
         }
 
-        /* Responsive Design - Optimized for Lightsail */
+        /* Responsive Design */
         @media (max-width: 1024px) {
             .main-container {
                 grid-template-columns: 1fr;
@@ -528,7 +510,6 @@
             }
         }
 
-        /* Lightsail-specific optimizations */
         @media (max-width: 480px) {
             .header-content {
                 padding: 0 0.5rem;
@@ -574,7 +555,7 @@
             100% { transform: scale(1); }
         }
 
-        /* Performance optimizations for Lightsail */
+        /* Performance optimizations */
         .chat-messages, .info-content {
             will-change: scroll-position;
         }
@@ -583,14 +564,12 @@
             will-change: transform;
         }
 
-        /* Ensure smooth animations on Lightsail */
         @media (prefers-reduced-motion: no-preference) {
             .btn-icon:hover, .action-btn:hover, .chat-input button:hover {
                 transform: translateY(-1px);
             }
         }
 
-        /* Fallback for older browsers on Lightsail */
         @supports not (backdrop-filter: blur(10px)) {
             .header {
                 background: rgba(255, 255, 255, 0.98);
@@ -606,12 +585,6 @@
                 <i class="bi bi-robot"></i>
                 MediaMap AI
             </a>
-            <div class="user-info">
-                <span class="username">
-                    <i class="bi bi-person-circle me-1"></i>
-                    {{ current_user.username }}
-                </span>
-            </div>
             <div class="user-actions">
                 <button class="btn-secondary" data-bs-toggle="modal" data-bs-target="#feedbackModal">
                     <i class="bi bi-chat-quote"></i>
@@ -639,12 +612,6 @@
             </div>
             
             <div class="chat-body">
-                <div class="chat-status">
-                    <div class="status-indicator">
-                        <i class="bi bi-check-circle-fill text-success me-1"></i>
-                        <span>Conversations are automatically saved</span>
-                    </div>
-                </div>
                 <div id="chat-messages" class="chat-messages">
                     <div class="message ai-message">
                         <strong><i class="bi bi-robot me-2"></i>Highlander:</strong><br>
@@ -1091,100 +1058,42 @@
             }
         });
     </script>
-
-    <!-- Feedback Modal -->
-    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="feedbackModalLabel">
-                        <i class="bi bi-chat-quote me-2"></i>Send Feedback
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="feedbackForm">
-                        <div class="mb-3">
-                            <label for="feedbackType" class="form-label">Feedback Type</label>
-                            <select class="form-select" id="feedbackType" name="feedbackType" required>
-                                <option value="">Choose...</option>
-                                <option value="bug">🐛 Bug Report</option>
-                                <option value="feature">💡 Feature Request</option>
-                                <option value="improvement">🔧 Improvement Suggestion</option>
-                                <option value="general">💬 General Feedback</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="feedbackSubject" class="form-label">Subject</label>
-                            <input type="text" class="form-control" id="feedbackSubject" name="subject" placeholder="Brief description of your feedback" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="feedbackMessage" class="form-label">Details</label>
-                            <textarea class="form-control" id="feedbackMessage" name="message" rows="5" placeholder="Please provide detailed information about your feedback..." required></textarea>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="allowFollowup" name="followup">
-                            <label class="form-check-label" for="allowFollowup">
-                                I'm open to follow-up questions about this feedback
-                            </label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="submitFeedback">
-                        <i class="bi bi-send me-1"></i>Send Feedback
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Handle feedback form submission
-        document.getElementById('submitFeedback').addEventListener('click', async function() {
-            const form = document.getElementById('feedbackForm');
-            const formData = new FormData(form);
-            
-            // Add user info to the feedback
-            const feedbackData = {
-                type: formData.get('feedbackType'),
-                subject: formData.get('subject'),
-                message: formData.get('message'),
-                followup: formData.has('followup'),
-                username: '{{ current_user.username }}',
-                timestamp: new Date().toISOString()
-            };
-            
-            try {
-                const response = await fetch('/submit-feedback', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(feedbackData)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Show success message
-                    alert('Thank you for your feedback! We appreciate your input and will review it soon.');
-                    
-                    // Reset form and close modal
-                    form.reset();
-                    bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
-                } else {
-                    alert('Sorry, there was an error sending your feedback. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error submitting feedback:', error);
-                alert('Sorry, there was an error sending your feedback. Please try again.');
-            }
-        });
-    </script>
 </body>
-</html> 
+</html>
+EOF
+
+echo "📤 Uploading updated template to Lightsail instance..."
+scp -i "$SSH_KEY" -o StrictHostKeyChecking=no /tmp/user_dashboard_updated.html ubuntu@$INSTANCE_IP:/tmp/
+
+echo "🔧 Updating template on server..."
+ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP << 'EOF'
+    echo "📝 Updating user dashboard template..."
+    sudo cp /tmp/user_dashboard_updated.html /opt/mediamap/backend/templates/user_dashboard.html
+    sudo chown ubuntu:ubuntu /opt/mediamap/backend/templates/user_dashboard.html
+    sudo chmod 644 /opt/mediamap/backend/templates/user_dashboard.html
+    
+    echo "🔄 Restarting application..."
+    cd /opt/mediamap
+    docker-compose restart
+    
+    echo "⏳ Waiting for application to restart..."
+    sleep 10
+    
+    echo "✅ Template updated successfully!"
+    echo "🌐 Your updated design is now live at: http://$INSTANCE_IP"
+EOF
+
+echo ""
+echo "🎉 Design update complete!"
+echo "🌐 Visit your Lightsail instance to see the new design:"
+echo "   http://$INSTANCE_IP"
+echo ""
+echo "✨ The new design features:"
+echo "   • Clean, modern layout"
+echo "   • Better organized sidebar"
+echo "   • Responsive design for all devices"
+echo "   • Improved user experience"
+echo "   • Less cluttered interface"
+
+# Clean up
+rm -f /tmp/user_dashboard_updated.html 
