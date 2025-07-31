@@ -768,14 +768,15 @@
                     // Add error message
                     const errorDiv = document.createElement('div');
                     errorDiv.className = 'message ai-message';
-                    errorDiv.innerHTML = `<strong><i class="bi bi-exclamation-triangle me-2"></i>Error:</strong><br>Sorry, there was an error. Please try again.`;
+                    const errorMessage = data.error || 'Sorry, there was an error. Please try again.';
+                    errorDiv.innerHTML = `<strong><i class="bi bi-exclamation-triangle me-2"></i>Error:</strong><br>${errorMessage}`;
                     chatMessages.appendChild(errorDiv);
                 }
             } catch (error) {
                 console.error('Chat error:', error);
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message ai-message';
-                errorDiv.innerHTML = `<strong><i class="bi bi-exclamation-triangle me-2"></i>Error:</strong><br>Connection error. Please check your internet and try again.`;
+                errorDiv.innerHTML = `<strong><i class="bi bi-exclamation-triangle me-2"></i>Error:</strong><br>Network error. Please check your connection and try again.`;
                 chatMessages.appendChild(errorDiv);
             }
             

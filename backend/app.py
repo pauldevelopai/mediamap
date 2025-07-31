@@ -349,6 +349,13 @@ def chat():
     # Save after user message
     save_chat_to_db(chat_id, chat_data)
     
+    # Check if OpenAI client is available
+    if client is None:
+        return jsonify({
+            'success': False,
+            'error': 'OpenAI API key not configured. Please contact the administrator.'
+        }), 500
+    
     try:
         # Use OpenAI directly for now (bypass custom model issues)
         print(f"Using OpenAI for chat response")
@@ -379,7 +386,8 @@ def chat():
                     )
                     context_summary = summary_response.choices[0].message.content
                     chat_history.append({"role": "system", "content": f"Previous conversation context: {context_summary}"})
-                except:
+                except Exception as summary_error:
+                    print(f"Summary generation failed: {summary_error}")
                     pass  # If summary fails, continue without it
             
             # Add recent messages
@@ -413,15 +421,17 @@ def chat():
                 'model_source': 'openai_fallback'
             })
         except Exception as e:
+            print(f"OpenAI API error: {e}")
             return jsonify({
                 'success': False,
-                'error': str(e)
+                'error': f'OpenAI API error: {str(e)}'
             }), 500
             
     except Exception as e:
+        print(f"Chat processing error: {e}")
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': f'Chat processing error: {str(e)}'
         }), 500
 
 @app.route('/chats')
