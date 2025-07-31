@@ -8,13 +8,13 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from backend.models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
+from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
 import urllib.parse
 import requests
-from backend.auth import auth
+from auth import auth
 import time
 import threading
 import uuid
@@ -2411,19 +2411,25 @@ def submit_feedback():
     try:
         data = request.json
         
-        # Validate required fields
-        required_fields = ['type', 'subject', 'message']
-        for field in required_fields:
-            if not data.get(field):
-                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        # Validate required fields - handle both 'type' and 'feedbackType' for compatibility
+        feedback_type = data.get('type') or data.get('feedbackType')
+        subject = data.get('subject')
+        message = data.get('message')
+        
+        if not feedback_type:
+            return jsonify({'success': False, 'error': 'Missing required field: type/feedbackType'}), 400
+        if not subject:
+            return jsonify({'success': False, 'error': 'Missing required field: subject'}), 400
+        if not message:
+            return jsonify({'success': False, 'error': 'Missing required field: message'}), 400
         
         # Create new feedback record
         new_feedback = Feedback(
             user_id=current_user.id,
             username=current_user.username,
-            feedback_type=data['type'],
-            subject=data['subject'],
-            message=data['message'],
+            feedback_type=feedback_type,
+            subject=subject,
+            message=message,
             allow_followup=data.get('followup', False)
         )
         
@@ -2432,9 +2438,9 @@ def submit_feedback():
         
         # Log the feedback for immediate visibility
         print(f"📢 NEW FEEDBACK from {current_user.username}:")
-        print(f"   Type: {data['type']}")
-        print(f"   Subject: {data['subject']}")
-        print(f"   Message: {data['message']}")
+        print(f"   Type: {feedback_type}")
+        print(f"   Subject: {subject}")
+        print(f"   Message: {message}")
         print(f"   Follow-up OK: {data.get('followup', False)}")
         print(f"   Timestamp: {new_feedback.created_at}")
         print("-" * 50)
@@ -2448,7 +2454,7 @@ def submit_feedback():
     except Exception as e:
         db.session.rollback()
         print(f"Error submitting feedback: {str(e)}")
-        return jsonify({'success': False, 'error': 'Failed to submit feedback'}), 500
+        return jsonify({'success': False, 'error': f'Failed to submit feedback: {str(e)}'}), 500
 
 @app.route('/browse_website', methods=['POST'])
 @login_required
