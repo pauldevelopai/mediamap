@@ -309,17 +309,37 @@
             <div class="content-body">
                 {% if company_data and company_data != "No company information available yet. Start a conversation with Highlander to extract company details." %}
                     <div class="company-data">{{ company_data }}</div>
+                    <div class="mt-3 text-center">
+                        <button id="regenerate-btn" class="btn btn-primary" onclick="generateCompanyInfo()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Regenerate Company Info
+                        </button>
+                    </div>
                 {% else %}
                     <div class="empty-state">
                         <i class="bi bi-building"></i>
                         <h3>No Company Information Available</h3>
-                        <p>Start a conversation with Highlander to extract and analyze your company information.</p>
-                        <a href="{{ url_for('user_dashboard') }}" class="btn-start-chat">
-                            <i class="bi bi-plus-circle"></i>
-                            Start New Conversation
-                        </a>
+                        <p>Generate company information from your existing conversations or start a new conversation with Highlander.</p>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                            <button id="generate-btn" class="btn-start-chat" onclick="generateCompanyInfo()">
+                                <i class="bi bi-magic"></i>
+                                Generate from Conversations
+                            </button>
+                            <a href="{{ url_for('user_dashboard') }}" class="btn-start-chat" style="background: var(--gray-600);">
+                                <i class="bi bi-plus-circle"></i>
+                                Start New Conversation
+                            </a>
+                        </div>
                     </div>
                 {% endif %}
+                
+                <!-- Loading indicator -->
+                <div id="loading-indicator" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating company information...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -399,6 +419,45 @@
             })
             .catch(error => {
                 alert('Error submitting feedback: ' + error);
+            });
+        }
+
+        function generateCompanyInfo() {
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const generateBtn = document.getElementById('generate-btn');
+            const regenerateBtn = document.getElementById('regenerate-btn');
+            
+            if (loadingIndicator) loadingIndicator.style.display = 'block';
+            if (generateBtn) generateBtn.disabled = true;
+            if (regenerateBtn) regenerateBtn.disabled = true;
+            
+            // Call the extract_facts endpoint
+            fetch('/extract_facts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the page to show the new company info
+                    window.location.reload();
+                } else {
+                    alert('Error generating company info: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error generating company info. Please try again.');
+            })
+            .finally(() => {
+                // Hide loading indicator and re-enable buttons
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                if (generateBtn) generateBtn.disabled = false;
+                if (regenerateBtn) regenerateBtn.disabled = false;
             });
         }
     </script>
