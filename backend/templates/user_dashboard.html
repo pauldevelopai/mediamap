@@ -904,7 +904,10 @@
             try {
                 const response = await fetch('/find-news', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        force_refresh: false  // Use cache if available
+                    })
                 });
                 
                 const data = await response.json();

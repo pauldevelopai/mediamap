@@ -524,14 +524,18 @@
                 <!-- Action Buttons -->
                 <div class="action-buttons">
                     <button id="find-news-btn" class="action-btn primary">
-                        <i class="bi bi-arrow-clockwise"></i>
+                        <i class="bi bi-newspaper"></i>
                         Find Today's News
                     </button>
-                    <button id="view-saved-btn" class="action-btn secondary">
+                    <button id="refresh-news-btn" class="action-btn secondary">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Refresh News
+                    </button>
+                    <button id="view-saved-btn" class="action-btn tertiary">
                         <i class="bi bi-bookmark-star"></i>
                         View Saved Articles
                     </button>
-                    <button id="back-to-current-btn" class="action-btn tertiary" style="display: none;">
+                    <button id="back-to-current-btn" class="action-btn quaternary" style="display: none;">
                         <i class="bi bi-arrow-left"></i>
                         Back to Current News
                     </button>
@@ -676,6 +680,45 @@
                 console.error('Error finding news:', error);
                 showErrorState();
                 showMessage('Error finding news', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Refresh news button (forces fresh news)
+        document.getElementById('refresh-news-btn').addEventListener('click', async function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Refreshing...';
+                btn.disabled = true;
+                
+                const response = await fetch('/find-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        force_refresh: true
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.news && data.news.length > 0) {
+                    currentNews = data.news;
+                    displayNews(data.news);
+                    showMessage('Fresh news loaded!', 'success');
+                } else {
+                    showEmptyState();
+                    showMessage(data.error || 'No fresh news found', 'error');
+                }
+            } catch (error) {
+                console.error('Error refreshing news:', error);
+                showErrorState();
+                showMessage('Error refreshing news', 'error');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

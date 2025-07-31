@@ -3142,12 +3142,16 @@ def ai_strategies():
 def find_news():
     """Find relevant news based on user's chat history"""
     try:
-        # Check if user already has recent news (within last 24 hours)
-        from datetime import timedelta
-        yesterday = datetime.utcnow() - timedelta(hours=24)
-        existing_news = News.query.filter_by(user_id=current_user.id).filter(News.created_at >= yesterday).all()
+        data = request.json or {}
+        force_refresh = data.get('force_refresh', False)
         
-        if existing_news:
+        # Check if user already has recent news (within last 2 hours, reduced from 24)
+        from datetime import timedelta
+        two_hours_ago = datetime.utcnow() - timedelta(hours=2)
+        existing_news = News.query.filter_by(user_id=current_user.id).filter(News.created_at >= two_hours_ago).all()
+        
+        # Only use cache if not forcing refresh and we have recent news
+        if existing_news and not force_refresh:
             # Return existing news from database
             news_data = [article.to_dict() for article in existing_news[:3]]
             return jsonify({'success': True, 'news': news_data, 'cached': True})
