@@ -3156,6 +3156,14 @@ def find_news():
             news_data = [article.to_dict() for article in existing_news[:3]]
             return jsonify({'success': True, 'news': news_data, 'cached': True})
         
+        # If forcing refresh, clear old news first
+        if force_refresh:
+            print(f"🔄 Force refresh requested - clearing old news for user {current_user.id}")
+            # Delete old news articles for this user
+            News.query.filter_by(user_id=current_user.id).delete()
+            db.session.commit()
+            print(f"🗑️ Cleared old news articles")
+        
         # Get all chats for this user to build complete conversation history
         all_chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.created_at.desc()).all()
         
@@ -3210,10 +3218,13 @@ def find_news():
         # Use NewsAPI to find relevant articles
         news_api_key = "a5e5898731c74bfe97bae546ef04dea6"  # Your NewsAPI key
         
+        print(f"🔍 Fetching fresh news with search terms: {search_terms}")
+        
         # Fetch real news using NewsAPI
         articles = []
         for term in search_terms[:3]:  # Use top 3 search terms
             try:
+                print(f"📡 Fetching news for term: '{term}'")
                 url = f"https://newsapi.org/v2/everything"
                 params = {
                     'q': term,
@@ -3224,12 +3235,19 @@ def find_news():
                 }
                 
                 response = requests.get(url, params=params, timeout=10)
+                print(f"📊 NewsAPI response status: {response.status_code}")
+                
                 if response.status_code == 200:
                     data = response.json()
                     if data.get('articles'):
                         articles.extend(data['articles'][:2])  # Get top 2 articles per term
+                        print(f"✅ Found {len(data['articles'][:2])} articles for '{term}'")
+                    else:
+                        print(f"⚠️ No articles found for term '{term}'")
+                else:
+                    print(f"❌ NewsAPI error: {response.status_code} - {response.text}")
             except Exception as e:
-                print(f"Error fetching news for term '{term}': {e}")
+                print(f"❌ Error fetching news for term '{term}': {e}")
                 continue
         
         # Remove duplicates and limit to top 3
@@ -3281,6 +3299,7 @@ def find_news():
         
         # Return the saved articles
         news_data = [article.to_dict() for article in unique_articles[:3]]
+        print(f"🎯 Returning {len(news_data)} fresh news articles")
         return jsonify({'success': True, 'news': news_data, 'cached': False})
         
     except Exception as e:

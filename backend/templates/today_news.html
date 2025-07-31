@@ -559,7 +559,12 @@
                                         <i class="bi bi-box-arrow-up-right"></i>
                                         Read Full Article
                                     </a>
-                                    <button class="save-news-btn" onclick="saveNewsArticle(this, '{{ article.title|replace("'", "\\'") }}', '{{ article.description|replace("'", "\\'") if article.description else "" }}', '{{ article.url }}', '{{ article.source_name or "" }}', '{{ article.published_at.isoformat() if article.published_at else "" }}')">
+                                    <button class="save-news-btn" 
+                                            data-title="{{ article.title }}"
+                                            data-description="{{ article.description or '' }}"
+                                            data-url="{{ article.url }}"
+                                            data-source="{{ article.source_name or '' }}"
+                                            data-published="{{ article.published_at.isoformat() if article.published_at else '' }}">
                                         <i class="bi bi-bookmark-plus"></i>
                                         Save
                                     </button>
@@ -695,17 +700,19 @@
                 btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Refreshing...';
                 btn.disabled = true;
                 
+                const requestBody = { force_refresh: true };
+                console.log('🔄 Sending refresh request with:', requestBody);
+                
                 const response = await fetch('/find-news', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        force_refresh: true
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const data = await response.json();
+                console.log('📡 Received response:', data);
                 
                 if (data.success && data.news && data.news.length > 0) {
                     currentNews = data.news;
@@ -743,8 +750,15 @@
         });
 
         // Save news article
-        async function saveNewsArticle(button, title, description, url, sourceName, publishedAt) {
+        async function saveNewsArticle(button) {
             const originalText = button.innerHTML;
+            
+            // Get data from button attributes
+            const title = button.dataset.title;
+            const description = button.dataset.description;
+            const url = button.dataset.url;
+            const sourceName = button.dataset.source;
+            const publishedAt = button.dataset.published;
             
             try {
                 button.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
@@ -810,7 +824,12 @@
                                     <i class="bi bi-box-arrow-up-right"></i>
                                     Read Full Article
                                 </a>
-                                <button class="save-news-btn" onclick="saveNewsArticle(this, '${article.title.replace(/'/g, "\\'")}', '${(article.description || '').replace(/'/g, "\\'")}', '${article.url}', '${(article.source?.name || '').replace(/'/g, "\\'")}', '${article.publishedAt || ''}')">
+                                <button class="save-news-btn" 
+                                        data-title="${article.title}"
+                                        data-description="${article.description || ''}"
+                                        data-url="${article.url}"
+                                        data-source="${article.source?.name || ''}"
+                                        data-published="${article.publishedAt || ''}">
                                     <i class="bi bi-bookmark-plus"></i>
                                     Save
                                 </button>
@@ -821,6 +840,12 @@
             `;
             
             newsContent.innerHTML = newsHTML;
+            
+            // Add event listeners to save buttons
+            const saveButtons = newsContent.querySelectorAll('.save-news-btn');
+            saveButtons.forEach(button => {
+                button.addEventListener('click', () => saveNewsArticle(button));
+            });
         }
 
         // Load saved news
