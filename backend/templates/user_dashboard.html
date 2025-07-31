@@ -74,7 +74,7 @@
             align-items: center;
             gap: 0.5rem;
         }
-
+        
         .user-info {
             display: flex;
             align-items: center;
@@ -156,20 +156,20 @@
             flex-direction: column;
             padding-bottom: 2rem;
         }
-
+        
         .chat-header {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             padding: 2rem;
             text-align: center;
         }
-
+        
         .chat-header h1 {
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
-
+        
         .chat-header p {
             opacity: 0.9;
             font-size: 0.875rem;
@@ -187,7 +187,7 @@
             display: flex;
             flex-direction: column;
         }
-
+        
         .chat-status {
             padding: 0.75rem 1.5rem;
             background: var(--gray-50);
@@ -204,7 +204,7 @@
         .status-indicator .text-success {
             color: var(--success-color) !important;
         }
-
+        
         .chat-messages {
             flex: 1;
             border: 1px solid var(--gray-200);
@@ -220,7 +220,7 @@
         }
 
 
-
+        
         .message {
             margin-bottom: 1rem;
             padding: 1rem;
@@ -230,14 +230,14 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
-
+        
         .user-message {
             background: var(--primary-color);
             color: white;
             margin-left: auto;
             text-align: right;
         }
-
+        
         .ai-message {
             background: white;
             border: 1px solid var(--gray-200);
@@ -250,13 +250,13 @@
             gap: 1.5rem;
             margin-top: 1rem;
         }
-
+        
         .chat-input {
             display: flex;
             gap: 1rem;
             align-items: flex-end;
         }
-
+        
         .chat-input input {
             flex: 1;
             border: 2px solid var(--gray-200);
@@ -267,12 +267,12 @@
             transition: all 0.2s;
             background: white;
         }
-
+        
         .chat-input input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
-
+        
         .chat-input button {
             background: var(--primary-color);
             border: none;
@@ -286,12 +286,12 @@
             align-items: center;
             gap: 0.5rem;
         }
-
+        
         .chat-input button:hover {
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
-
+        
         .action-buttons {
             display: flex;
             gap: 2rem;
@@ -301,7 +301,7 @@
             flex-wrap: wrap;
             padding: 0 1rem;
         }
-
+        
         .action-btn {
             flex: 0 1 auto;
             background: var(--gray-100);
@@ -321,7 +321,7 @@
             max-width: 250px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-
+        
         .action-btn:hover {
             background: var(--gray-200);
             transform: translateY(-1px);
@@ -529,16 +529,16 @@
             .chat-body {
                 padding: 1rem;
             }
-
+            
             .chat-messages {
                 max-height: 300px;
             }
-
+            
             .chat-input {
                 flex-direction: column;
                 align-items: stretch;
             }
-
+            
             .action-buttons {
                 flex-direction: column;
             }
@@ -629,11 +629,11 @@
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <a href="#" class="brand">
+                <a href="#" class="brand">
                 <i class="bi bi-robot"></i>
                 MediaMap AI
-            </a>
-            <div class="user-info">
+                </a>
+                <div class="user-info">
                 <span class="username">
                     <i class="bi bi-person-circle me-1"></i>
                     {{ current_user.username }}
@@ -643,7 +643,7 @@
                 <button class="btn-secondary" data-bs-toggle="modal" data-bs-target="#feedbackModal">
                     <i class="bi bi-chat-quote"></i>
                     Feedback
-                </button>
+                    </button>
                 <a href="{{ url_for('my_chats') }}" class="btn-secondary">
                     <i class="bi bi-chat-text"></i>
                     My Chats
@@ -663,9 +663,9 @@
                 <a href="{{ url_for('logout') }}" class="btn-primary">
                     <i class="bi bi-box-arrow-right"></i>
                     Logout
-                </a>
+                    </a>
+                </div>
             </div>
-        </div>
     </header>
 
     <!-- Main Content -->
@@ -681,13 +681,13 @@
                         <span>Conversations are automatically saved</span>
                     </div>
                 </div>
-                <div id="chat-messages" class="chat-messages">
-                    <div class="message ai-message">
-                        <strong><i class="bi bi-robot me-2"></i>Highlander:</strong><br>
-                        I'm Highlander, your AI business consultant. Tell me about your media business - what challenges are you facing and what are you trying to achieve?
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="message ai-message">
+                            <strong><i class="bi bi-robot me-2"></i>Highlander:</strong><br>
+                            I'm Highlander, your AI business consultant. Tell me about your media business - what challenges are you facing and what are you trying to achieve?
+                        </div>
                     </div>
-                </div>
-                
+                    
                 <div class="chat-input-section">
                     <form id="chat-form" class="chat-input" autocomplete="off">
                         <input type="text" id="chat-input" placeholder="Describe your business, challenges, or goals..." required />
@@ -695,7 +695,7 @@
                             <i class="bi bi-send"></i>
                             Send
                         </button>
-                                        </form>
+                    </form>
                     
                     <div class="action-buttons">
                         <button id="extract-facts-btn" class="action-btn primary">
@@ -729,7 +729,7 @@
 
         // Auto-focus on input
         chatInput.focus();
-
+        
 
 
         // Chat form submission
@@ -759,11 +759,11 @@
                 if (data.success) {
                     chatId = data.chat_id || chatId;
                     
-                    // Add AI response
-                    const aiDiv = document.createElement('div');
-                    aiDiv.className = 'message ai-message';
-                    aiDiv.innerHTML = `<strong><i class="bi bi-robot me-2"></i>Highlander:</strong><br>${data.reply}`;
-                    chatMessages.appendChild(aiDiv);
+                                         // Add AI response
+                     const aiDiv = document.createElement('div');
+                     aiDiv.className = 'message ai-message';
+                     aiDiv.innerHTML = `<strong><i class="bi bi-robot me-2"></i>Highlander:</strong><br>${data.reply}`;
+                     chatMessages.appendChild(aiDiv);
                 } else {
                     // Add error message
                     const errorDiv = document.createElement('div');
