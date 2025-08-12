@@ -1,13 +1,14 @@
 version: '3.8'
 
 services:
-  mediamap:
+  datasafe:
     build: .
     ports:
       - "8000:8000"
     environment:
       - FLASK_ENV=production
       - FLASK_APP=backend/app.py
+      - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN:-}
     volumes:
       - ./instance:/app/instance
       - ./backend/training/models:/app/backend/training/models
@@ -26,5 +27,5 @@ services:
     volumes:
       - ./nginx-simple.conf:/etc/nginx/nginx.conf
     depends_on:
-      - mediamap
+      - datasafe
     restart: unless-stopped 

@@ -1,4 +1,4 @@
-# 🚀 MediaMap AWS Quick Start
+# 🚀 DataSafe AWS Quick Start
 
 ## Choose Your Deployment Path
 
@@ -47,7 +47,7 @@ aws configure
 
 ### Step 4: Get Your Application URL
 ```bash
-aws elbv2 describe-load-balancers --names mediamap-alb --region us-east-1 --query 'LoadBalancers[0].DNSName' --output text
+aws elbv2 describe-load-balancers --names datasafe-alb --region us-east-1 --query 'LoadBalancers[0].DNSName' --output text
 ```
 
 ---
@@ -68,7 +68,7 @@ aws ec2 run-instances \
   --key-name your-key-pair \
   --security-group-ids sg-12345678 \
   --subnet-id subnet-12345678 \
-  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=mediamap-server}]'
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=datasafe-server}]'
 ```
 
 ### Step 2: SSH and Deploy
@@ -84,8 +84,8 @@ sudo systemctl enable docker
 sudo usermod -a -G docker ubuntu
 
 # Clone and deploy
-git clone https://github.com/pauldevelopai/mediamap.git
-cd mediamap
+git clone https://github.com/pauldevelopai/datasafe.git
+cd datasafe
 ./deploy-ec2.sh
 ```
 
@@ -96,9 +96,9 @@ cd mediamap
 ### Step 1: Create App Runner Service
 ```bash
 aws apprunner create-service \
-  --service-name mediamap \
+  --service-name datasafe \
   --source-configuration '{
-    "RepositoryUrl": "https://github.com/pauldevelopai/mediamap",
+    "RepositoryUrl": "https://github.com/pauldevelopai/datasafe",
     "SourceCodeVersion": {
       "Type": "BRANCH",
       "Value": "main"
@@ -121,7 +121,7 @@ aws apprunner create-service \
 
 ### Step 2: Get Your Application URL
 ```bash
-aws apprunner describe-service --service-name mediamap --query 'Service.ServiceUrl' --output text
+aws apprunner describe-service --service-name datasafe --query 'Service.ServiceUrl' --output text
 ```
 
 ---
@@ -141,7 +141,7 @@ FLASK_ENV=production
 ### Check Application Health
 ```bash
 # ECS
-aws ecs describe-services --cluster mediamap-cluster --services mediamap-service --region us-east-1
+aws ecs describe-services --cluster datasafe-cluster --services datasafe-service --region us-east-1
 
 # EC2
 curl -f http://localhost:8000/health
@@ -153,13 +153,13 @@ curl -f https://your-app-runner-url/health
 ### View Logs
 ```bash
 # ECS
-aws logs tail /ecs/mediamap --follow --region us-east-1
+aws logs tail /ecs/datasafe --follow --region us-east-1
 
 # EC2
 docker-compose logs -f
 
 # App Runner
-aws apprunner describe-service --service-name mediamap --query 'Service.ServiceUrl' --output text
+aws apprunner describe-service --service-name datasafe --query 'Service.ServiceUrl' --output text
 ```
 
 ## 💰 Cost Optimization Tips
@@ -178,7 +178,7 @@ aws apprunner describe-service --service-name mediamap --query 'Service.ServiceU
 ```bash
 # Check logs
 docker-compose logs
-aws logs tail /ecs/mediamap --region us-east-1
+aws logs tail /ecs/datasafe --region us-east-1
 ```
 
 **Health check failing:**
@@ -211,4 +211,4 @@ curl -f http://localhost:8000/health
 
 ---
 
-**Ready to deploy? Choose your path and let's get MediaMap running on AWS! 🚀** 
+**Ready to deploy? Choose your path and let's get DataSafe running on AWS! 🚀** 

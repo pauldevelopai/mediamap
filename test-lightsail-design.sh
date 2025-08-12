@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🎨 Testing MediaMap Design for Lightsail Deployment"
+echo "🎨 Testing DataSafe Design for Lightsail Deployment"
 echo "=================================================="
 
 # Check if we can access the local development server

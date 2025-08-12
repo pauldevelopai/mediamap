@@ -3,11 +3,11 @@ set -e
 
 # Configuration
 AWS_REGION="us-east-1"
-CLUSTER_NAME="mediamap-cluster"
-SERVICE_NAME="mediamap-service"
-SECURITY_GROUP_NAME="mediamap-sg"
+CLUSTER_NAME="datasafe-cluster"
+SERVICE_NAME="datasafe-service"
+SECURITY_GROUP_NAME="datasafe-sg"
 
-echo "🔧 Setting up AWS resources for MediaMap..."
+echo "🔧 Setting up AWS resources for DataSafe..."
 
 # Check if AWS CLI is configured
 if ! aws sts get-caller-identity &> /dev/null; then
@@ -32,7 +32,7 @@ echo "🔗 Found subnets: ${SUBNET_ARRAY[0]} ${SUBNET_ARRAY[1]}"
 echo "🛡️ Creating security group..."
 SECURITY_GROUP_ID=$(aws ec2 create-security-group \
     --group-name $SECURITY_GROUP_NAME \
-    --description "Security group for MediaMap application" \
+    --description "Security group for DataSafe application" \
     --vpc-id $VPC_ID \
     --region $AWS_REGION \
     --query 'GroupId' --output text)
@@ -96,20 +96,20 @@ aws ecs create-cluster \
 # Create ECR repository
 echo "📦 Creating ECR repository..."
 aws ecr create-repository \
-    --repository-name mediamap \
+    --repository-name datasafe \
     --region $AWS_REGION
 
 # Create CloudWatch log group
 echo "📊 Creating CloudWatch log group..."
 aws logs create-log-group \
-    --log-group-name /ecs/mediamap \
+    --log-group-name /ecs/datasafe \
     --region $AWS_REGION 2>/dev/null || echo "Log group already exists"
 
 # Create task definition
 echo "📋 Creating task definition..."
 cat > task-definition.json << EOF
 {
-  "family": "mediamap",
+  "family": "datasafe",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "1024",
@@ -117,8 +117,8 @@ cat > task-definition.json << EOF
   "executionRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
-      "name": "mediamap",
-      "image": "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/mediamap:latest",
+      "name": "datasafe",
+      "image": "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/datasafe:latest",
       "portMappings": [
         {
           "containerPort": 8000,
@@ -138,7 +138,7 @@ cat > task-definition.json << EOF
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/mediamap",
+          "awslogs-group": "/ecs/datasafe",
           "awslogs-region": "$AWS_REGION",
           "awslogs-stream-prefix": "ecs"
         }
@@ -155,7 +155,7 @@ aws ecs register-task-definition \
 # Create Application Load Balancer
 echo "⚖️ Creating Application Load Balancer..."
 ALB_ARN=$(aws elbv2 create-load-balancer \
-    --name mediamap-alb \
+    --name datasafe-alb \
     --subnets ${SUBNET_ARRAY[0]} ${SUBNET_ARRAY[1]} \
     --security-groups $SECURITY_GROUP_ID \
     --region $AWS_REGION \
@@ -166,7 +166,7 @@ echo "✅ Load balancer created: $ALB_ARN"
 # Create target group
 echo "🎯 Creating target group..."
 TARGET_GROUP_ARN=$(aws elbv2 create-target-group \
-    --name mediamap-tg \
+    --name datasafe-tg \
     --protocol HTTP \
     --port 8000 \
     --vpc-id $VPC_ID \
@@ -190,11 +190,11 @@ echo "🚀 Creating ECS service..."
 aws ecs create-service \
     --cluster $CLUSTER_NAME \
     --service-name $SERVICE_NAME \
-    --task-definition mediamap:1 \
+    --task-definition datasafe:1 \
     --desired-count 1 \
     --launch-type FARGATE \
     --network-configuration "awsvpcConfiguration={subnets=[${SUBNET_ARRAY[0]},${SUBNET_ARRAY[1]}],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
-    --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=mediamap,containerPort=8000" \
+    --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=datasafe,containerPort=8000" \
     --region $AWS_REGION
 
 # Clean up temporary file
@@ -210,7 +210,7 @@ echo "  - Security Group: $SECURITY_GROUP_ID"
 echo ""
 echo "🚀 Next steps:"
 echo "  1. Run: ./deploy-ecs.sh"
-echo "  2. Get load balancer DNS: aws elbv2 describe-load-balancers --names mediamap-alb --region $AWS_REGION --query 'LoadBalancers[0].DNSName' --output text"
+echo "  2. Get load balancer DNS: aws elbv2 describe-load-balancers --names datasafe-alb --region $AWS_REGION --query 'LoadBalancers[0].DNSName' --output text"
 echo "  3. Access your application at the load balancer DNS"
 echo ""
 echo "📊 Monitor deployment:"

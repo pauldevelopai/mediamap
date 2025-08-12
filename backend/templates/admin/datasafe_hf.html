@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataSafe Hugging Face Integration - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+                            <i class="bi bi-shield-check"></i> DataSafe Admin
+                        </a>
+                        <div class="navbar-nav ms-auto">
+                            <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-robot"></i> DataSafe Hugging Face Integration</h2>
+                </div>
+
+                <!-- Processing Controls -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-gear"></i> Processing Controls</h5>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-primary mb-2" onclick="processUnprocessed()">
+                                    <i class="bi bi-play-circle"></i> Process Unprocessed Content
+                                </button>
+                                <button class="btn btn-info mb-2" onclick="loadHighSeverityThreats()">
+                                    <i class="bi bi-exclamation-triangle"></i> Load High Severity Threats
+                                </button>
+                                <div class="mb-3">
+                                    <label for="processLimit" class="form-label">Processing Limit:</label>
+                                    <input type="number" class="form-control" id="processLimit" value="50" min="1" max="500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-info-circle"></i> Processing Status</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="processStatus" class="alert alert-info">
+                                    Ready to process content through Hugging Face pipeline.
+                                </div>
+                                <div id="progressContainer" style="display: none;">
+                                    <div class="progress">
+                                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- High Severity Threats -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-shield-exclamation"></i> Recent High Severity Threats</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="threatsContainer">
+                                    <p class="text-muted">Click "Load High Severity Threats" to see recent critical threats.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Configuration -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-sliders"></i> Model Configuration</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h6>Zero-shot Classification</h6>
+                                        <code>facebook/bart-large-mnli</code>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6>Summarization</h6>
+                                        <code>facebook/bart-large-cnn</code>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6>Embeddings</h6>
+                                        <code>sentence-transformers/all-MiniLM-L6-v2</code>
+                                    </div>
+                                </div>
+                                <hr>
+                                <small class="text-muted">
+                                    Configure models via environment variables: DS_HF_ZERO_SHOT_MODEL, DS_HF_SUMMARY_MODEL, DS_HF_EMBED_MODEL
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('processStatus');
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.innerHTML = message;
+        }
+
+        function showProgress(show = true) {
+            const container = document.getElementById('progressContainer');
+            container.style.display = show ? 'block' : 'none';
+        }
+
+        function updateProgress(percent) {
+            const bar = document.getElementById('progressBar');
+            bar.style.width = `${percent}%`;
+            bar.setAttribute('aria-valuenow', percent);
+        }
+
+        async function processUnprocessed() {
+            const limit = document.getElementById('processLimit').value;
+            
+            updateStatus('<i class="bi bi-hourglass-split"></i> Processing unprocessed content...', 'warning');
+            showProgress(true);
+            updateProgress(10);
+
+            try {
+                const response = await fetch('/api/datasafe/process-unprocessed', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({limit: parseInt(limit)})
+                });
+
+                updateProgress(50);
+                const result = await response.json();
+                updateProgress(100);
+
+                if (result.success) {
+                    updateStatus(`
+                        <i class="bi bi-check-circle"></i> Processing complete!<br>
+                        <strong>Processed:</strong> ${result.processed} items<br>
+                        <strong>Failed:</strong> ${result.failed} items
+                    `, 'success');
+                } else {
+                    updateStatus(`<i class="bi bi-x-circle"></i> Error: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                updateStatus(`<i class="bi bi-x-circle"></i> Network error: ${error.message}`, 'danger');
+            }
+
+            setTimeout(() => showProgress(false), 2000);
+        }
+
+        async function loadHighSeverityThreats() {
+            updateStatus('<i class="bi bi-search"></i> Loading high severity threats...', 'info');
+
+            try {
+                const response = await fetch('/api/datasafe/high-severity-threats?hours=24');
+                const result = await response.json();
+
+                if (result.success) {
+                    displayThreats(result.threats);
+                    updateStatus(`<i class="bi bi-check-circle"></i> Loaded ${result.count} high severity threats`, 'success');
+                } else {
+                    updateStatus(`<i class="bi bi-x-circle"></i> Error: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                updateStatus(`<i class="bi bi-x-circle"></i> Network error: ${error.message}`, 'danger');
+            }
+        }
+
+        function displayThreats(threats) {
+            const container = document.getElementById('threatsContainer');
+            
+            if (threats.length === 0) {
+                container.innerHTML = '<p class="text-muted">No high severity threats found in the last 24 hours.</p>';
+                return;
+            }
+
+            let html = '';
+            threats.forEach(threat => {
+                const severityClass = threat.severity === 'Critical' ? 'danger' : 'warning';
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title">${threat.title}</h6>
+                                    <p class="card-text text-muted">${threat.summary || 'No summary available'}</p>
+                                    <small class="text-muted">
+                                        <strong>Source:</strong> ${threat.source} | 
+                                        <strong>Type:</strong> ${threat.threat_type} | 
+                                        <strong>Confidence:</strong> ${(threat.confidence * 100).toFixed(1)}%
+                                    </small>
+                                </div>
+                                <span class="badge bg-${severityClass}">${threat.severity}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Auto-load high severity threats on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHighSeverityThreats();
+        });
+    </script>
+</body>
+</html>

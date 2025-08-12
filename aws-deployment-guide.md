@@ -1,4 +1,4 @@
-# MediaMap AWS Deployment Guide
+# DataSafe AWS Deployment Guide
 
 ## 🚀 Quick Start Options
 
@@ -26,28 +26,28 @@
 ### Step 1: Create ECR Repository
 ```bash
 # Create ECR repository
-aws ecr create-repository --repository-name mediamap --region us-east-1
+aws ecr create-repository --repository-name datasafe --region us-east-1
 
 # Get login token
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com
 
 # Tag and push image
-docker build -t mediamap .
-docker tag mediamap:latest $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com/mediamap:latest
-docker push $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com/mediamap:latest
+docker build -t datasafe .
+docker tag datasafe:latest $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com/datasafe:latest
+docker push $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com/datasafe:latest
 ```
 
 ### Step 2: Create ECS Cluster
 ```bash
 # Create cluster
-aws ecs create-cluster --cluster-name mediamap-cluster --region us-east-1
+aws ecs create-cluster --cluster-name datasafe-cluster --region us-east-1
 ```
 
 ### Step 3: Create Task Definition
 Create `task-definition.json`:
 ```json
 {
-  "family": "mediamap",
+  "family": "datasafe",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "1024",
@@ -55,8 +55,8 @@ Create `task-definition.json`:
   "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
-      "name": "mediamap",
-      "image": "YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/mediamap:latest",
+      "name": "datasafe",
+      "image": "YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/datasafe:latest",
       "portMappings": [
         {
           "containerPort": 8000,
@@ -76,17 +76,17 @@ Create `task-definition.json`:
       "secrets": [
         {
           "name": "SECRET_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:YOUR_ACCOUNT_ID:secret:mediamap/secret-key"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:YOUR_ACCOUNT_ID:secret:datasafe/secret-key"
         },
         {
           "name": "OPENAI_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:YOUR_ACCOUNT_ID:secret:mediamap/openai-key"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:YOUR_ACCOUNT_ID:secret:datasafe/openai-key"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/mediamap",
+          "awslogs-group": "/ecs/datasafe",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -100,14 +100,14 @@ Create `task-definition.json`:
 ```bash
 # Create ALB
 aws elbv2 create-load-balancer \
-  --name mediamap-alb \
+  --name datasafe-alb \
   --subnets subnet-12345678 subnet-87654321 \
   --security-groups sg-12345678 \
   --region us-east-1
 
 # Create target group
 aws elbv2 create-target-group \
-  --name mediamap-tg \
+  --name datasafe-tg \
   --protocol HTTP \
   --port 8000 \
   --vpc-id vpc-12345678 \
@@ -116,23 +116,23 @@ aws elbv2 create-target-group \
 
 # Create listener
 aws elbv2 create-listener \
-  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:YOUR_ACCOUNT_ID:loadbalancer/app/mediamap-alb/1234567890abcdef \
+  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:YOUR_ACCOUNT_ID:loadbalancer/app/datasafe-alb/1234567890abcdef \
   --protocol HTTP \
   --port 80 \
-  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:YOUR_ACCOUNT_ID:targetgroup/mediamap-tg/1234567890abcdef
+  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:YOUR_ACCOUNT_ID:targetgroup/datasafe-tg/1234567890abcdef
 ```
 
 ### Step 5: Create ECS Service
 ```bash
 # Create service
 aws ecs create-service \
-  --cluster mediamap-cluster \
-  --service-name mediamap-service \
-  --task-definition mediamap:1 \
+  --cluster datasafe-cluster \
+  --service-name datasafe-service \
+  --task-definition datasafe:1 \
   --desired-count 2 \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[subnet-12345678,subnet-87654321],securityGroups=[sg-12345678],assignPublicIp=ENABLED}" \
-  --load-balancers "targetGroupArn=arn:aws:elasticloadbalancing:us-east-1:YOUR_ACCOUNT_ID:targetgroup/mediamap-tg/1234567890abcdef,containerName=mediamap,containerPort=8000"
+  --load-balancers "targetGroupArn=arn:aws:elasticloadbalancing:us-east-1:YOUR_ACCOUNT_ID:targetgroup/datasafe-tg/1234567890abcdef,containerName=datasafe,containerPort=8000"
 ```
 
 ## 🔧 Option 2: EC2 with Docker (Cost-Effective)
@@ -147,7 +147,7 @@ aws ec2 run-instances \
   --key-name your-key-pair \
   --security-group-ids sg-12345678 \
   --subnet-id subnet-12345678 \
-  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=mediamap-server}]'
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=datasafe-server}]'
 ```
 
 ### Step 2: Configure EC2 Instance
@@ -175,8 +175,8 @@ ssh -i your-key.pem ubuntu@your-instance-ip
 ### Step 3: Deploy Application
 ```bash
 # Clone repository
-git clone https://github.com/pauldevelopai/mediamap.git
-cd mediamap
+git clone https://github.com/pauldevelopai/datasafe.git
+cd datasafe
 
 # Create environment file
 cat > .env << EOF
@@ -216,7 +216,7 @@ runtime: python3
 build:
   commands:
     build:
-      - echo "Building MediaMap application"
+      - echo "Building DataSafe application"
       - pip install -r requirements.txt
 run:
   runtime-version: 3.12
@@ -231,9 +231,9 @@ EOF
 ```bash
 # Create App Runner service
 aws apprunner create-service \
-  --service-name mediamap \
+  --service-name datasafe \
   --source-configuration '{
-    "RepositoryUrl": "https://github.com/pauldevelopai/mediamap",
+    "RepositoryUrl": "https://github.com/pauldevelopai/datasafe",
     "SourceCodeVersion": {
       "Type": "BRANCH",
       "Value": "main"
@@ -284,12 +284,12 @@ aws iam attach-role-policy \
 ```bash
 # Create secrets
 aws secretsmanager create-secret \
-  --name mediamap/secret-key \
-  --description "MediaMap Flask secret key" \
+  --name datasafe/secret-key \
+  --description "DataSafe Flask secret key" \
   --secret-string "your-super-secret-production-key"
 
 aws secretsmanager create-secret \
-  --name mediamap/openai-key \
+  --name datasafe/openai-key \
   --description "OpenAI API key" \
   --secret-string "your-openai-api-key"
 ```
@@ -298,25 +298,25 @@ aws secretsmanager create-secret \
 ```bash
 # Create security group
 aws ec2 create-security-group \
-  --group-name mediamap-sg \
-  --description "Security group for MediaMap application"
+  --group-name datasafe-sg \
+  --description "Security group for DataSafe application"
 
 # Allow HTTP/HTTPS
 aws ec2 authorize-security-group-ingress \
-  --group-name mediamap-sg \
+  --group-name datasafe-sg \
   --protocol tcp \
   --port 80 \
   --cidr 0.0.0.0/0
 
 aws ec2 authorize-security-group-ingress \
-  --group-name mediamap-sg \
+  --group-name datasafe-sg \
   --protocol tcp \
   --port 443 \
   --cidr 0.0.0.0/0
 
 # Allow SSH (for EC2 option)
 aws ec2 authorize-security-group-ingress \
-  --group-name mediamap-sg \
+  --group-name datasafe-sg \
   --protocol tcp \
   --port 22 \
   --cidr YOUR_IP/32
@@ -328,14 +328,14 @@ aws ec2 authorize-security-group-ingress \
 ```bash
 # Create CloudWatch dashboard
 aws cloudwatch put-dashboard \
-  --dashboard-name MediaMap-Dashboard \
+  --dashboard-name DataSafe-Dashboard \
   --dashboard-body '{
     "widgets": [
       {
         "type": "metric",
         "properties": {
           "metrics": [
-            ["AWS/ECS", "CPUUtilization", "ServiceName", "mediamap-service", "ClusterName", "mediamap-cluster"]
+            ["AWS/ECS", "CPUUtilization", "ServiceName", "datasafe-service", "ClusterName", "datasafe-cluster"]
           ],
           "period": 300,
           "stat": "Average",
@@ -353,7 +353,7 @@ aws cloudwatch put-dashboard \
 aws application-autoscaling register-scalable-target \
   --service-namespace ecs \
   --scalable-dimension ecs:service:DesiredCount \
-  --resource-id service/mediamap-cluster/mediamap-service \
+  --resource-id service/datasafe-cluster/datasafe-service \
   --min-capacity 1 \
   --max-capacity 10
 
@@ -361,8 +361,8 @@ aws application-autoscaling register-scalable-target \
 aws application-autoscaling put-scaling-policy \
   --service-namespace ecs \
   --scalable-dimension ecs:service:DesiredCount \
-  --resource-id service/mediamap-cluster/mediamap-service \
-  --policy-name mediamap-cpu-scaling \
+  --resource-id service/datasafe-cluster/datasafe-service \
+  --policy-name datasafe-cpu-scaling \
   --policy-type TargetTrackingScaling \
   --target-tracking-scaling-policy-configuration '{
     "TargetValue": 70.0,
@@ -388,9 +388,9 @@ aws ec2 describe-reserved-instances-offerings \
 ```bash
 # Use spot instances for cost savings
 aws ecs create-service \
-  --cluster mediamap-cluster \
-  --service-name mediamap-spot-service \
-  --task-definition mediamap:1 \
+  --cluster datasafe-cluster \
+  --service-name datasafe-spot-service \
+  --task-definition datasafe:1 \
   --desired-count 2 \
   --launch-type FARGATE_SPOT \
   --capacity-provider-strategy 'capacityProvider=FARGATE_SPOT,weight=1'
@@ -406,9 +406,9 @@ set -e
 
 # Configuration
 AWS_REGION="us-east-1"
-ECR_REPO="mediamap"
-CLUSTER_NAME="mediamap-cluster"
-SERVICE_NAME="mediamap-service"
+ECR_REPO="datasafe"
+CLUSTER_NAME="datasafe-cluster"
+SERVICE_NAME="datasafe-service"
 
 # Build and push image
 echo "Building Docker image..."
@@ -488,7 +488,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: mediamap
+          ECR_REPOSITORY: datasafe
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -496,7 +496,7 @@ jobs:
       
       - name: Deploy to ECS
         run: |
-          aws ecs update-service --cluster mediamap-cluster --service mediamap-service --force-new-deployment
+          aws ecs update-service --cluster datasafe-cluster --service datasafe-service --force-new-deployment
 ```
 
 ## 📞 Next Steps

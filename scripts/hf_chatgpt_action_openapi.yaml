@@ -1,0 +1,40 @@
+openapi: 3.1.0
+info:
+  title: Highlander HF Inference
+  version: "1.0"
+servers:
+  - url: https://api.endpoints.huggingface.cloud/${HF_ENDPOINT_ID}
+paths:
+  /v1/generate:
+    post:
+      operationId: generate
+      description: Generate text from the Highlander model hosted on Hugging Face Inference Endpoint
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inputs:
+                  type: string
+                parameters:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+

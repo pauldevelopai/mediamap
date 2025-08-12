@@ -4,7 +4,7 @@
 INSTANCE_IP="13.40.124.51"
 SSH_KEY="LightsailDefaultKey-eu-west-2.pem"
 
-echo "🎨 Updating MediaMap templates on Lightsail instance..."
+echo "🎨 Updating DataSafe templates on Lightsail instance..."
 echo "🌐 IP Address: $INSTANCE_IP"
 
 # Check if SSH key exists
@@ -18,28 +18,28 @@ echo "🔑 Using SSH key: $SSH_KEY"
 
 # Create a temporary directory for the templates
 echo "📝 Preparing updated templates..."
-mkdir -p /tmp/mediamap-templates
+mkdir -p /tmp/datasafe-templates
 
 # Copy the updated templates
-cp backend/templates/user_dashboard.html /tmp/mediamap-templates/
-cp backend/templates/user_chats.html /tmp/mediamap-templates/
-cp backend/templates/login.html /tmp/mediamap-templates/
+cp backend/templates/user_dashboard.html /tmp/datasafe-templates/
+cp backend/templates/user_chats.html /tmp/datasafe-templates/
+cp backend/templates/login.html /tmp/datasafe-templates/
 
 echo "📤 Uploading updated templates to Lightsail instance..."
-scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -r /tmp/mediamap-templates/* ubuntu@$INSTANCE_IP:/tmp/
+scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -r /tmp/datasafe-templates/* ubuntu@$INSTANCE_IP:/tmp/
 
 echo "🔧 Updating templates on server..."
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP << 'EOF'
     echo "📝 Updating templates..."
-    sudo cp /tmp/user_dashboard.html /opt/mediamap/backend/templates/
-    sudo cp /tmp/user_chats.html /opt/mediamap/backend/templates/
-    sudo cp /tmp/login.html /opt/mediamap/backend/templates/
+    sudo cp /tmp/user_dashboard.html /opt/datasafe/backend/templates/
+    sudo cp /tmp/user_chats.html /opt/datasafe/backend/templates/
+    sudo cp /tmp/login.html /opt/datasafe/backend/templates/
     
-    sudo chown ubuntu:ubuntu /opt/mediamap/backend/templates/*.html
-    sudo chmod 644 /opt/mediamap/backend/templates/*.html
+    sudo chown ubuntu:ubuntu /opt/datasafe/backend/templates/*.html
+    sudo chmod 644 /opt/datasafe/backend/templates/*.html
     
     echo "🔄 Restarting application..."
-    cd /opt/mediamap
+    cd /opt/datasafe
     docker-compose restart
     
     echo "⏳ Waiting for application to restart..."
@@ -75,4 +75,4 @@ echo "   • Working feedback system that goes to admin dashboard"
 echo "   • Clear conversation saving indicators"
 
 # Clean up
-rm -rf /tmp/mediamap-templates 
+rm -rf /tmp/datasafe-templates 

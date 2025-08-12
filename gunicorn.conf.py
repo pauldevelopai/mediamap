@@ -22,7 +22,7 @@ errorlog = "-"
 loglevel = "info"
 
 # Process naming
-proc_name = "mediamap"
+proc_name = "datasafe"
 
 # Server mechanics
 daemon = False

@@ -4,7 +4,7 @@
 INSTANCE_IP="13.40.124.51"
 SSH_KEY="LightsailDefaultKey-eu-west-2.pem"
 
-echo "🎨 Updating MediaMap design on Lightsail instance..."
+echo "🎨 Updating DataSafe design on Lightsail instance..."
 echo "🌐 IP Address: $INSTANCE_IP"
 
 # Check if SSH key exists
@@ -24,7 +24,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaMap AI - Your Business Assistant</title>
+    <title>DataSafe AI - Your Business Assistant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
@@ -583,7 +583,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
         <div class="header-content">
             <a href="#" class="brand">
                 <i class="bi bi-robot"></i>
-                MediaMap AI
+                DataSafe AI
             </a>
             <div class="user-actions">
                 <button class="btn-secondary" data-bs-toggle="modal" data-bs-target="#feedbackModal">
@@ -845,7 +845,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
                     companyInfoPlaceholder.style.display = 'block';
                     document.getElementById('download-company-btn').style.display = 'none';
                     document.getElementById('save-company-btn').style.display = 'none';
-                    localStorage.removeItem('mediamap_fact_sheet');
+                    localStorage.removeItem('datasafe_fact_sheet');
                 }
             }
         }
@@ -858,7 +858,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
                     strategiesPlaceholder.style.display = 'block';
                     document.getElementById('download-strategies-btn').style.display = 'none';
                     document.getElementById('save-strategies-btn').style.display = 'none';
-                    localStorage.removeItem('mediamap_strategies');
+                    localStorage.removeItem('datasafe_strategies');
                 }
             }
         }
@@ -938,7 +938,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
                     `;
                     document.getElementById('download-company-btn').style.display = 'inline-block';
                     document.getElementById('save-company-btn').style.display = 'inline-block';
-                    localStorage.setItem('mediamap_fact_sheet', data.fact_sheet);
+                    localStorage.setItem('datasafe_fact_sheet', data.fact_sheet);
                 } else {
                     alert('No conversation found to extract facts from. Please chat with Highlander first.');
                 }
@@ -976,7 +976,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
                     `;
                     document.getElementById('download-strategies-btn').style.display = 'inline-block';
                     document.getElementById('save-strategies-btn').style.display = 'inline-block';
-                    localStorage.setItem('mediamap_strategies', data.strategies);
+                    localStorage.setItem('datasafe_strategies', data.strategies);
                 } else {
                     alert('No conversation found to develop strategies from. Please chat with Highlander first.');
                 }
@@ -993,8 +993,8 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
         window.addEventListener('load', async () => {
             try {
                 // Load from localStorage
-                const savedFactSheet = localStorage.getItem('mediamap_fact_sheet');
-                const savedStrategies = localStorage.getItem('mediamap_strategies');
+                const savedFactSheet = localStorage.getItem('datasafe_fact_sheet');
+                const savedStrategies = localStorage.getItem('datasafe_strategies');
                 
                 if (savedFactSheet) {
                     companyInfoPlaceholder.style.display = 'none';
@@ -1037,7 +1037,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
                         `;
                         document.getElementById('download-company-btn').style.display = 'inline-block';
                         document.getElementById('save-company-btn').style.display = 'inline-block';
-                        localStorage.setItem('mediamap_fact_sheet', latestChat.fact_sheet);
+                        localStorage.setItem('datasafe_fact_sheet', latestChat.fact_sheet);
                     }
                     
                     if (!savedStrategies && latestChat.strategies) {
@@ -1050,7 +1050,7 @@ cat > /tmp/user_dashboard_updated.html << 'EOF'
                         `;
                         document.getElementById('download-strategies-btn').style.display = 'inline-block';
                         document.getElementById('save-strategies-btn').style.display = 'inline-block';
-                        localStorage.setItem('mediamap_strategies', latestChat.strategies);
+                        localStorage.setItem('datasafe_strategies', latestChat.strategies);
                     }
                 }
             } catch (error) {
@@ -1068,12 +1068,12 @@ scp -i "$SSH_KEY" -o StrictHostKeyChecking=no /tmp/user_dashboard_updated.html u
 echo "🔧 Updating template on server..."
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP << 'EOF'
     echo "📝 Updating user dashboard template..."
-    sudo cp /tmp/user_dashboard_updated.html /opt/mediamap/backend/templates/user_dashboard.html
-    sudo chown ubuntu:ubuntu /opt/mediamap/backend/templates/user_dashboard.html
-    sudo chmod 644 /opt/mediamap/backend/templates/user_dashboard.html
+    sudo cp /tmp/user_dashboard_updated.html /opt/datasafe/backend/templates/user_dashboard.html
+    sudo chown ubuntu:ubuntu /opt/datasafe/backend/templates/user_dashboard.html
+    sudo chmod 644 /opt/datasafe/backend/templates/user_dashboard.html
     
     echo "🔄 Restarting application..."
-    cd /opt/mediamap
+    cd /opt/datasafe
     docker-compose restart
     
     echo "⏳ Waiting for application to restart..."

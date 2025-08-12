@@ -1,4 +1,5 @@
 import os
+import sys
 # Disable wandb completely before importing anything else
 os.environ["WANDB_DISABLED"] = "true"
 os.environ["WANDB_MODE"] = "disabled"
@@ -8,7 +9,10 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
+try:
+    from .models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
+except ImportError:
+    from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
@@ -30,6 +34,7 @@ from sqlalchemy.orm import joinedload
 from bs4 import BeautifulSoup
 import html2text
 from notion_client import Client as NotionClient
+from strategies_crawler import StrategiesCrawler, StrategyEntry
 
 # Create the ai_utility blueprint
 ai_utility_bp = Blueprint('ai_utility', __name__, url_prefix='/ai-utility')
@@ -76,8 +81,12 @@ load_dotenv()
 
 # Initialize Flask app
 import os
-template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(backend_dir, '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+template_dir = os.path.join(backend_dir, 'templates')
+static_dir = os.path.join(backend_dir, 'static')
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')
 
@@ -94,6 +103,22 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = None  # This will disable the message entirely
+
+# Admin required decorator (defined early to be used throughout)
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('You need to login first.', 'danger')
+            return redirect(url_for('login'))
+        
+        # Check if user has admin attribute and it's True
+        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
+            flash('You need admin privileges to access this page.', 'danger')
+            return redirect(url_for('landing_page1'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Initialize OpenAI client (only if API key is available)
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -191,6 +216,69 @@ NEVER say 'Hello' again after the first interaction. Always continue the convers
 app.register_blueprint(auth)
 app.register_blueprint(ai_utility_bp)
 app.register_blueprint(metadata_bp)
+
+# Create the IMS blueprint (Internal Management Suite)
+ims_bp = Blueprint('ims', __name__, url_prefix='/ims')
+
+@ims_bp.route('/')
+@login_required
+def index_ims():
+    """IMS home page with links to internal management tools"""
+    return render_template('ims.html')
+
+app.register_blueprint(ims_bp)
+
+# Clients blueprint for per-client dashboards
+clients_bp = Blueprint('clients', __name__, url_prefix='/clients')
+
+# Temporary in-memory client registry (can be moved to DB later)
+CLIENTS = [
+    {"slug": "ims", "name": "IMS"},
+    {"slug": "client-a", "name": "Client A"},
+    {"slug": "client-b", "name": "Client B"},
+    {"slug": "client-c", "name": "Client C"},
+]
+
+@clients_bp.route('/')
+@login_required
+def clients_index():
+    return render_template('clients.html', clients=CLIENTS)
+
+@clients_bp.route('/<client_slug>')
+@login_required
+def client_dashboard(client_slug: str):
+    client = next((c for c in CLIENTS if c['slug'] == client_slug), None)
+    if not client:
+        abort(404)
+    return render_template('client_dashboard.html', client=client)
+
+app.register_blueprint(clients_bp)
+
+# Setup DataSafe Hugging Face integration routes
+try:
+    from datasafe_integration import setup_datasafe_routes
+    setup_datasafe_routes(app)
+    print("✅ DataSafe Hugging Face integration routes loaded")
+except ImportError as e:
+    print(f"⚠️  DataSafe HF integration not available: {e}")
+except Exception as e:
+    print(f"❌ Failed to load DataSafe HF integration: {e}")
+
+# === Model management endpoints (Hugging Face integration) ===
+@app.route('/api/model/load-hf', methods=['POST'])
+@login_required
+@admin_required
+def load_model_from_hf():
+    """Load a model from Hugging Face Hub by name. Requires admin."""
+    try:
+        data = request.get_json(silent=True) or {}
+        model_name = data.get('model_name') or os.getenv('HF_MODEL_REPO') or 'paulmcnally/highlander-ai-model'
+        from training.model_manager import get_model_manager
+        manager = get_model_manager()
+        ok = manager.load_from_huggingface(model_name)
+        return jsonify({ 'success': bool(ok), 'model_name': model_name }), (200 if ok else 500)
+    except Exception as e:
+        return jsonify({ 'success': False, 'error': str(e) }), 500
 
 # In-memory storage for active chats
 active_chats = {}
@@ -1290,21 +1378,7 @@ def generate_insights():
 def your_info():
     return render_template('your_info.html')
 
-# Admin required decorator
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            flash('You need to login first.', 'danger')
-            return redirect(url_for('login'))
-        
-        # Check if user has admin attribute and it's True
-        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
-            flash('You need admin privileges to access this page.', 'danger')
-            return redirect(url_for('landing_page1'))
-        
-        return f(*args, **kwargs)
-    return decorated_function
+# Will be moved earlier in file
 
 # Admin routes
 @app.route('/admin/dashboard')
@@ -1325,6 +1399,13 @@ def admin_dashboard():
         if hasattr(user, 'is_admin') and user.is_admin:
             admin_count += 1
     
+    # Count strategies
+    try:
+        from backend.strategies_crawler import StrategyEntry
+        strategy_count = StrategyEntry.query.count()
+    except:
+        strategy_count = 0
+    
     # Get Flask version
     import flask
     flask_version = flask.__version__
@@ -1339,6 +1420,7 @@ def admin_dashboard():
         lesson_count=lesson_count,
         feedback_count=feedback_count,
         message_count=message_count,
+        strategy_count=strategy_count,
         recent_users=recent_users,
         admin_count=admin_count,
         flask_version=flask_version
@@ -1501,6 +1583,13 @@ def update_feedback_status(feedback_id):
 def admin_training():
     """Admin page for AI model training management"""
     return render_template('admin/training.html')
+
+@app.route('/admin/datasafe-hf')
+@login_required
+@admin_required
+def admin_datasafe_hf():
+    """Admin DataSafe Hugging Face integration dashboard."""
+    return render_template('admin/datasafe_hf.html')
 
 @app.route('/admin/training/collect-data', methods=['POST'])
 @login_required
@@ -2131,13 +2220,13 @@ def landing_page1():
 def landing_page2():
     return render_template('landing_page2.html')
 
-@app.route('/mediamap-home')
-def mediamap_home():
+@app.route('/datasafe-home')
+def datasafe_home():
     # Redirect regular users to their simplified dashboard
     if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
         if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
             return redirect(url_for('user_dashboard'))
-    return render_template('mediamap_home.html')
+    return render_template('datasafe_home.html')
 
 @app.route('/ai-utility')
 def ai_utility():
@@ -2157,7 +2246,7 @@ def select_platform(platform):
             return redirect(url_for('user_dashboard'))
     
     platform_templates = {
-        'mediamap': 'mediamap_home.html',
+        'datasafe': 'datasafe_home.html',
         'language': 'language_ai.html', 
         'contentflow': 'content_flow.html',
         'justice': 'justice_ai.html',
@@ -2787,16 +2876,24 @@ def real_collect_training_data():
         
         # 1. Collect real conversations from database
         try:
-            from models import Chat, Message, User
+            try:
+                from .models import Chat, Message, User
+            except ImportError:
+                from models import Chat, Message, User
             conversations = Chat.query.all()
             stats['conversations'] = len(conversations)
-            
+
             # Save conversations to training data
             conversations_file = os.path.join(training_dir, 'conversations', 'all_conversations.json')
             conversations_data = []
-            
+
             for chat in conversations:
-                messages = Message.query.filter_by(chat_id=chat.id).order_by(Message.created_at).all()
+                messages = (
+                    Message.query
+                    .filter_by(chat_id=chat.id)
+                    .order_by(Message.created_at)
+                    .all()
+                )
                 if messages:
                     conversation = {
                         'chat_id': chat.id,
@@ -2808,10 +2905,10 @@ def real_collect_training_data():
                         'strategies': chat.strategies
                     }
                     conversations_data.append(conversation)
-            
+
             with open(conversations_file, 'w', encoding='utf-8') as f:
                 json.dump(conversations_data, f, indent=2, ensure_ascii=False)
-                
+
         except Exception as e:
             print(f"Error collecting conversations: {e}")
         
@@ -3016,7 +3113,7 @@ def sync_chat_to_notion(chat_id):
                     "title": [
                         {
                             "text": {
-                                "content": f"MediaMap Chat #{chat.id} - {chat.created_at.strftime('%Y-%m-%d')}"
+                                "content": f"DataSafe Chat #{chat.id} - {chat.created_at.strftime('%Y-%m-%d')}"
                             }
                         }
                     ]
@@ -3298,7 +3395,16 @@ def find_news():
         db.session.commit()
         
         # Return the saved articles
-        news_data = [article.to_dict() for article in unique_articles[:3]]
+        news_data = []
+        for article in unique_articles[:3]:
+            news_data.append({
+                'title': article.get('title', ''),
+                'description': article.get('description', ''),
+                'url': article.get('url', ''),
+                'source_name': article.get('source', {}).get('name', ''),
+                'published_at': article.get('publishedAt', ''),
+                'id': len(news_data) + 1  # Temporary ID for frontend
+            })
         print(f"🎯 Returning {len(news_data)} fresh news articles")
         return jsonify({'success': True, 'news': news_data, 'cached': False})
         
@@ -3506,6 +3612,471 @@ def get_saved_news():
     except Exception as e:
         print(f"Error getting saved news: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/strategies/crawl', methods=['POST'])
+@login_required
+def crawl_strategies():
+    """Trigger strategy crawling and generation"""
+    try:
+        crawler = StrategiesCrawler()
+        strategies = crawler.run_full_crawl()
+        
+        # Save to database
+        crawler.save_strategies_to_database(strategies, db.session)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully crawled and generated {len(strategies)} strategies',
+            'strategies_count': len(strategies)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/strategies', methods=['GET'])
+@login_required
+def get_strategies():
+    """Get all strategies with optional filtering"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        category = request.args.get('category', '')
+        source = request.args.get('source', '')
+        
+        query = StrategyEntry.query.filter_by(is_active=True)
+        
+        if category:
+            query = query.filter(StrategyEntry.category == category)
+        if source:
+            query = query.filter(StrategyEntry.source == source)
+        
+        strategies = query.order_by(StrategyEntry.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        strategies_data = []
+        for strategy in strategies.items:
+            strategies_data.append({
+                'id': strategy.id,
+                'title': strategy.title,
+                'description': strategy.description,
+                'category': strategy.category,
+                'source': strategy.source,
+                'url': strategy.url,
+                'use_cases': json.loads(strategy.use_cases) if strategy.use_cases else [],
+                'code_examples': json.loads(strategy.code_examples) if strategy.code_examples else [],
+                'implementation_steps': json.loads(strategy.implementation_steps) if strategy.implementation_steps else [],
+                'ai_insights': strategy.ai_insights,
+                'created_at': strategy.created_at.isoformat() if strategy.created_at else None
+            })
+        
+        return jsonify({
+            'success': True,
+            'strategies': strategies_data,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': strategies.total,
+                'pages': strategies.pages,
+                'has_next': strategies.has_next,
+                'has_prev': strategies.has_prev
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/strategies/<int:strategy_id>', methods=['GET'])
+@login_required
+def get_strategy(strategy_id):
+    """Get a specific strategy by ID"""
+    try:
+        strategy = StrategyEntry.query.get_or_404(strategy_id)
+        
+        return jsonify({
+            'success': True,
+            'strategy': {
+                'id': strategy.id,
+                'title': strategy.title,
+                'description': strategy.description,
+                'category': strategy.category,
+                'source': strategy.source,
+                'url': strategy.url,
+                'use_cases': json.loads(strategy.use_cases) if strategy.use_cases else [],
+                'code_examples': json.loads(strategy.code_examples) if strategy.code_examples else [],
+                'implementation_steps': json.loads(strategy.implementation_steps) if strategy.implementation_steps else [],
+                'ai_insights': strategy.ai_insights,
+                'created_at': strategy.created_at.isoformat() if strategy.created_at else None
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/strategies/categories', methods=['GET'])
+@login_required
+def get_strategy_categories():
+    """Get all available strategy categories"""
+    try:
+        categories = db.session.query(StrategyEntry.category).distinct().all()
+        return jsonify({
+            'success': True,
+            'categories': [cat[0] for cat in categories if cat[0]]
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/strategies/sources', methods=['GET'])
+@login_required
+def get_strategy_sources():
+    """Get all available strategy sources"""
+    try:
+        sources = db.session.query(StrategyEntry.source).distinct().all()
+        return jsonify({
+            'success': True,
+            'sources': [src[0] for src in sources if src[0]]
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/strategies/generate', methods=['POST'])
+@login_required
+def generate_vision_strategies():
+    """Generate new strategies based on vision and expertise"""
+    try:
+        crawler = StrategiesCrawler()
+        strategies = crawler.generate_vision_aligned_strategies()
+        
+        # Save to database
+        crawler.save_strategies_to_database(strategies, db.session)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully generated {len(strategies)} vision-aligned strategies',
+            'strategies_count': len(strategies)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/strategies-dashboard')
+@login_required
+def strategies_dashboard():
+    """Strategies dashboard page"""
+    return render_template('strategies_dashboard.html')
+
+@app.route('/admin/strategies')
+@login_required
+def admin_strategies():
+    """Admin strategies management page"""
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('user_dashboard'))
+    return render_template('admin/strategies.html')
+
+# ===== CRAWLING ROUTES =====
+
+@app.route('/admin/crawling')
+@login_required
+@admin_required
+def admin_crawling():
+    """Admin crawling management page"""
+    from .models import CrawlSource, CrawledContent, CrawlJob
+    from crawler_service import CrawlManager
+    
+    # Get crawling statistics
+    crawl_manager = CrawlManager(db, openai_api_key)
+    stats = crawl_manager.get_crawl_stats()
+    
+    # Get recent sources and jobs
+    sources = CrawlSource.query.order_by(CrawlSource.created_at.desc()).limit(10).all()
+    recent_jobs = CrawlJob.query.order_by(CrawlJob.created_at.desc()).limit(10).all()
+    
+    return render_template('admin/crawling.html', 
+                         stats=stats, 
+                         sources=sources, 
+                         recent_jobs=recent_jobs)
+
+@app.route('/admin/crawling/sources')
+@login_required
+@admin_required
+def admin_crawl_sources():
+    """Manage crawl sources"""
+    from .models import CrawlSource
+    
+    sources = CrawlSource.query.order_by(CrawlSource.created_at.desc()).all()
+    return render_template('admin/crawl_sources.html', sources=sources)
+
+@app.route('/admin/crawling/sources/add', methods=['POST'])
+@login_required
+@admin_required
+def add_crawl_source():
+    """Add a new crawl source"""
+    from .models import CrawlSource
+    
+    try:
+        data = request.get_json()
+        
+        source = CrawlSource(
+            name=data['name'],
+            url=data['url'],
+            source_type=data['source_type'],
+            description=data.get('description', ''),
+            crawl_frequency=data.get('crawl_frequency', 'daily'),
+            config=data.get('config', '{}')
+        )
+        
+        db.session.add(source)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Source "{source.name}" added successfully',
+            'source_id': source.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/crawling/sources/<int:source_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_crawl_source(source_id):
+    """Toggle crawl source active status"""
+    from .models import CrawlSource
+    
+    try:
+        source = CrawlSource.query.get_or_404(source_id)
+        source.is_active = not source.is_active
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Source "{source.name}" {"activated" if source.is_active else "deactivated"}',
+            'is_active': source.is_active
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/crawling/sources/<int:source_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_crawl_source(source_id):
+    """Delete a crawl source"""
+    from .models import CrawlSource
+    
+    try:
+        source = CrawlSource.query.get_or_404(source_id)
+        source_name = source.name
+        db.session.delete(source)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Source "{source_name}" deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/crawling/jobs/start', methods=['POST'])
+@login_required
+@admin_required
+def start_crawl_job():
+    """Start a new crawl job"""
+    from models import CrawlSource
+    from crawler_service import CrawlManager
+    
+    try:
+        data = request.get_json()
+        source_id = data.get('source_id')
+        
+        if source_id:
+            # Start job for specific source
+            source = CrawlSource.query.get_or_404(source_id)
+            crawl_manager = CrawlManager(db, openai_api_key)
+            job_id = crawl_manager.create_crawl_job(source_id)
+            
+            # Run the job in a background thread
+            def run_job():
+                crawl_manager.run_crawl_job(job_id)
+            
+            thread = threading.Thread(target=run_job)
+            thread.daemon = True
+            thread.start()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Crawl job started for "{source.name}"',
+                'job_id': job_id
+            })
+        else:
+            # Start jobs for all active sources
+            active_sources = CrawlSource.query.filter_by(is_active=True).all()
+            crawl_manager = CrawlManager(db, openai_api_key)
+            job_ids = []
+            
+            for source in active_sources:
+                job_id = crawl_manager.create_crawl_job(source.id)
+                job_ids.append(job_id)
+                
+                # Run each job in a background thread
+                def run_job(job_id=job_id):
+                    crawl_manager.run_crawl_job(job_id)
+                
+                thread = threading.Thread(target=run_job)
+                thread.daemon = True
+                thread.start()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Started {len(job_ids)} crawl jobs',
+                'job_ids': job_ids
+            })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/crawling/jobs')
+@login_required
+@admin_required
+def admin_crawl_jobs():
+    """View crawl jobs"""
+    from .models import CrawlJob
+    
+    jobs = CrawlJob.query.order_by(CrawlJob.created_at.desc()).all()
+    return render_template('admin/crawl_jobs.html', jobs=jobs)
+
+@app.route('/admin/crawling/content')
+@login_required
+@admin_required
+def admin_crawled_content():
+    """View crawled content"""
+    from .models import CrawledContent
+    
+    # Get filter parameters
+    content_type = request.args.get('type')
+    source_id = request.args.get('source_id')
+    processed = request.args.get('processed')
+    
+    query = CrawledContent.query
+    
+    if content_type:
+        query = query.filter_by(content_type=content_type)
+    if source_id:
+        query = query.filter_by(source_id=source_id)
+    if processed:
+        query = query.filter_by(is_processed=processed == 'true')
+    
+    content = query.order_by(CrawledContent.created_at.desc()).limit(100).all()
+    
+    # Get sources for filter dropdown
+    from .models import CrawlSource
+    sources = CrawlSource.query.all()
+    
+    return render_template('admin/crawled_content.html', 
+                         content=content, 
+                         sources=sources,
+                         filters={'type': content_type, 'source_id': source_id, 'processed': processed})
+
+@app.route('/admin/crawling/content/<int:content_id>')
+@login_required
+@admin_required
+def view_crawled_content(content_id):
+    """View specific crawled content"""
+    from .models import CrawledContent
+    
+    content = CrawledContent.query.get_or_404(content_id)
+    return render_template('admin/crawled_content_detail.html', content=content)
+
+@app.route('/admin/crawling/content/<int:content_id>/process', methods=['POST'])
+@login_required
+@admin_required
+def process_crawled_content(content_id):
+    """Process crawled content with AI"""
+    from .models import CrawledContent
+    from crawler_service import ContentCrawler
+    
+    try:
+        content = CrawledContent.query.get_or_404(content_id)
+        
+        # Re-analyze content with AI
+        crawler = ContentCrawler(openai_api_key)
+        analysis = crawler.analyze_content(content.content)
+        
+        # Update content with new analysis
+        content.content_type = analysis.get('content_type', 'article')
+        content.tags = json.dumps(analysis.get('tags', []))
+        content.summary = analysis.get('summary', '')
+        content.relevance_score = analysis.get('relevance_score', 0.0)
+        content.is_processed = True
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Content processed successfully',
+            'analysis': analysis
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/crawling/stats')
+@login_required
+@admin_required
+def get_crawl_stats():
+    """Get crawling statistics"""
+    from crawler_service import CrawlManager
+    
+    try:
+        crawl_manager = CrawlManager(db, openai_api_key)
+        stats = crawl_manager.get_crawl_stats()
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')

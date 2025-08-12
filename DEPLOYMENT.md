@@ -1,4 +1,4 @@
-# MediaMap Production Deployment Guide
+# DataSafe Production Deployment Guide
 
 ## 🚀 Quick Start
 
@@ -9,8 +9,8 @@
 
 ### 1. Clone and Deploy
 ```bash
-git clone https://github.com/pauldevelopai/mediamap.git
-cd mediamap
+git clone https://github.com/pauldevelopai/datasafe.git
+cd datasafe
 ./deploy.sh
 ```
 
@@ -36,10 +36,10 @@ docker-compose down
 ### Using Docker Only
 ```bash
 # Build the image
-docker build -t mediamap .
+docker build -t datasafe .
 
 # Run the container
-docker run -d -p 8000:8000 --name mediamap-app mediamap
+docker run -d -p 8000:8000 --name datasafe-app datasafe
 ```
 
 ## 🌐 Production Deployment Options
@@ -60,20 +60,20 @@ sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Deploy
-git clone https://github.com/pauldevelopai/mediamap.git
-cd mediamap
+git clone https://github.com/pauldevelopai/datasafe.git
+cd datasafe
 ./deploy.sh
 ```
 
 #### Google Cloud Run
 ```bash
 # Build and push to Google Container Registry
-docker build -t gcr.io/YOUR_PROJECT/mediamap .
-docker push gcr.io/YOUR_PROJECT/mediamap
+docker build -t gcr.io/YOUR_PROJECT/datasafe .
+docker push gcr.io/YOUR_PROJECT/datasafe
 
 # Deploy to Cloud Run
-gcloud run deploy mediamap \
-  --image gcr.io/YOUR_PROJECT/mediamap \
+gcloud run deploy datasafe \
+  --image gcr.io/YOUR_PROJECT/datasafe \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated
@@ -88,8 +88,8 @@ sudo systemctl start docker
 sudo systemctl enable docker
 
 # Deploy
-git clone https://github.com/pauldevelopai/mediamap.git
-cd mediamap
+git clone https://github.com/pauldevelopai/datasafe.git
+cd datasafe
 ./deploy.sh
 ```
 
@@ -118,7 +118,7 @@ FLASK_ENV=production
 ### Logs
 ```bash
 # View application logs
-docker-compose logs -f mediamap
+docker-compose logs -f datasafe
 
 # View nginx logs
 docker-compose logs -f nginx
@@ -127,8 +127,8 @@ docker-compose logs -f nginx
 ### Database Backup
 ```bash
 # Backup SQLite database
-docker exec mediamap_mediamap_1 sqlite3 /app/instance/media_analysis.db ".backup /app/backup.db"
-docker cp mediamap_mediamap_1:/app/backup.db ./backup_$(date +%Y%m%d).db
+docker exec datasafe_datasafe_1 sqlite3 /app/instance/media_analysis.db ".backup /app/backup.db"
+docker cp datasafe_datasafe_1:/app/backup.db ./backup_$(date +%Y%m%d).db
 ```
 
 ### Updates
@@ -165,10 +165,10 @@ docker stats
 #### Model Loading Issues
 ```bash
 # Check model files
-docker exec mediamap_mediamap_1 ls -la /app/backend/training/models/deployment/model/
+docker exec datasafe_datasafe_1 ls -la /app/backend/training/models/deployment/model/
 
 # Rebuild without cache
-docker-compose build --no-cache mediamap
+docker-compose build --no-cache datasafe
 ```
 
 ### Performance Optimization
@@ -183,7 +183,7 @@ docker-compose build --no-cache mediamap
 ```yaml
 # In docker-compose.yml
 services:
-  mediamap:
+  datasafe:
     deploy:
       resources:
         limits:
@@ -215,5 +215,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: Deploy to server
         run: |
-          ssh user@your-server "cd /path/to/mediamap && git pull && ./deploy.sh"
+          ssh user@your-server "cd /path/to/datasafe && git pull && ./deploy.sh"
 ``` 

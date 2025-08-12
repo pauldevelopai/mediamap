@@ -70,7 +70,7 @@ echo "🔑 Using key file: $KEY_FILE"
 chmod 400 $KEY_FILE
 
 echo "🚀 Starting deployment..."
-echo "📤 This will install MediaMap on your instance at: $INSTANCE_IP"
+echo "📤 This will install DataSafe on your instance at: $INSTANCE_IP"
 echo "⏳ This may take 5-10 minutes..."
 
 # Execute the deployment
@@ -78,7 +78,7 @@ echo "⏳ This may take 5-10 minutes..."
 
 echo ""
 echo "🎉 Deployment completed!"
-echo "🌐 Your MediaMap application should be available at:"
+echo "🌐 Your DataSafe application should be available at:"
 echo "   http://$INSTANCE_IP"
 echo ""
 echo "🔍 To check status:"

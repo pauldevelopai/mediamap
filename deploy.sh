@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# MediaMap Production Deployment Script
+# DataSafe Production Deployment Script
 set -e
 
-echo "🚀 Starting MediaMap Production Deployment..."
+echo "🚀 Starting DataSafe Production Deployment..."
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -42,7 +42,7 @@ sleep 30
 echo "🔍 Checking application health..."
 if curl -f http://localhost:8000/health > /dev/null 2>&1; then
     echo "✅ Application is healthy!"
-    echo "🌐 Your MediaMap application is now running at:"
+    echo "🌐 Your DataSafe application is now running at:"
     echo "   - Local: http://localhost"
     echo "   - Health Check: http://localhost:8000/health"
     echo ""

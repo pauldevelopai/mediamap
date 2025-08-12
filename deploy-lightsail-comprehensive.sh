@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Comprehensive MediaMap Lightsail Deployment Script
+# Comprehensive DataSafe Lightsail Deployment Script
 # This script handles multiple deployment scenarios
 
-echo "🚀 MediaMap Lightsail Deployment Script"
+echo "🚀 DataSafe Lightsail Deployment Script"
 echo "========================================"
 
 # Configuration
@@ -62,16 +62,16 @@ deploy_via_ssh() {
     print_status "Deploying via SSH..."
     
     # Create temporary directory
-    mkdir -p /tmp/mediamap-deploy
+    mkdir -p /tmp/datasafe-deploy
     
     # Copy updated files
-    cp backend/templates/user_dashboard.html /tmp/mediamap-deploy/
-    cp backend/templates/user_chats.html /tmp/mediamap-deploy/
-    cp backend/templates/login.html /tmp/mediamap-deploy/
+    cp backend/templates/user_dashboard.html /tmp/datasafe-deploy/
+    cp backend/templates/user_chats.html /tmp/datasafe-deploy/
+    cp backend/templates/login.html /tmp/datasafe-deploy/
     
     # Upload files
     print_status "Uploading files to instance..."
-    if scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -r /tmp/mediamap-deploy/* ubuntu@$INSTANCE_IP:/tmp/; then
+    if scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -r /tmp/datasafe-deploy/* ubuntu@$INSTANCE_IP:/tmp/; then
         print_success "Files uploaded successfully"
     else
         print_error "File upload failed"
@@ -82,15 +82,15 @@ deploy_via_ssh() {
     print_status "Deploying on server..."
     ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP << 'EOF'
         echo "📝 Updating templates..."
-        sudo cp /tmp/user_dashboard.html /opt/mediamap/backend/templates/
-        sudo cp /tmp/user_chats.html /opt/mediamap/backend/templates/
-        sudo cp /tmp/login.html /opt/mediamap/backend/templates/
+        sudo cp /tmp/user_dashboard.html /opt/datasafe/backend/templates/
+        sudo cp /tmp/user_chats.html /opt/datasafe/backend/templates/
+        sudo cp /tmp/login.html /opt/datasafe/backend/templates/
         
-        sudo chown ubuntu:ubuntu /opt/mediamap/backend/templates/*.html
-        sudo chmod 644 /opt/mediamap/backend/templates/*.html
+        sudo chown ubuntu:ubuntu /opt/datasafe/backend/templates/*.html
+        sudo chmod 644 /opt/datasafe/backend/templates/*.html
         
         echo "🔄 Restarting application..."
-        cd /opt/mediamap
+        cd /opt/datasafe
         docker-compose restart
         
         echo "⏳ Waiting for application to restart..."
@@ -108,7 +108,7 @@ EOF
     fi
     
     # Cleanup
-    rm -rf /tmp/mediamap-deploy
+    rm -rf /tmp/datasafe-deploy
 }
 
 # Function to provide manual deployment instructions

@@ -2,11 +2,11 @@
 set -e
 
 # Your existing Lightsail instance details
-LIGHTSAIL_INSTANCE_NAME="mediamap"
+LIGHTSAIL_INSTANCE_NAME="datasafe"
 INSTANCE_IP="13.40.124.51"
 REGION="eu-west-2"
 
-echo "🚀 Deploying MediaMap to your existing Lightsail instance..."
+echo "🚀 Deploying DataSafe to your existing Lightsail instance..."
 echo "📋 Instance: $LIGHTSAIL_INSTANCE_NAME"
 echo "🌐 IP Address: $INSTANCE_IP"
 echo "🌍 Region: $REGION"
@@ -92,7 +92,7 @@ cat > remote-deploy.sh << 'EOF'
 #!/bin/bash
 set -e
 
-echo "🚀 Starting MediaMap deployment on Lightsail instance..."
+echo "🚀 Starting DataSafe deployment on Lightsail instance..."
 
 # Update system
 echo "📦 Updating system packages..."
@@ -123,9 +123,9 @@ sudo systemctl disable mysql 2>/dev/null || true
 
 # Create application directory
 echo "📁 Setting up application directory..."
-sudo mkdir -p /opt/mediamap
-sudo chown ubuntu:ubuntu /opt/mediamap
-cd /opt/mediamap
+sudo mkdir -p /opt/datasafe
+sudo chown ubuntu:ubuntu /opt/datasafe
+cd /opt/datasafe
 
 # Clone or update repository
 if [ -d ".git" ]; then
@@ -133,7 +133,7 @@ if [ -d ".git" ]; then
     git pull origin main
 else
     echo "📥 Cloning repository..."
-    git clone https://github.com/pauldevelopai/mediamap.git .
+    git clone https://github.com/pauldevelopai/datasafe.git .
 fi
 
 # Create environment file if it doesn't exist
@@ -196,7 +196,7 @@ echo "  - Instance Name: $LIGHTSAIL_INSTANCE_NAME"
 echo "  - Public IP: $INSTANCE_IP"
 echo "  - Region: $REGION"
 echo ""
-echo "🌐 Your MediaMap application:"
+echo "🌐 Your DataSafe application:"
 echo "   http://$INSTANCE_IP"
 echo "   http://$INSTANCE_IP:8000 (direct Flask app)"
 echo ""
@@ -211,6 +211,6 @@ echo "  # View logs"
 echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'docker-compose logs -f'"
 echo ""
 echo "  # Restart application"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/mediamap && docker-compose restart'"
+echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/datasafe && docker-compose restart'"
 echo ""
-echo "⚠️ Note: This deployment replaces the WordPress installation with your MediaMap application." 
+echo "⚠️ Note: This deployment replaces the WordPress installation with your DataSafe application." 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AWS Configuration for MediaMap Deployment
+# AWS Configuration for DataSafe Deployment
 # This script loads AWS credentials from your existing configuration
 
 # Get AWS account info from existing configuration
@@ -12,9 +12,9 @@ INSTANCE_ID="i-09086b9d6aaf71e21"
 INSTANCE_IP="54.87.58.143"
 
 # ECS Configuration (if using ECS)
-ECR_REPO="mediamap"
-CLUSTER_NAME="mediamap-cluster"
-SERVICE_NAME="mediamap-service"
+ECR_REPO="datasafe"
+CLUSTER_NAME="datasafe-cluster"
+SERVICE_NAME="datasafe-service"
 
 echo "✅ AWS configuration loaded:"
 echo "   Account ID: $ACCOUNT_ID"

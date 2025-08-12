@@ -3,11 +3,11 @@ set -e
 
 # Configuration
 AWS_REGION="us-east-1"
-ECR_REPO="mediamap"
-CLUSTER_NAME="mediamap-cluster"
-SERVICE_NAME="mediamap-service"
+ECR_REPO="datasafe"
+CLUSTER_NAME="datasafe-cluster"
+SERVICE_NAME="datasafe-service"
 
-echo "🚀 Starting MediaMap ECS deployment..."
+echo "🚀 Starting DataSafe ECS deployment..."
 
 # Check if AWS CLI is configured
 if ! aws sts get-caller-identity &> /dev/null; then

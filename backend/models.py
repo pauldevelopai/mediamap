@@ -285,3 +285,77 @@ class SavedNews(db.Model):
     
     def __repr__(self):
         return f'<SavedNews {self.title[:50]}...>' 
+
+
+# ---- Crawling models ----
+class CrawlSource(db.Model):
+    __tablename__ = 'crawl_sources'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(1000), nullable=False)
+    source_type = db.Column(db.String(50), nullable=False, default='website')  # website, rss, newsletter
+    description = db.Column(db.Text, nullable=True)
+    crawl_frequency = db.Column(db.String(50), nullable=False, default='daily')
+    config = db.Column(db.Text, nullable=True)  # JSON string for custom config
+    is_active = db.Column(db.Boolean, default=True)
+    last_crawled = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    jobs = db.relationship('CrawlJob', backref='source', lazy=True)
+    content_items = db.relationship('CrawledContent', backref='source', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'url': self.url,
+            'source_type': self.source_type,
+            'description': self.description,
+            'crawl_frequency': self.crawl_frequency,
+            'config': self.config,
+            'is_active': self.is_active,
+            'last_crawled': self.last_crawled.isoformat() if self.last_crawled else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    def __repr__(self):
+        return f'<CrawlSource {self.name}>'
+
+
+class CrawlJob(db.Model):
+    __tablename__ = 'crawl_jobs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    source_id = db.Column(db.Integer, db.ForeignKey('crawl_sources.id'), nullable=False)
+    status = db.Column(db.String(50), default='pending')  # pending, running, completed, failed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, nullable=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    items_found = db.Column(db.Integer, default=0)
+    items_processed = db.Column(db.Integer, default=0)
+    error_message = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f'<CrawlJob {self.id} status={self.status}>'
+
+
+class CrawledContent(db.Model):
+    __tablename__ = 'crawled_content'
+
+    id = db.Column(db.Integer, primary_key=True)
+    source_id = db.Column(db.Integer, db.ForeignKey('crawl_sources.id'), nullable=False)
+    title = db.Column(db.String(500), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    url = db.Column(db.String(1000), nullable=True)
+    published_date = db.Column(db.DateTime, nullable=True)
+    content_type = db.Column(db.String(50), default='article')  # strategy, use_case, code_example, article
+    tags = db.Column(db.Text, nullable=True)  # JSON array as string
+    summary = db.Column(db.Text, nullable=True)
+    relevance_score = db.Column(db.Float, default=0.0)
+    is_processed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CrawledContent {self.title[:50]}...>'

@@ -2,12 +2,12 @@
 set -e
 
 # Lightsail Configuration
-LIGHTSAIL_INSTANCE_NAME="mediamap-server"
+LIGHTSAIL_INSTANCE_NAME="datasafe-server"
 LIGHTSAIL_BLUEPRINT="ubuntu_22_04"
 LIGHTSAIL_BUNDLE="nano_2_0"  # 512MB RAM, 1 vCPU, 20GB SSD - $3.50/month
 # Alternative bundles: micro_2_0 (1GB RAM, 1 vCPU, 40GB SSD - $7/month)
 
-echo "🚀 Deploying MediaMap to AWS Lightsail..."
+echo "🚀 Deploying DataSafe to AWS Lightsail..."
 echo "📋 Instance: $LIGHTSAIL_INSTANCE_NAME"
 echo "💰 Bundle: $LIGHTSAIL_BUNDLE (~$3.50/month)"
 
@@ -71,12 +71,12 @@ usermod -a -G docker ubuntu
 apt install -y curl git python3-pip htop
 
 # Create application directory
-mkdir -p /opt/mediamap
-chown ubuntu:ubuntu /opt/mediamap
+mkdir -p /opt/datasafe
+chown ubuntu:ubuntu /opt/datasafe
 
-# Clone MediaMap repository
-cd /opt/mediamap
-git clone https://github.com/pauldevelopai/mediamap.git .
+# Clone DataSafe repository
+cd /opt/datasafe
+git clone https://github.com/pauldevelopai/datasafe.git .
 
 # Create environment file
 cat > .env << EOF
@@ -153,7 +153,7 @@ echo "  - Public IP: $INSTANCE_IP"
 echo "  - Bundle: $LIGHTSAIL_BUNDLE"
 echo "  - Cost: ~$3.50/month"
 echo ""
-echo "🌐 Your MediaMap application:"
+echo "🌐 Your DataSafe application:"
 echo "   http://$INSTANCE_IP"
 echo "   http://$INSTANCE_IP:8000 (direct Flask app)"
 echo ""
@@ -168,7 +168,7 @@ echo "  # View logs"
 echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'docker-compose logs -f'"
 echo ""
 echo "  # Restart application"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/mediamap && docker-compose restart'"
+echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/datasafe && docker-compose restart'"
 echo ""
 echo "💰 Cost Information:"
 echo "  - Lightsail $LIGHTSAIL_BUNDLE: ~$3.50/month"

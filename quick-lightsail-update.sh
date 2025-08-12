@@ -3,7 +3,7 @@
 # Quick Lightsail Update Script
 # Update this IP address when your instance is running
 
-echo "🚀 Quick MediaMap Lightsail Update"
+echo "🚀 Quick DataSafe Lightsail Update"
 echo "=================================="
 
 # UPDATE THIS IP ADDRESS when your instance is running
@@ -28,27 +28,27 @@ if ssh -i "$SSH_KEY" -o ConnectTimeout=10 -o StrictHostKeyChecking=no ubuntu@$IN
     echo ""
     
     # Create temp directory and copy files
-    mkdir -p /tmp/mediamap-quick
-    cp backend/templates/user_dashboard.html /tmp/mediamap-quick/
-    cp backend/templates/user_chats.html /tmp/mediamap-quick/
-    cp backend/templates/login.html /tmp/mediamap-quick/
+    mkdir -p /tmp/datasafe-quick
+    cp backend/templates/user_dashboard.html /tmp/datasafe-quick/
+    cp backend/templates/user_chats.html /tmp/datasafe-quick/
+    cp backend/templates/login.html /tmp/datasafe-quick/
     
     # Upload and deploy
     echo "📤 Uploading files..."
-    scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -r /tmp/mediamap-quick/* ubuntu@$INSTANCE_IP:/tmp/
+    scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -r /tmp/datasafe-quick/* ubuntu@$INSTANCE_IP:/tmp/
     
     echo "🔧 Deploying on server..."
     ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP << 'EOF'
         echo "📝 Updating templates..."
-        sudo cp /tmp/user_dashboard.html /opt/mediamap/backend/templates/
-        sudo cp /tmp/user_chats.html /opt/mediamap/backend/templates/
-        sudo cp /tmp/login.html /opt/mediamap/backend/templates/
+        sudo cp /tmp/user_dashboard.html /opt/datasafe/backend/templates/
+        sudo cp /tmp/user_chats.html /opt/datasafe/backend/templates/
+        sudo cp /tmp/login.html /opt/datasafe/backend/templates/
         
-        sudo chown ubuntu:ubuntu /opt/mediamap/backend/templates/*.html
-        sudo chmod 644 /opt/mediamap/backend/templates/*.html
+        sudo chown ubuntu:ubuntu /opt/datasafe/backend/templates/*.html
+        sudo chmod 644 /opt/datasafe/backend/templates/*.html
         
         echo "🔄 Restarting application..."
-        cd /opt/mediamap
+        cd /opt/datasafe
         docker-compose restart
         
         echo "⏳ Waiting for restart..."
@@ -69,7 +69,7 @@ EOF
     echo "   • Modern login page"
     
     # Cleanup
-    rm -rf /tmp/mediamap-quick
+    rm -rf /tmp/datasafe-quick
     
 else
     echo "❌ Connection failed!"

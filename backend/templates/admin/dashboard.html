@@ -1,6 +1,6 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Admin Dashboard | MediaMap{% endblock %}
+{% block title %}Admin Dashboard | DataSafe{% endblock %}
 
 {% block header %}Admin Dashboard{% endblock %}
 
@@ -46,6 +46,9 @@
                             </a>
                             <a href="{{ url_for('admin_analyses') }}" class="list-group-item list-group-item-action">
                                 <i class="bi bi-graph-up"></i> Media Analyses
+                            </a>
+                            <a href="{{ url_for('admin_strategies') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-collection"></i> Strategy Crawler
                             </a>
                         </div>
                     </div>
@@ -213,6 +216,50 @@
             </div>
             <div class="card-footer bg-transparent border-0">
                 <a href="{{ url_for('admin_training') }}" class="text-decoration-none">Manage Training <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DataSafe HF Integration Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin shadow h-100 py-2" style="border-left: 4px solid #e74c3c;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            HF Pipeline</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">DataSafe</div>
+                        <div class="text-xs text-muted">Threat Intelligence</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-robot fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_datasafe_hf') }}" class="text-decoration-none">Manage Pipeline <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strategies Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin card-strategies shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            AI Strategies</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ strategy_count|default(0) }}</div>
+                        <div class="text-xs text-muted">Crawled strategies</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-collection fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_strategies') }}" class="text-decoration-none">Manage Strategies <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>

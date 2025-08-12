@@ -1,8 +1,8 @@
-# 🚀 MediaMap on AWS Lightsail
+# 🚀 DataSafe on AWS Lightsail
 
 ## Why Lightsail?
 
-Lightsail is perfect for MediaMap because:
+Lightsail is perfect for DataSafe because:
 - ✅ **Simpler than EC2** - Managed VPS with easy setup
 - ✅ **Predictable pricing** - $3.50/month for nano instance
 - ✅ **Built-in networking** - Automatic firewall and DNS
@@ -19,7 +19,7 @@ Lightsail is perfect for MediaMap because:
 This will:
 - Create a new Lightsail instance (or use existing)
 - Install Docker and dependencies
-- Deploy MediaMap application
+- Deploy DataSafe application
 - Configure networking
 - Test the deployment
 
@@ -46,7 +46,7 @@ This will:
 ```bash
 # Create instance
 aws lightsail create-instances \
-  --instance-names mediamap-server \
+  --instance-names datasafe-server \
   --availability-zone us-east-1a \
   --blueprint-id ubuntu_22_04 \
   --bundle-id nano_2_0
@@ -56,15 +56,15 @@ aws lightsail create-instances \
 ```bash
 # Open HTTP, HTTPS, and application ports
 aws lightsail open-instance-public-ports \
-  --instance-name mediamap-server \
+  --instance-name datasafe-server \
   --port-info fromPort=80,toPort=80,protocol=tcp
 
 aws lightsail open-instance-public-ports \
-  --instance-name mediamap-server \
+  --instance-name datasafe-server \
   --port-info fromPort=443,toPort=443,protocol=tcp
 
 aws lightsail open-instance-public-ports \
-  --instance-name mediamap-server \
+  --instance-name datasafe-server \
   --port-info fromPort=8000,toPort=8000,protocol=tcp
 ```
 
@@ -72,7 +72,7 @@ aws lightsail open-instance-public-ports \
 ```bash
 # Get IP address
 aws lightsail get-instances \
-  --instance-names mediamap-server \
+  --instance-names datasafe-server \
   --query 'instances[0].publicIpAddress' \
   --output text
 
@@ -93,12 +93,12 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -a -G docker ubuntu
 
-# Clone and deploy MediaMap
+# Clone and deploy DataSafe
 cd /opt
-sudo mkdir mediamap
-sudo chown ubuntu:ubuntu mediamap
-cd mediamap
-git clone https://github.com/pauldevelopai/mediamap.git .
+sudo mkdir datasafe
+sudo chown ubuntu:ubuntu datasafe
+cd datasafe
+git clone https://github.com/pauldevelopai/datasafe.git .
 
 # Create environment file
 cat > .env << EOF
@@ -114,7 +114,7 @@ docker-compose up -d
 
 ## 🌐 Access Your Application
 
-Once deployed, your MediaMap will be available at:
+Once deployed, your DataSafe will be available at:
 - **Main site:** `http://YOUR_INSTANCE_IP`
 - **Direct app:** `http://YOUR_INSTANCE_IP:8000`
 
@@ -122,16 +122,16 @@ Once deployed, your MediaMap will be available at:
 
 ### Check Instance Status
 ```bash
-aws lightsail get-instances --instance-names mediamap-server
+aws lightsail get-instances --instance-names datasafe-server
 ```
 
 ### Start/Stop Instance
 ```bash
 # Start
-aws lightsail start-instance --instance-name mediamap-server
+aws lightsail start-instance --instance-name datasafe-server
 
 # Stop
-aws lightsail stop-instance --instance-name mediamap-server
+aws lightsail stop-instance --instance-name datasafe-server
 ```
 
 ### SSH Access
@@ -172,7 +172,7 @@ docker-compose up -d
 ## 🔧 Configuration
 
 ### Environment Variables
-Edit `/opt/mediamap/.env` on your instance:
+Edit `/opt/datasafe/.env` on your instance:
 ```bash
 SECRET_KEY=your-super-secret-production-key
 OPENAI_API_KEY=your-openai-api-key
@@ -217,16 +217,16 @@ docker-compose logs -f
 ### Instance Won't Start
 ```bash
 # Check instance state
-aws lightsail get-instances --instance-names mediamap-server
+aws lightsail get-instances --instance-names datasafe-server
 
 # Check console output
-aws lightsail get-instance-access-details --instance-name mediamap-server
+aws lightsail get-instance-access-details --instance-name datasafe-server
 ```
 
 ### Application Won't Load
 ```bash
 # Check if ports are open
-aws lightsail get-instance-port-states --instance-name mediamap-server
+aws lightsail get-instance-port-states --instance-name datasafe-server
 
 # Check application logs
 ssh -i LightsailDefaultKey-us-east-1.pem ubuntu@YOUR_INSTANCE_IP 'docker-compose logs'
@@ -236,7 +236,7 @@ ssh -i LightsailDefaultKey-us-east-1.pem ubuntu@YOUR_INSTANCE_IP 'docker-compose
 ```bash
 # Upgrade to larger bundle
 aws lightsail create-instances \
-  --instance-names mediamap-server-new \
+  --instance-names datasafe-server-new \
   --availability-zone us-east-1a \
   --blueprint-id ubuntu_22_04 \
   --bundle-id micro_2_0
@@ -247,17 +247,17 @@ aws lightsail create-instances \
 ### Create Snapshot
 ```bash
 aws lightsail create-instance-snapshot \
-  --instance-snapshot-name mediamap-backup-$(date +%Y%m%d) \
-  --instance-name mediamap-server
+  --instance-snapshot-name datasafe-backup-$(date +%Y%m%d) \
+  --instance-name datasafe-server
 ```
 
 ### Restore from Snapshot
 ```bash
 aws lightsail create-instances-from-snapshot \
-  --instance-names mediamap-restored \
+  --instance-names datasafe-restored \
   --availability-zone us-east-1a \
   --bundle-id nano_2_0 \
-  --source-snapshot-name mediamap-backup-20241201
+  --source-snapshot-name datasafe-backup-20241201
 ```
 
 ## 🎯 Next Steps
@@ -280,4 +280,4 @@ aws lightsail create-instances-from-snapshot \
 
 ---
 
-**Ready to deploy? Run `./deploy-lightsail.sh` and get MediaMap running on Lightsail! 🚀** 
+**Ready to deploy? Run `./deploy-lightsail.sh` and get DataSafe running on Lightsail! 🚀** 

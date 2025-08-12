@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting MediaMap EC2 deployment..."
+echo "🚀 Starting DataSafe EC2 deployment..."
 
 # Check if we're in the right directory
 if [ ! -f "docker-compose.yml" ]; then

@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Setup OpenAI API Key for MediaMap AI
-echo "=== MediaMap AI - OpenAI API Key Setup ==="
+# Setup OpenAI API Key for DataSafe AI
+echo "=== DataSafe AI - OpenAI API Key Setup ==="
 echo ""
 
 # Check if running on Lightsail/EC2
-if [ -f /etc/systemd/system/mediamap.service ]; then
+if [ -f /etc/systemd/system/datasafe.service ]; then
     echo "Detected systemd service installation"
-    SERVICE_FILE="/etc/systemd/system/mediamap.service"
-    ENV_FILE="/etc/default/mediamap"
+    SERVICE_FILE="/etc/systemd/system/datasafe.service"
+    ENV_FILE="/etc/default/datasafe"
     
     # Create environment file if it doesn't exist
     if [ ! -f "$ENV_FILE" ]; then
@@ -32,12 +32,12 @@ if [ -f /etc/systemd/system/mediamap.service ]; then
         
         # Update systemd service to use environment file
         if ! grep -q "EnvironmentFile" "$SERVICE_FILE"; then
-            sudo sed -i '/\[Service\]/a EnvironmentFile=/etc/default/mediamap' "$SERVICE_FILE"
+            sudo sed -i '/\[Service\]/a EnvironmentFile=/etc/default/datasafe' "$SERVICE_FILE"
         fi
         
         # Reload systemd and restart service
         sudo systemctl daemon-reload
-        sudo systemctl restart mediamap
+        sudo systemctl restart datasafe
         
         echo ""
         echo "✅ OpenAI API key configured successfully!"

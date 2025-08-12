@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting MediaMap deployment..."
+echo "🚀 Starting DataSafe deployment..."
 
 # Update system
 echo "📦 Updating system packages..."
@@ -32,9 +32,9 @@ sudo systemctl disable mysql 2>/dev/null || true
 
 # Create application directory
 echo "📁 Setting up application directory..."
-sudo mkdir -p /opt/mediamap
-sudo chown $USER:$USER /opt/mediamap
-cd /opt/mediamap
+sudo mkdir -p /opt/datasafe
+sudo chown $USER:$USER /opt/datasafe
+cd /opt/datasafe
 
 # Clone or update repository
 if [ -d ".git" ]; then
@@ -42,7 +42,7 @@ if [ -d ".git" ]; then
     git pull origin main
 else
     echo "📥 Cloning repository..."
-    git clone https://github.com/pauldevelopai/mediamap.git .
+    git clone https://github.com/pauldevelopai/datasafe.git .
 fi
 
 # Create environment file if it doesn't exist

@@ -1,4 +1,4 @@
-# 🚀 Deploy MediaMap to Your Existing AWS Instance
+# 🚀 Deploy DataSafe to Your Existing AWS Instance
 
 ## Your AWS Details
 - **Instance ID:** `i-09086b9d6aaf71e21`
@@ -30,7 +30,7 @@ That's it! The script will:
 - ✅ Check and start your instance if needed
 - ✅ Open necessary ports (80, 8000)
 - ✅ Install Docker and dependencies
-- ✅ Deploy MediaMap application
+- ✅ Deploy DataSafe application
 - ✅ Verify the deployment
 
 ## 🔍 Manual Deployment (if needed)
@@ -49,13 +49,13 @@ source ./aws-config.sh
 
 - **Docker & Docker Compose** - Container management
 - **Git** - Code repository access
-- **MediaMap Application** - Your Flask app
+- **DataSafe Application** - Your Flask app
 - **Nginx** - Web server and reverse proxy
 - **SSL Support** - HTTPS ready
 
 ## 🌐 Access Your Application
 
-Once deployed, your MediaMap will be available at:
+Once deployed, your DataSafe will be available at:
 **http://54.87.58.143**
 
 ## 🔍 Monitoring Commands
@@ -71,7 +71,7 @@ ssh -i your-key.pem ubuntu@54.87.58.143 'docker-compose logs -f'
 ssh -i your-key.pem ubuntu@54.87.58.143 'htop'
 
 # Restart application
-ssh -i your-key.pem ubuntu@54.87.58.143 'cd /opt/mediamap && docker-compose restart'
+ssh -i your-key.pem ubuntu@54.87.58.143 'cd /opt/datasafe && docker-compose restart'
 ```
 
 ## 🔧 Environment Configuration
@@ -83,7 +83,7 @@ The deployment will create a `.env` file on your instance. You'll need to edit i
 ssh -i your-key.pem ubuntu@54.87.58.143
 
 # Edit environment file
-nano /opt/mediamap/.env
+nano /opt/datasafe/.env
 ```
 
 Required values:
@@ -146,4 +146,4 @@ If you encounter any issues:
 
 ---
 
-**Ready to deploy? Run `./quick-deploy.sh` and let's get MediaMap running! 🚀** 
+**Ready to deploy? Run `./quick-deploy.sh` and let's get DataSafe running! 🚀** 

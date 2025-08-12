@@ -14,10 +14,10 @@ cp backend/templates/login.html /tmp/lightsail-deploy/
 # Create a simple deployment script
 cat > /tmp/lightsail-deploy/deploy.sh << 'EOF'
 #!/bin/bash
-echo "🚀 Deploying MediaMap updates..."
+echo "🚀 Deploying DataSafe updates..."
 
 # Navigate to app directory
-cd /opt/mediamap
+cd /opt/datasafe
 
 # Create backup
 sudo cp -r backend/templates backend/templates.backup.$(date +%Y%m%d_%H%M%S)

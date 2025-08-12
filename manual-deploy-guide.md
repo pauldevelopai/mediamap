@@ -19,7 +19,7 @@ Run these commands in the browser SSH:
 
 ```bash
 # Navigate to the app directory
-cd /opt/mediamap
+cd /opt/datasafe
 
 # Create backup
 sudo cp -r backend/templates backend/templates.backup
@@ -57,7 +57,7 @@ If the wget method doesn't work:
 
 3. **Restart the app:**
    ```bash
-   cd /opt/mediamap
+   cd /opt/datasafe
    docker-compose restart
    ```
 

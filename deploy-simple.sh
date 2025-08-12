@@ -3,9 +3,9 @@ set -e
 
 # Your existing Lightsail instance details
 INSTANCE_IP="13.40.124.51"
-INSTANCE_NAME="mediamap"
+INSTANCE_NAME="datasafe"
 
-echo "🚀 Simple MediaMap Deployment..."
+echo "🚀 Simple DataSafe Deployment..."
 echo "📋 Instance: $INSTANCE_NAME"
 echo "🌐 IP Address: $INSTANCE_IP"
 
@@ -52,7 +52,7 @@ if [ -z "$SSH_USER" ]; then
     echo ""
     echo "🔧 Manual steps:"
     echo "   1. Go to Lightsail console"
-    echo "   2. Click on your 'mediamap' instance"
+    echo "   2. Click on your 'datasafe' instance"
     echo "   3. Go to 'Connect' tab"
     echo "   4. Use the browser-based SSH terminal"
     echo "   5. Run the deployment commands manually"
@@ -67,7 +67,7 @@ cat > remote-deploy.sh << 'EOF'
 #!/bin/bash
 set -e
 
-echo "🚀 Starting MediaMap deployment..."
+echo "🚀 Starting DataSafe deployment..."
 
 # Update system
 echo "📦 Updating system packages..."
@@ -98,9 +98,9 @@ sudo systemctl disable mysql 2>/dev/null || true
 
 # Create application directory
 echo "📁 Setting up application directory..."
-sudo mkdir -p /opt/mediamap
-sudo chown $USER:$USER /opt/mediamap
-cd /opt/mediamap
+sudo mkdir -p /opt/datasafe
+sudo chown $USER:$USER /opt/datasafe
+cd /opt/datasafe
 
 # Clone or update repository
 if [ -d ".git" ]; then
@@ -108,7 +108,7 @@ if [ -d ".git" ]; then
     git pull origin main
 else
     echo "📥 Cloning repository..."
-    git clone https://github.com/pauldevelopai/mediamap.git .
+    git clone https://github.com/pauldevelopai/datasafe.git .
 fi
 
 # Create environment file if it doesn't exist
@@ -171,7 +171,7 @@ echo "  - Instance Name: $INSTANCE_NAME"
 echo "  - Public IP: $INSTANCE_IP"
 echo "  - SSH User: $SSH_USER"
 echo ""
-echo "🌐 Your MediaMap application:"
+echo "🌐 Your DataSafe application:"
 echo "   http://$INSTANCE_IP"
 echo "   http://$INSTANCE_IP:8000 (direct Flask app)"
 echo ""
@@ -183,4 +183,4 @@ echo "  # View logs"
 echo "  ssh -i $KEY_FILE $SSH_USER@$INSTANCE_IP 'docker-compose logs -f'"
 echo ""
 echo "  # Restart application"
-echo "  ssh -i $KEY_FILE $SSH_USER@$INSTANCE_IP 'cd /opt/mediamap && docker-compose restart'" 
+echo "  ssh -i $KEY_FILE $SSH_USER@$INSTANCE_IP 'cd /opt/datasafe && docker-compose restart'" 

@@ -4,10 +4,10 @@ set -e
 # EC2 Configuration
 INSTANCE_TYPE="t3.micro"  # 1GB RAM, 2 vCPU - Free tier eligible
 AMI_ID="ami-0c02fb55956c7d316"  # Ubuntu 22.04 LTS
-KEY_PAIR_NAME="mediamap-key"
-SECURITY_GROUP_NAME="mediamap-sg"
+KEY_PAIR_NAME="datasafe-key"
+SECURITY_GROUP_NAME="datasafe-sg"
 
-echo "🚀 Deploying MediaMap to new EC2 instance..."
+echo "🚀 Deploying DataSafe to new EC2 instance..."
 echo "📋 Instance Type: $INSTANCE_TYPE"
 echo "💰 Cost: ~$8-15/month (or free with AWS Free Tier)"
 
@@ -44,7 +44,7 @@ echo "🛡️ Creating security group..."
 if ! aws ec2 describe-security-groups --group-names $SECURITY_GROUP_NAME --query 'SecurityGroups[0].GroupName' --output text > /dev/null 2>&1; then
     SECURITY_GROUP_ID=$(aws ec2 create-security-group \
         --group-name $SECURITY_GROUP_NAME \
-        --description "Security group for MediaMap application" \
+        --description "Security group for DataSafe application" \
         --vpc-id $VPC_ID \
         --query 'GroupId' --output text)
     
@@ -99,12 +99,12 @@ usermod -a -G docker ubuntu
 apt install -y curl git python3-pip htop
 
 # Create application directory
-mkdir -p /opt/mediamap
-chown ubuntu:ubuntu /opt/mediamap
+mkdir -p /opt/datasafe
+chown ubuntu:ubuntu /opt/datasafe
 
-# Clone MediaMap repository
-cd /opt/mediamap
-git clone https://github.com/pauldevelopai/mediamap.git .
+# Clone DataSafe repository
+cd /opt/datasafe
+git clone https://github.com/pauldevelopai/datasafe.git .
 
 # Create environment file
 cat > .env << 'ENVEOF'
@@ -135,7 +135,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --security-group-ids $SECURITY_GROUP_ID \
     --subnet-id $SUBNET_ID \
     --user-data "$USER_DATA" \
-    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=mediamap-server}]' \
+    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=datasafe-server}]' \
     --query 'Instances[0].InstanceId' --output text)
 
 echo "✅ Instance launched: $INSTANCE_ID"
@@ -172,7 +172,7 @@ echo "  - Public IP: $INSTANCE_IP"
 echo "  - Instance Type: $INSTANCE_TYPE"
 echo "  - Cost: ~$8-15/month (or free with AWS Free Tier)"
 echo ""
-echo "🌐 Your MediaMap application:"
+echo "🌐 Your DataSafe application:"
 echo "   http://$INSTANCE_IP"
 echo "   http://$INSTANCE_IP:8000 (direct Flask app)"
 echo ""
@@ -187,7 +187,7 @@ echo "  # View logs"
 echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'docker-compose logs -f'"
 echo ""
 echo "  # Restart application"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/mediamap && docker-compose restart'"
+echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/datasafe && docker-compose restart'"
 echo ""
 echo "💰 Cost Information:"
 echo "  - t3.micro: Free tier eligible (750 hours/month)"

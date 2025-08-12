@@ -25,7 +25,7 @@ class ProductionConfig:
     
     # Logging
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
-    LOG_FILE = os.environ.get('LOG_FILE', '/var/log/mediamap/app.log')
+    LOG_FILE = os.environ.get('LOG_FILE', '/var/log/datasafe/app.log')
     
     # Rate Limiting
     RATELIMIT_STORAGE_URL = os.environ.get('RATELIMIT_STORAGE_URL', 'memory://')
