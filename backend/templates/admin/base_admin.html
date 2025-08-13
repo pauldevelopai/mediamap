@@ -88,6 +88,30 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ url_for('admin_training') }}" class="nav-link {% if request.endpoint == 'admin_training' %}active{% endif %}">
+                                <i class="bi bi-cpu me-2"></i>
+                                AI Training
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('admin_plans') }}" class="nav-link {% if request.endpoint in ['admin_plans','admin_plans_create','admin_plans_detail'] %}active{% endif %}">
+                                <i class="bi bi-list-check me-2"></i>
+                                Plans
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('admin_reports') }}" class="nav-link {% if request.endpoint in ['admin_reports'] %}active{% endif %}">
+                                <i class="bi bi-journal-text me-2"></i>
+                                Daily Reports
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('admin_cheatsheets') }}" class="nav-link {% if request.endpoint in ['admin_cheatsheets','admin_cheatsheets_create'] %}active{% endif %}">
+                                <i class="bi bi-lightning-charge me-2"></i>
+                                Cheat Sheets
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('admin_lessons') }}" class="nav-link {% if request.endpoint == 'admin_lessons' %}active{% endif %}">
                                 <i class="bi bi-book me-2"></i>
                                 Lessons

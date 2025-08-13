@@ -50,6 +50,15 @@
                             <a href="{{ url_for('admin_strategies') }}" class="list-group-item list-group-item-action">
                                 <i class="bi bi-collection"></i> Strategy Crawler
                             </a>
+                             <a href="{{ url_for('admin_plans') }}" class="list-group-item list-group-item-action">
+                                 <i class="bi bi-list-check"></i> Plans
+                             </a>
+                             <a href="{{ url_for('admin_reports') }}" class="list-group-item list-group-item-action">
+                                 <i class="bi bi-journal-text"></i> Daily Reports
+                             </a>
+                             <a href="{{ url_for('admin_cheatsheets') }}" class="list-group-item list-group-item-action">
+                                 <i class="bi bi-lightning-charge"></i> Cheat Sheets
+                             </a>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
@@ -304,6 +313,62 @@
             </div>
             <div class="card-footer bg-transparent border-0">
                 <a href="#" onclick="checkSystemHealth()" class="text-decoration-none">Check Status <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plans/Reports/Cheatsheets Stats -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Plans</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ plan_count|default(0) }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-list-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_plans') }}" class="text-decoration-none">Manage <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Daily Reports</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ report_count|default(0) }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-journal-text fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_reports') }}" class="text-decoration-none">Manage <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-admin shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Cheat Sheets</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cheatsheet_count|default(0) }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-lightning-charge fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('admin_cheatsheets') }}" class="text-decoration-none">Manage <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>

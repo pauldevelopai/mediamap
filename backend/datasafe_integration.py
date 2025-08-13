@@ -11,8 +11,8 @@ import logging
 # Add parent directory to path for datasafe imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from datasafe.pipeline.normalize import RawItem, ThreatRecord, normalize, batch_normalize
-from models import db, CrawledContent, CrawlSource
+from datasafe.pipeline.normalize import RawItem, NormalizedThreat, normalize
+from .models import db, CrawledContent, CrawlSource
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class DataSafeProcessor:
         self.processed_count = 0
         self.failed_count = 0
     
-    def process_crawled_content(self, content_id: int) -> Optional[ThreatRecord]:
+    def process_crawled_content(self, content_id: int) -> Optional[NormalizedThreat]:
         """
         Process a single CrawledContent record through the HF pipeline
         
@@ -31,7 +31,7 @@ class DataSafeProcessor:
             content_id: ID of the CrawledContent record
             
         Returns:
-            ThreatRecord or None if processing fails
+            NormalizedThreat or None if processing fails
         """
         try:
             # Fetch the crawled content
@@ -88,7 +88,7 @@ class DataSafeProcessor:
             self.failed_count += 1
             return None
     
-    def process_batch(self, content_ids: List[int]) -> List[ThreatRecord]:
+    def process_batch(self, content_ids: List[int]) -> List[NormalizedThreat]:
         """
         Process multiple CrawledContent records
         
@@ -96,7 +96,7 @@ class DataSafeProcessor:
             content_ids: List of CrawledContent IDs
             
         Returns:
-            List of successfully processed ThreatRecord objects
+            List of successfully processed NormalizedThreat objects
         """
         logger.info(f"Starting batch processing of {len(content_ids)} items")
         
@@ -111,7 +111,7 @@ class DataSafeProcessor:
         
         return records
     
-    def process_unprocessed_content(self, limit: int = 50) -> List[ThreatRecord]:
+    def process_unprocessed_content(self, limit: int = 50) -> List[NormalizedThreat]:
         """
         Process unprocessed CrawledContent records
         
@@ -119,7 +119,7 @@ class DataSafeProcessor:
             limit: Maximum number of records to process
             
         Returns:
-            List of processed ThreatRecord objects
+            List of processed NormalizedThreat objects
         """
         # Get unprocessed content
         unprocessed = CrawledContent.query.filter_by(is_processed=False).limit(limit).all()
@@ -255,7 +255,7 @@ def setup_datasafe_routes(app):
 
 # Utility functions for scraper integration
 def process_scraped_item(source_name: str, title: str, content: str, 
-                        url: str = None, published_at: str = None) -> ThreatRecord:
+                        url: str = None, published_at: str = None) -> NormalizedThreat:
     """
     Convenience function to process a scraped item directly
     
@@ -267,7 +267,7 @@ def process_scraped_item(source_name: str, title: str, content: str,
         published_at: Optional publish timestamp
         
     Returns:
-        Processed ThreatRecord
+        Processed NormalizedThreat
     """
     raw_item = RawItem(
         source=source_name,
@@ -279,12 +279,12 @@ def process_scraped_item(source_name: str, title: str, content: str,
     
     return normalize(raw_item)
 
-def save_processed_threat(threat_record: ThreatRecord, source_id: int = None) -> int:
+def save_processed_threat(threat_record: NormalizedThreat, source_id: int = None) -> int:
     """
     Save a processed threat record to the database
     
     Args:
-        threat_record: Processed ThreatRecord object
+        threat_record: Processed NormalizedThreat object
         source_id: Optional CrawlSource ID
         
     Returns:

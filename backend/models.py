@@ -359,3 +359,61 @@ class CrawledContent(db.Model):
 
     def __repr__(self):
         return f'<CrawledContent {self.title[:50]}...>'
+
+
+# ---- Implementation planning & reporting ----
+class ImplementationPlan(db.Model):
+    __tablename__ = 'implementation_plans'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    summary = db.Column(db.Text, nullable=True)
+    objectives = db.Column(db.Text, nullable=True)  # JSON or markdown
+    tasks = db.Column(db.Text, nullable=True)       # JSON or markdown
+    status = db.Column(db.String(50), default='draft')  # draft, active, completed, archived
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('implementation_plans', lazy=True))
+
+    def __repr__(self):
+        return f'<ImplementationPlan {self.title[:50]}...>'
+
+
+class DailyReport(db.Model):
+    __tablename__ = 'daily_reports'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    plan_id = db.Column(db.Integer, db.ForeignKey('implementation_plans.id'), nullable=True)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    content = db.Column(db.Text, nullable=False)
+    progress = db.Column(db.Text, nullable=True)
+    blockers = db.Column(db.Text, nullable=True)
+    next_steps = db.Column(db.Text, nullable=True)
+    metrics = db.Column(db.Text, nullable=True)  # JSON as string
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('daily_reports', lazy=True))
+    plan = db.relationship('ImplementationPlan', backref=db.backref('reports', lazy=True))
+
+    def __repr__(self):
+        return f'<DailyReport {self.id} {self.date}>'
+
+
+class CheatSheet(db.Model):
+    __tablename__ = 'cheatsheets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(100), nullable=True)
+    tags = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('cheatsheets', lazy=True))
+
+    def __repr__(self):
+        return f'<CheatSheet {self.title[:50]}...>'

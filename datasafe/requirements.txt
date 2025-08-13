@@ -1,0 +1,14 @@
+transformers
+sentence-transformers
+torch
+pandas
+requests
+feedparser
+tldextract
+python-dotenv
+apscheduler
+fastapi
+uvicorn[standard]
+streamlit
+
+

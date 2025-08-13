@@ -1,3 +1,19 @@
+from transformers import pipeline
+from ..config import HF_SUMMARY_MODEL, MAX_SUMMARY_INPUT_CHARS
+
+_sum = None
+
+def _get():
+    global _sum
+    if _sum is None:
+        _sum = pipeline("summarization", model=HF_SUMMARY_MODEL)
+    return _sum
+
+def summarize(text: str, max_len=140, min_len=60):
+    text = (text or "")[:MAX_SUMMARY_INPUT_CHARS]
+    if not text.strip():
+        return ""
+    return _get()(text, max_length=max_len, min_length=min_len, do_sample=False)[0]["summary_text"]
 """
 Executive-style summarization using Hugging Face transformers
 """
@@ -5,7 +21,7 @@ from transformers import pipeline
 from typing import Optional
 import logging
 
-from ..config import HF_SUMMARY_MODEL
+from ..config import HF_SUMMARY_MODEL, MAX_SUMMARY_INPUT_CHARS
 
 logger = logging.getLogger(__name__)
 
@@ -46,11 +62,10 @@ class Summarizer:
             return text[:500] + "..." if len(text) > 500 else text
         
         try:
-            # Truncate input text if too long (most models have token limits)
-            max_input_length = 1024  # Conservative limit for BART
-            if len(text.split()) > max_input_length:
-                text = ' '.join(text.split()[:max_input_length])
-                logger.info("Truncated input text due to length")
+            # Truncate input text by configured char length before summarizing
+            if len(text) > MAX_SUMMARY_INPUT_CHARS:
+                text = text[:MAX_SUMMARY_INPUT_CHARS]
+                logger.info("Truncated input text by MAX_SUMMARY_INPUT_CHARS")
             
             # Generate summary
             result = self.summarizer(

@@ -10,9 +10,9 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 try:
-    from .models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
+    from .models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews, ImplementationPlan, DailyReport, CheatSheet
 except ImportError:
-    from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews
+    from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews, ImplementationPlan, DailyReport, CheatSheet
 from openai import OpenAI
 import json
 from datetime import datetime, timezone
@@ -256,13 +256,19 @@ app.register_blueprint(clients_bp)
 
 # Setup DataSafe Hugging Face integration routes
 try:
-    from datasafe_integration import setup_datasafe_routes
+    from backend.datasafe_integration import setup_datasafe_routes
     setup_datasafe_routes(app)
     print("✅ DataSafe Hugging Face integration routes loaded")
 except ImportError as e:
     print(f"⚠️  DataSafe HF integration not available: {e}")
 except Exception as e:
     print(f"❌ Failed to load DataSafe HF integration: {e}")
+
+# Simple hub page for DataSafe tools
+@app.route('/datasafe')
+@login_required
+def datasafe_tools():
+    return render_template('datasafe_tools.html')
 
 # === Model management endpoints (Hugging Face integration) ===
 @app.route('/api/model/load-hf', methods=['POST'])
@@ -1412,6 +1418,14 @@ def admin_dashboard():
     
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     
+    # Plan/report counts
+    try:
+        plan_count = ImplementationPlan.query.count()
+        report_count = DailyReport.query.count()
+        cheatsheet_count = CheatSheet.query.count()
+    except Exception:
+        plan_count = report_count = cheatsheet_count = 0
+
     return render_template(
         'admin/dashboard.html', 
         user_count=user_count,
@@ -1423,7 +1437,10 @@ def admin_dashboard():
         strategy_count=strategy_count,
         recent_users=recent_users,
         admin_count=admin_count,
-        flask_version=flask_version
+        flask_version=flask_version,
+        plan_count=plan_count,
+        report_count=report_count,
+        cheatsheet_count=cheatsheet_count
     )
 
 @app.route('/admin/users')
@@ -1583,6 +1600,174 @@ def update_feedback_status(feedback_id):
 def admin_training():
     """Admin page for AI model training management"""
     return render_template('admin/training.html')
+
+# ===== Implementation Plans =====
+@app.route('/admin/plans')
+@login_required
+@admin_required
+def admin_plans():
+    plans = ImplementationPlan.query.order_by(ImplementationPlan.created_at.desc()).all()
+    return render_template('admin/plans.html', plans=plans)
+
+@app.route('/admin/plans/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_plans_create():
+    if request.method == 'POST':
+        title = request.form.get('title') or 'Implementation Plan'
+        summary = request.form.get('summary')
+        plan = ImplementationPlan(user_id=current_user.id, title=title, summary=summary)
+        db.session.add(plan)
+        db.session.commit()
+        flash('Plan created', 'success')
+        return redirect(url_for('admin_plans'))
+    return render_template('admin/plan_form.html', plan=None)
+
+@app.route('/admin/plans/<int:plan_id>')
+@login_required
+@admin_required
+def admin_plans_detail(plan_id):
+    plan = ImplementationPlan.query.get_or_404(plan_id)
+    return render_template('admin/plan_detail.html', plan=plan)
+
+@app.route('/admin/plans/<int:plan_id>/generate', methods=['POST'])
+@login_required
+@admin_required
+def admin_plans_generate(plan_id):
+    plan = ImplementationPlan.query.get_or_404(plan_id)
+    try:
+        if not client:
+            return jsonify({'success': False, 'error': 'OpenAI client not available'}), 500
+        prompt = f"""
+        You are Highlander, an AI strategy mentor for newsrooms. Create a concise, actionable implementation plan.
+        Title: {plan.title}
+        Context: {plan.summary or 'Mentoring newsroom to implement AI ethically to support strategic goals.'}
+        Include sections: Objectives, Workstreams, Milestones, Tasks (with owners and due dates TBD), Risks, Metrics.
+        Output in GitHub-flavored markdown with clear headings and bullet points.
+        """
+        resp = client.chat.completions.create(model='gpt-4o-mini', messages=[
+            {"role": "system", "content": "You specialize in practical implementation planning for media organizations."},
+            {"role": "user", "content": prompt}
+        ])
+        content = resp.choices[0].message.content
+        plan.tasks = content
+        db.session.commit()
+        return jsonify({'success': True, 'content': content})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ===== Daily Reports =====
+@app.route('/admin/reports')
+@login_required
+@admin_required
+def admin_reports():
+    reports = DailyReport.query.order_by(DailyReport.date.desc()).limit(50).all()
+    plans = ImplementationPlan.query.order_by(ImplementationPlan.created_at.desc()).all()
+    return render_template('admin/reports.html', reports=reports, plans=plans)
+
+@app.route('/admin/reports/create', methods=['POST'])
+@login_required
+@admin_required
+def admin_reports_create():
+    plan_id = request.form.get('plan_id')
+    content = request.form.get('content')
+    report = DailyReport(user_id=current_user.id, plan_id=plan_id, content=content or '')
+    db.session.add(report)
+    db.session.commit()
+    flash('Report created', 'success')
+    return redirect(url_for('admin_reports'))
+
+@app.route('/admin/reports/generate', methods=['POST'])
+@login_required
+@admin_required
+def admin_reports_generate():
+    try:
+        plan_id = request.json.get('plan_id') if request.is_json else request.form.get('plan_id')
+        plan = ImplementationPlan.query.get(plan_id) if plan_id else None
+
+        # Pull high-severity recent threats from DataSafe to include in the report
+        high_threats = []
+        try:
+            from backend.datasafe_integration import DataSafeProcessor
+            dsp = DataSafeProcessor()
+            high_threats = dsp.get_high_severity_threats(hours=24)[:5]
+        except Exception:
+            high_threats = []
+
+        # Gather recent strategy/news context
+        recent_news = News.query.order_by(News.created_at.desc()).limit(5).all()
+        news_bullets = "\n".join([f"- {n.title} ({n.source_name or 'source'})" for n in recent_news])
+        threat_bullets = "\n".join([f"- [{t.get('severity')}] {t.get('title')} — risk {t.get('risk', '')}" for t in high_threats])
+
+        if not client:
+            return jsonify({'success': False, 'error': 'OpenAI client not available'}), 500
+
+        prompt = f"""
+        Create a daily implementation report for a newsroom AI program.
+        If a plan is provided, align to it. Include sections: Progress, Blockers, Next Steps, Metrics to Track, Risks/Security, News/Signals.
+        Plan: {plan.title if plan else 'No specific plan'} — {plan.summary if plan else ''}
+        Recent News:\n{news_bullets or '- None'}
+        High Severity Threats in last 24h:\n{threat_bullets or '- None'}
+        Keep it concise, actionable, and ready to share with PMs.
+        """
+        resp = client.chat.completions.create(model='gpt-4o-mini', messages=[
+            {"role": "system", "content": "You write crisp, actionable status reports for AI implementations in media."},
+            {"role": "user", "content": prompt}
+        ])
+        content = resp.choices[0].message.content
+
+        report = DailyReport(user_id=current_user.id, plan_id=plan.id if plan else None, content=content)
+        db.session.add(report)
+        db.session.commit()
+        return jsonify({'success': True, 'report_id': report.id, 'content': content})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ===== Cheat Sheets =====
+@app.route('/admin/cheatsheets')
+@login_required
+@admin_required
+def admin_cheatsheets():
+    items = CheatSheet.query.order_by(CheatSheet.created_at.desc()).all()
+    return render_template('admin/cheatsheets.html', items=items)
+
+@app.route('/admin/cheatsheets/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_cheatsheets_create():
+    if request.method == 'POST':
+        title = request.form.get('title') or 'Cheat Sheet'
+        category = request.form.get('category')
+        content = request.form.get('content')
+        item = CheatSheet(user_id=current_user.id, title=title, category=category, content=content or '')
+        db.session.add(item)
+        db.session.commit()
+        flash('Cheat sheet created', 'success')
+        return redirect(url_for('admin_cheatsheets'))
+    return render_template('admin/cheatsheet_form.html')
+
+@app.route('/admin/cheatsheets/generate', methods=['POST'])
+@login_required
+@admin_required
+def admin_cheatsheets_generate():
+    try:
+        topic = request.json.get('topic') if request.is_json else request.form.get('topic')
+        if not topic:
+            return jsonify({'success': False, 'error': 'Missing topic'}), 400
+        if not client:
+            return jsonify({'success': False, 'error': 'OpenAI client not available'}), 500
+        prompt = f"Create a concise implementation cheat sheet for newsroom AI on: {topic}. Use headings, bullets, and include do/don'ts and quick steps."
+        resp = client.chat.completions.create(model='gpt-4o-mini', messages=[
+            {"role": "system", "content": "You produce practical, one-page cheat sheets for AI implementation in newsrooms."},
+            {"role": "user", "content": prompt}
+        ])
+        content = resp.choices[0].message.content
+        item = CheatSheet(user_id=current_user.id, title=topic, content=content)
+        db.session.add(item)
+        db.session.commit()
+        return jsonify({'success': True, 'id': item.id, 'content': content})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/datasafe-hf')
 @login_required

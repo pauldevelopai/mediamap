@@ -1,3 +1,0 @@
-"""
-DataSafe Processing Pipeline
-"""

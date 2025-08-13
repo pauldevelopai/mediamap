@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% set hide_left_sidebar = True %}
+{% set hide_right_sidebar = True %}
+
+{% block title %}DataSafe Tools{% endblock %}
+
+{% block main_content %}
+<div class="container py-4">
+  <h2 class="mb-4"><i class="bi bi-shield-check me-2"></i>DataSafe Tools</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-robot me-2"></i>HF Pipeline Admin</h5>
+          <p class="card-text">Process crawled content, view recent high‑severity threats, and manage the pipeline.</p>
+          <a href="{{ url_for('admin_datasafe_hf') }}" class="btn btn-primary">Open Admin</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-braces-asterisk me-2"></i>API</h5>
+          <p class="card-text">JSON API for recent threats filtered by severity and digital risk score.</p>
+          <a href="/api/datasafe/high-severity-threats" class="btn btn-outline-secondary">Try endpoint</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-people me-2"></i>Clients</h5>
+          <p class="card-text">Switch to clients dashboard or IMS if needed.</p>
+          <a href="{{ url_for('clients.clients_index') }}" class="btn btn-outline-secondary">Open Clients</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

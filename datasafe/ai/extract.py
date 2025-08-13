@@ -1,3 +1,23 @@
+import re
+
+IOC_PATTERNS = {
+  "ipv4": r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\b",
+  "sha256": r"\b[a-fA-F0-9]{64}\b",
+  "sha1": r"\b[a-fA-F0-9]{40}\b",
+  "md5": r"\b[a-fA-F0-9]{32}\b",
+  "email": r"\b[\w\.-]+@[\w\.-]+\.[A-Za-z]{2,}\b",
+  "url": r"https?://[^\s\)\]]+",
+  "cve": r"\bCVE-\d{4}-\d{4,7}\b",
+  "domain": r"\b((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,63}\b",
+  "phone": r"\+?\d[\d\-\s]{7,}\d"
+}
+
+def extract_iocs(text: str):
+    out = {}
+    t = text or ""
+    for k, pat in IOC_PATTERNS.items():
+        out[k] = sorted(set(re.findall(pat, t, flags=re.IGNORECASE)))
+    return out
 """
 IOC (Indicators of Compromise) extraction using regex patterns
 Extracts IPs, hashes, URLs, CVEs, emails, domains

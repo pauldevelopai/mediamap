@@ -1,3 +1,17 @@
+from sentence_transformers import SentenceTransformer, util
+from ..config import HF_EMBED_MODEL, DEDUP_SIM_THRESHOLD
+
+_model = None
+
+def _get():
+    global _model
+    if _model is None:
+        _model = SentenceTransformer(HF_EMBED_MODEL)
+    return _model
+
+def near_duplicate(a: str, b: str, thr: float = DEDUP_SIM_THRESHOLD) -> bool:
+    m = _get()
+    return float(util.cos_sim(m.encode(a), m.encode(b)).item()) >= thr
 """
 Text embeddings for similarity and near-duplicate detection
 """

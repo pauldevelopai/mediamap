@@ -1,0 +1,68 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Cheat Sheets - Admin{% endblock %}
+
+{% block header %}Cheat Sheets{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-5">
+    <div class="card mb-3">
+      <div class="card-header"><strong>Create</strong></div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('admin_cheatsheets_create') }}">
+          <div class="mb-2"><label class="form-label">Title</label><input class="form-control" name="title" required></div>
+          <div class="mb-2"><label class="form-label">Category</label><input class="form-control" name="category"></div>
+          <div class="mb-2"><label class="form-label">Content</label><textarea class="form-control" name="content" rows="6"></textarea></div>
+          <button class="btn btn-primary" type="submit">Save</button>
+        </form>
+        <hr>
+        <div class="mb-2"><label class="form-label">Or generate by topic</label><input id="gen-topic" class="form-control" placeholder="e.g., Responsible AI policy"/></div>
+        <button id="gen-cheat" class="btn btn-outline-primary"><i class="bi bi-magic"></i> Generate</button>
+        <div id="gen-status" class="mt-2" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header"><strong>Recent</strong></div>
+      <div class="card-body">
+        {% if items %}
+        <div class="list-group">
+          {% for i in items %}
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ i.title }}</h6>
+              <small>{{ i.created_at.strftime('%Y-%m-%d') if i.created_at else '' }}</small>
+            </div>
+            <pre style="white-space: pre-wrap; font-size: .85rem; margin-bottom: 0;">{{ i.content[:800] }}{% if i.content and i.content|length > 800 %}...{% endif %}</pre>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No cheat sheets yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('gen-cheat').addEventListener('click', async function () {
+  const btn = this; const orig = btn.innerHTML; const topic = document.getElementById('gen-topic').value.trim();
+  const status = document.getElementById('gen-status');
+  if (!topic) { alert('Enter a topic'); return; }
+  btn.disabled = true; btn.innerHTML = 'Generating...'; status.style.display = 'block'; status.innerHTML = 'Working...';
+  try {
+    const res = await fetch('{{ url_for('admin_cheatsheets_generate') }}', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic })
+    });
+    const j = await res.json();
+    if (j.success) { status.innerHTML = 'Done'; location.reload(); } else { status.innerHTML = 'Error: ' + (j.error || 'Failed'); }
+  } catch (e) { status.innerHTML = 'Error: ' + e.message; }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+});
+</script>
+{% endblock %}
+
+

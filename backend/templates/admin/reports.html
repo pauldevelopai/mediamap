@@ -1,0 +1,70 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Daily Reports - Admin{% endblock %}
+
+{% block header %}Daily Reports{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-5">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Generate Report</strong>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Link to Plan (optional)</label>
+          <select id="plan_id" class="form-select">
+            <option value="">-- None --</option>
+            {% for p in plans %}
+            <option value="{{ p.id }}">{{ p.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button id="gen-report" class="btn btn-primary"><i class="bi bi-magic"></i> Generate</button>
+        <div id="gen-status" class="mt-3" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header"><strong>Recent Reports</strong></div>
+      <div class="card-body">
+        {% if reports %}
+        <div class="list-group">
+          {% for r in reports %}
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ r.date.strftime('%Y-%m-%d') }}</h6>
+              <small>{{ r.created_at.strftime('%H:%M') if r.created_at else '' }}</small>
+            </div>
+            <pre style="white-space: pre-wrap; font-size: .85rem; margin-bottom: 0;">{{ r.content[:800] }}{% if r.content and r.content|length > 800 %}...{% endif %}</pre>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No reports yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('gen-report').addEventListener('click', async function () {
+  const btn = this; const orig = btn.innerHTML; const status = document.getElementById('gen-status');
+  btn.disabled = true; btn.innerHTML = 'Generating...'; status.style.display = 'block'; status.innerHTML = 'Working...';
+  try {
+    const planId = document.getElementById('plan_id').value || null;
+    const res = await fetch('{{ url_for('admin_reports_generate') }}', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan_id: planId })
+    });
+    const j = await res.json();
+    if (j.success) { status.innerHTML = 'Done'; location.reload(); } else { status.innerHTML = 'Error: ' + (j.error || 'Failed'); }
+  } catch (e) { status.innerHTML = 'Error: ' + e.message; }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+});
+</script>
+{% endblock %}
+
+
