@@ -2,12 +2,12 @@
 set -e
 
 # Lightsail Configuration
-LIGHTSAIL_INSTANCE_NAME="datasafe-server"
+LIGHTSAIL_INSTANCE_NAME="aimap-server"
 LIGHTSAIL_BLUEPRINT="ubuntu_22_04"
 LIGHTSAIL_BUNDLE="nano_2_0"  # 512MB RAM, 1 vCPU, 20GB SSD - $3.50/month
 # Alternative bundles: micro_2_0 (1GB RAM, 1 vCPU, 40GB SSD - $7/month)
 
-echo "🚀 Deploying DataSafe to AWS Lightsail..."
+echo "🚀 Deploying AIMAP to AWS Lightsail..."
 echo "📋 Instance: $LIGHTSAIL_INSTANCE_NAME"
 echo "💰 Bundle: $LIGHTSAIL_BUNDLE (~$3.50/month)"
 
@@ -71,18 +71,19 @@ usermod -a -G docker ubuntu
 apt install -y curl git python3-pip htop
 
 # Create application directory
-mkdir -p /opt/datasafe
-chown ubuntu:ubuntu /opt/datasafe
+mkdir -p /opt/aimap
+chown ubuntu:ubuntu /opt/aimap
 
-# Clone DataSafe repository
-cd /opt/datasafe
-git clone https://github.com/pauldevelopai/datasafe.git .
+# Clone AIMAP repository
+cd /opt/aimap
+git clone https://github.com/pauldevelopai/mediamap.git .
 
 # Create environment file
 cat > .env << EOF
 SECRET_KEY=your-super-secret-production-key-change-this
 OPENAI_API_KEY=your-openai-api-key-here
 FLASK_ENV=production
+DATABASE_URL=sqlite:///./instance/media_analysis.db
 EOF
 
 # Build and start application
@@ -153,7 +154,7 @@ echo "  - Public IP: $INSTANCE_IP"
 echo "  - Bundle: $LIGHTSAIL_BUNDLE"
 echo "  - Cost: ~$3.50/month"
 echo ""
-echo "🌐 Your DataSafe application:"
+echo "🌐 Your AIMAP application:"
 echo "   http://$INSTANCE_IP"
 echo "   http://$INSTANCE_IP:8000 (direct Flask app)"
 echo ""
@@ -168,7 +169,7 @@ echo "  # View logs"
 echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'docker-compose logs -f'"
 echo ""
 echo "  # Restart application"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/datasafe && docker-compose restart'"
+echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/aimap && docker-compose restart'"
 echo ""
 echo "💰 Cost Information:"
 echo "  - Lightsail $LIGHTSAIL_BUNDLE: ~$3.50/month"
