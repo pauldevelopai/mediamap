@@ -668,6 +668,10 @@
                     <i class="bi bi-file-earmark-bar-graph"></i>
                     Reports
                 </a>
+                <a href="#" onclick="showPredictionsSection()" class="btn-secondary" id="predictions-nav-btn">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Predictions
+                </a>
                 <a href="#" onclick="showDataSafeSection()" class="btn-secondary" id="datasafe-nav-btn">
                     <i class="bi bi-shield-check"></i>
                     DataSafe
@@ -839,6 +843,201 @@
                         <div id="organisations-empty" style="display: none;" class="text-center py-4">
                             <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mt-2">No organisations found</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Predictions Section -->
+        <section class="predictions-section" id="predictions-section" style="display: none;">
+            <div class="chat-body">
+                <div class="chat-status">
+                    <div class="status-indicator">
+                        <i class="bi bi-graph-up-arrow text-primary me-1"></i>
+                        <span>AI Predictive Analytics</span>
+                    </div>
+                </div>
+                
+                <!-- Model Status -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">ML Models Status</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="initializeModels()">
+                                <i class="bi bi-arrow-clockwise"></i> Initialize Models
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="trainModels()">
+                                <i class="bi bi-gear"></i> Train Models
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="model-status-loading" class="text-center py-2">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">Checking model status...</span>
+                        </div>
+                        <div id="model-status-content" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-graph-up me-2 text-success" id="adoption-model-icon"></i>
+                                        <span>Adoption Predictor: <span id="adoption-model-status">Unknown</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-exclamation me-2 text-warning" id="risk-model-icon"></i>
+                                        <span>Risk Scorer: <span id="risk-model-status">Unknown</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-currency-dollar me-2 text-info" id="roi-model-icon"></i>
+                                        <span>ROI Estimator: <span id="roi-model-status">Unknown</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organization Predictions -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Organization Predictions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Select Organization</label>
+                                <select class="form-select" id="prediction-org-select">
+                                    <option value="">Choose organization...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Months Ahead</label>
+                                <select class="form-select" id="prediction-months">
+                                    <option value="6">6 months</option>
+                                    <option value="12" selected>12 months</option>
+                                    <option value="18">18 months</option>
+                                    <option value="24">24 months</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Action</label>
+                                <button class="btn btn-primary form-control" onclick="generatePredictions()">
+                                    <i class="bi bi-crystal-ball"></i> Predict
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Prediction Results -->
+                        <div id="prediction-results" style="display: none;">
+                            <div class="row g-4">
+                                <!-- Current vs Predicted Score -->
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">AI Adoption Score</h6>
+                                            <div class="d-flex justify-content-around align-items-center">
+                                                <div>
+                                                    <div class="h3 text-primary" id="current-score">--</div>
+                                                    <small class="text-muted">Current</small>
+                                                </div>
+                                                <i class="bi bi-arrow-right h4 text-muted"></i>
+                                                <div>
+                                                    <div class="h3 text-success" id="predicted-score">--</div>
+                                                    <small class="text-muted">Predicted</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Risk Assessment -->
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Risk Assessment</h6>
+                                            <div class="h3" id="risk-level-badge">--</div>
+                                            <div class="text-muted">Risk Level</div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Risk Score: <span id="risk-score">--</span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Trajectory Chart Placeholder -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Predicted Trajectory</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="trajectory-chart" style="height: 300px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px;">
+                                                <div class="text-center text-muted">
+                                                    <i class="bi bi-graph-up" style="font-size: 3rem;"></i>
+                                                    <p class="mt-2">Trajectory chart will appear here</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Recommendations -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">AI Investment Recommendations</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="recommendations-loading" class="text-center py-3">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <span class="ms-2">Generating recommendations...</span>
+                                            </div>
+                                            <div id="recommendations-content" style="display: none;">
+                                                <!-- Recommendations will be populated here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sector Insights -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Sector Insights</h5>
+                        <select class="form-select" style="width: auto;" id="sector-insights-select" onchange="loadSectorInsights()">
+                            <option value="">Select sector...</option>
+                            <option value="Media">Media</option>
+                            <option value="Communications">Communications</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div id="sector-insights-loading" class="text-center py-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Analyzing sector trends...</p>
+                        </div>
+                        <div id="sector-insights-content">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-pie-chart" style="font-size: 3rem;"></i>
+                                <p class="mt-2">Select a sector to view predictive insights</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1189,7 +1388,7 @@
     <script>
         // AIMAP Section Management
         function hideAllSections() {
-            const sections = ['chat-section', 'organisations-section', 'reports-section', 'datasafe-section'];
+            const sections = ['chat-section', 'organisations-section', 'reports-section', 'predictions-section', 'datasafe-section'];
             sections.forEach(sectionId => {
                 const section = document.querySelector(`.${sectionId}`);
                 if (section) section.style.display = 'none';
@@ -1207,6 +1406,13 @@
             document.getElementById('reports-section').style.display = 'block';
             loadReportOrganisations();
             loadBenchmarks();
+        }
+
+        function showPredictionsSection() {
+            hideAllSections();
+            document.getElementById('predictions-section').style.display = 'block';
+            loadModelStatus();
+            loadPredictionOrganisations();
         }
 
         function showDataSafeSection() {
@@ -1463,6 +1669,382 @@
         function viewOrganisation(orgId) {
             // TODO: Implement organisation detail view
             alert(`View organisation ${orgId} - Feature coming soon!`);
+        }
+
+        // ML Predictions Functions
+        async function loadModelStatus() {
+            try {
+                document.getElementById('model-status-loading').style.display = 'block';
+                document.getElementById('model-status-content').style.display = 'none';
+
+                const response = await fetch('/api/ml/status');
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    updateModelStatusDisplay(data.data);
+                    document.getElementById('model-status-content').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading model status:', error);
+            } finally {
+                document.getElementById('model-status-loading').style.display = 'none';
+            }
+        }
+
+        function updateModelStatusDisplay(status) {
+            // Update adoption predictor status
+            const adoptionAvailable = status.adoption_predictor.available;
+            document.getElementById('adoption-model-status').textContent = adoptionAvailable ? 'Ready' : 'Not Trained';
+            document.getElementById('adoption-model-icon').className = `bi me-2 ${adoptionAvailable ? 'bi-graph-up text-success' : 'bi-x-circle text-danger'}`;
+
+            // Update risk scorer status
+            const riskAvailable = status.risk_scorer.available;
+            document.getElementById('risk-model-status').textContent = riskAvailable ? 'Ready' : 'Not Available';
+            document.getElementById('risk-model-icon').className = `bi me-2 ${riskAvailable ? 'bi-shield-check text-success' : 'bi-x-circle text-danger'}`;
+
+            // Update ROI estimator status
+            const roiAvailable = status.roi_estimator.available;
+            document.getElementById('roi-model-status').textContent = roiAvailable ? 'Ready' : 'Not Available';
+            document.getElementById('roi-model-icon').className = `bi me-2 ${roiAvailable ? 'bi-currency-dollar text-success' : 'bi-x-circle text-danger'}`;
+        }
+
+        async function loadPredictionOrganisations() {
+            try {
+                const response = await fetch('/api/organisations');
+                const data = await response.json();
+                
+                const select = document.getElementById('prediction-org-select');
+                select.innerHTML = '<option value="">Choose organization...</option>';
+                
+                if (data.status === 'success') {
+                    data.data.forEach(org => {
+                        const option = document.createElement('option');
+                        option.value = org.id;
+                        option.textContent = `${org.name} (${org.sector})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading organisations for predictions:', error);
+            }
+        }
+
+        async function initializeModels() {
+            try {
+                const response = await fetch('/api/ml/initialize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ force_retrain: false })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    alert('Models initialized successfully!');
+                    loadModelStatus();
+                } else {
+                    alert('Error initializing models: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error initializing models: ' + error.message);
+            }
+        }
+
+        async function trainModels() {
+            if (!confirm('Training models may take several minutes. Continue?')) return;
+            
+            try {
+                const response = await fetch('/api/ml/train', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    alert('Models trained successfully!');
+                    loadModelStatus();
+                } else {
+                    alert('Error training models: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error training models: ' + error.message);
+            }
+        }
+
+        async function generatePredictions() {
+            const orgId = document.getElementById('prediction-org-select').value;
+            const monthsAhead = document.getElementById('prediction-months').value;
+            
+            if (!orgId) {
+                alert('Please select an organization');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                document.getElementById('prediction-results').style.display = 'none';
+                
+                const response = await fetch(`/api/ml/predict/${orgId}?months_ahead=${monthsAhead}`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayPredictionResults(data.data);
+                    loadInvestmentRecommendations(orgId);
+                } else {
+                    alert('Error generating predictions: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error generating predictions: ' + error.message);
+            }
+        }
+
+        function displayPredictionResults(predictions) {
+            // Update current vs predicted scores
+            const currentScore = predictions.organization.current_score;
+            const trajectory = predictions.trajectory_prediction.predicted_trajectory;
+            const finalScore = trajectory[trajectory.length - 1].predicted_score;
+            
+            document.getElementById('current-score').textContent = currentScore.toFixed(1);
+            document.getElementById('predicted-score').textContent = finalScore.toFixed(1);
+            
+            // Update risk assessment
+            const riskAssessment = predictions.risk_assessment;
+            const riskLevel = riskAssessment.risk_level;
+            const riskScore = riskAssessment.overall_risk_score;
+            
+            const riskBadge = document.getElementById('risk-level-badge');
+            riskBadge.textContent = riskLevel.toUpperCase();
+            riskBadge.className = `h3 badge ${getRiskLevelClass(riskLevel)}`;
+            
+            document.getElementById('risk-score').textContent = (riskScore * 100).toFixed(1) + '%';
+            
+            // Show results
+            document.getElementById('prediction-results').style.display = 'block';
+            
+            // Update trajectory chart placeholder with basic info
+            const chartDiv = document.getElementById('trajectory-chart');
+            const trend = predictions.trajectory_prediction.trend;
+            const trendIcon = getTrendIcon(trend);
+            const trendColor = getTrendColor(trend);
+            
+            chartDiv.innerHTML = `
+                <div class="text-center">
+                    <i class="bi ${trendIcon}" style="font-size: 3rem; color: ${trendColor};"></i>
+                    <h5 class="mt-2" style="color: ${trendColor};">${trend.replace('_', ' ').toUpperCase()} TREND</h5>
+                    <p class="text-muted">Trajectory: ${currentScore.toFixed(1)} → ${finalScore.toFixed(1)} points</p>
+                    <small class="text-muted">Advanced charting coming soon</small>
+                </div>
+            `;
+        }
+
+        function getRiskLevelClass(riskLevel) {
+            switch(riskLevel) {
+                case 'low': return 'bg-success';
+                case 'medium': return 'bg-warning';
+                case 'high': return 'bg-danger';
+                case 'critical': return 'bg-dark';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function getTrendIcon(trend) {
+            switch(trend) {
+                case 'accelerating': return 'bi-graph-up-arrow';
+                case 'growing': return 'bi-graph-up';
+                case 'stable': return 'bi-graph-up';
+                case 'declining': return 'bi-graph-down';
+                case 'slowing': return 'bi-graph-down-arrow';
+                default: return 'bi-graph-up';
+            }
+        }
+
+        function getTrendColor(trend) {
+            switch(trend) {
+                case 'accelerating': return '#198754';
+                case 'growing': return '#20c997';
+                case 'stable': return '#6c757d';
+                case 'declining': return '#fd7e14';
+                case 'slowing': return '#dc3545';
+                default: return '#6c757d';
+            }
+        }
+
+        async function loadInvestmentRecommendations(orgId) {
+            try {
+                document.getElementById('recommendations-loading').style.display = 'block';
+                document.getElementById('recommendations-content').style.display = 'none';
+
+                const response = await fetch(`/api/ml/recommendations/${orgId}`);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    displayRecommendations(data.data);
+                    document.getElementById('recommendations-content').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+            } finally {
+                document.getElementById('recommendations-loading').style.display = 'none';
+            }
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-content');
+            container.innerHTML = '';
+
+            recommendations.recommendations.forEach((rec, index) => {
+                const scenario = rec.scenario;
+                const roi = rec.roi_analysis;
+                
+                const card = document.createElement('div');
+                card.className = 'card mb-3';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h6 class="mb-0">${scenario.name}</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">${scenario.description}</p>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Investment:</strong><br>
+                                $${scenario.investment_usd.toLocaleString()}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Timeline:</strong><br>
+                                ${scenario.timeline_months} months
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Expected ROI:</strong><br>
+                                <span class="text-${roi.roi_percentage > 100 ? 'success' : roi.roi_percentage > 50 ? 'warning' : 'danger'}">${roi.roi_percentage}%</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Payback:</strong><br>
+                                ${roi.payback_months ? roi.payback_months + ' months' : 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function loadSectorInsights() {
+            const sector = document.getElementById('sector-insights-select').value;
+            
+            if (!sector) {
+                document.getElementById('sector-insights-content').innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-pie-chart" style="font-size: 3rem;"></i>
+                        <p class="mt-2">Select a sector to view predictive insights</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                document.getElementById('sector-insights-loading').style.display = 'block';
+                document.getElementById('sector-insights-content').style.display = 'none';
+
+                const response = await fetch(`/api/ml/sector-insights/${sector}`);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    displaySectorInsights(data.data);
+                    document.getElementById('sector-insights-content').style.display = 'block';
+                } else {
+                    document.getElementById('sector-insights-content').innerHTML = `
+                        <div class="alert alert-warning">
+                            Error loading sector insights: ${data.message}
+                        </div>
+                    `;
+                    document.getElementById('sector-insights-content').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading sector insights:', error);
+                document.getElementById('sector-insights-content').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error: ${error.message}
+                    </div>
+                `;
+                document.getElementById('sector-insights-content').style.display = 'block';
+            } finally {
+                document.getElementById('sector-insights-loading').style.display = 'none';
+            }
+        }
+
+        function displaySectorInsights(insights) {
+            const container = document.getElementById('sector-insights-content');
+            
+            const improvement = insights.six_month_forecast.expected_improvement;
+            const trendClass = improvement > 0 ? 'text-success' : improvement < 0 ? 'text-danger' : 'text-muted';
+            const trendIcon = improvement > 0 ? 'bi-arrow-up' : improvement < 0 ? 'bi-arrow-down' : 'bi-arrow-right';
+            
+            container.innerHTML = `
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Current Sector Average</h6>
+                                <div class="h3 text-primary">${insights.current_metrics.average_score}</div>
+                                <small class="text-muted">AI Adoption Score</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">6-Month Forecast</h6>
+                                <div class="h3 ${trendClass}">
+                                    ${insights.six_month_forecast.predicted_average_score}
+                                    <i class="bi ${trendIcon} ms-2"></i>
+                                </div>
+                                <small class="text-muted">${improvement > 0 ? '+' : ''}${improvement} point change</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Risk Distribution</h6>
+                        <div class="row g-2">
+                            <div class="col-3">
+                                <div class="text-center p-2 bg-success bg-opacity-10 rounded">
+                                    <div class="fw-bold text-success">${insights.current_metrics.risk_distribution.low || 0}</div>
+                                    <small class="text-muted">Low Risk</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-center p-2 bg-warning bg-opacity-10 rounded">
+                                    <div class="fw-bold text-warning">${insights.current_metrics.risk_distribution.medium || 0}</div>
+                                    <small class="text-muted">Medium Risk</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-center p-2 bg-danger bg-opacity-10 rounded">
+                                    <div class="fw-bold text-danger">${insights.current_metrics.risk_distribution.high || 0}</div>
+                                    <small class="text-muted">High Risk</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="text-center p-2 bg-dark bg-opacity-10 rounded">
+                                    <div class="fw-bold text-dark">${insights.current_metrics.risk_distribution.critical || 0}</div>
+                                    <small class="text-muted">Critical Risk</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-muted">
+                        <strong>Sector Trend:</strong> ${insights.sector_trend} • 
+                        <strong>Sample Size:</strong> ${insights.organization_count} organizations • 
+                        <strong>Predictions Generated:</strong> ${insights.predictions_generated}
+                    </p>
+                </div>
+            `;
         }
 
         // DataSafe threats loading (existing function)

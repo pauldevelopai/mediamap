@@ -38,6 +38,9 @@ docker-compose up --build
 
 - **Multi-sector AI adoption tracking** (Media, Communications/PR)
 - **Intelligent scoring engine** with sector-specific benchmarks
+- **Predictive analytics** with ML-powered forecasting models
+- **Risk assessment** for organizations falling behind peers
+- **ROI estimation** for AI investment scenarios
 - **Automated ingestion** from company websites and public sources
 - **Export capabilities** (PPTX reports, PDF summaries)
 - **Peer benchmarking** by sector, region, and size
@@ -58,6 +61,15 @@ docker-compose up --build
 ### Ingestion & Scoring
 - `POST /api/ingest/run` - Run data ingestion
 - `POST /api/score/run` - Calculate AI adoption scores
+
+### Machine Learning & Predictions
+- `GET /api/ml/status` - Get ML models status
+- `POST /api/ml/initialize` - Initialize and train ML models
+- `GET /api/ml/predict/{id}` - Get comprehensive predictions for organization
+- `POST /api/ml/roi/{id}` - Estimate ROI for investment scenario
+- `GET /api/ml/sector-insights/{sector}` - Get sector-wide predictive insights
+- `GET /api/ml/recommendations/{id}` - Get AI investment recommendations
+- `GET /api/ml/risk-assessment/{id}` - Get detailed risk assessment
 
 ## CLI Commands
 

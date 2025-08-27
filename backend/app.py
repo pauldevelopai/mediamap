@@ -39,9 +39,11 @@ from strategies_crawler import StrategiesCrawler, StrategyEntry
 # Import AIMAP modules
 try:
     from aimap.api.routes import aimap_api
+    from aimap.api.ml_routes import ml_api
     from aimap.models import Organisation, Metrics
 except ImportError:
     aimap_api = None
+    ml_api = None
     Organisation = None
     Metrics = None
 
@@ -226,9 +228,11 @@ app.register_blueprint(auth)
 app.register_blueprint(ai_utility_bp)
 app.register_blueprint(metadata_bp)
 
-# Register AIMAP API blueprint
+# Register AIMAP API blueprints
 if aimap_api:
     app.register_blueprint(aimap_api)
+if ml_api:
+    app.register_blueprint(ml_api)
 
 # Create the IMS blueprint (Internal Management Suite)
 ims_bp = Blueprint('ims', __name__, url_prefix='/ims')
