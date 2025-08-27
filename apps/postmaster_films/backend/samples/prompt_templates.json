@@ -1,0 +1,20 @@
+{
+  "styles": {
+    "cinematic": "A cinematic, high dynamic range, shallow depth of field, natural film grain, realistic motion physics. CAMERA: tracked dolly-in, gentle parallax. LIGHTING: golden hour, soft key, practicals.",
+    "documentary": "Documentary style, handheld camera movement, natural lighting, realistic colors, authentic atmosphere.",
+    "commercial": "Professional commercial quality, smooth camera movements, perfect lighting, vibrant colors, polished aesthetic.",
+    "news": "News broadcast style, steady camera, bright even lighting, professional presentation, clear visibility."
+  },
+  "subjects": {
+    "person": "A professional-looking person in business attire",
+    "newsroom": "A modern newsroom with multiple screens and desks",
+    "office": "A contemporary office environment with modern furniture",
+    "studio": "A professional TV studio with cameras and lighting"
+  },
+  "actions": {
+    "talking": "speaking confidently to camera",
+    "presenting": "presenting information with gestures",
+    "working": "working at a desk with computer",
+    "walking": "walking purposefully through the space"
+  }
+}

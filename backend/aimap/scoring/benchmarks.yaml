@@ -1,0 +1,55 @@
+sectors:
+  Media:
+    weights:
+      has_transcription: 0.08
+      genai_in_copydesk: 0.12
+      audience_personalization: 0.10
+      newsroom_training: 0.15
+      ai_policy: 0.10
+      tool_footprint: 0.20
+      automation_in_ops: 0.15
+      governance_signals: 0.10
+    maturity_thresholds: [20, 45, 70, 85]  # Exploring, Piloting, Scaling, Optimizing
+    
+  Communications:
+    weights:
+      ai_in_press_workflow: 0.20
+      content_automation: 0.20
+      image_voice_gen_use: 0.10
+      analytics_insights: 0.15
+      governance_disclosure: 0.10
+      tool_footprint: 0.15
+      team_training: 0.10
+    maturity_thresholds: [20, 45, 70, 85]
+
+# Common feature extractors for all sectors
+common_features:
+  tool_footprint:
+    description: "Number and sophistication of AI tools in use"
+    max_score: 1.0
+  
+  team_training:
+    description: "Evidence of AI training and upskilling programs"
+    max_score: 1.0
+  
+  governance_signals:
+    description: "AI governance, policies, and ethical guidelines"
+    max_score: 1.0
+
+# Maturity stage definitions
+maturity_stages:
+  - name: "Exploring"
+    description: "Initial awareness and experimentation"
+    min_score: 0
+  - name: "Piloting"
+    description: "Testing specific use cases"
+    min_score: 20
+  - name: "Scaling"
+    description: "Expanding successful implementations"
+    min_score: 45
+  - name: "Optimizing"
+    description: "Advanced integration and optimization"
+    min_score: 70
+  - name: "Leading"
+    description: "Industry-leading AI adoption"
+    min_score: 85

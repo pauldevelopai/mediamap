@@ -1,0 +1,10 @@
+index,description,duration_sec,scene_type,prompt,ref_image_path
+0,"Opening shot of news anchor at desk introducing the story",5,HERO,"Cinematic news broadcast style with professional lighting. A confident news anchor in business attire presenting breaking news about AI in media.",
+1,"Cut to montage of newsroom activity with AI systems",4,FILLER,"Documentary style newsroom with journalists working at computers, multiple screens showing data analysis and AI interfaces.",
+2,"Close-up of AI-powered fact-checking system in action",3,FILLER,"Clean technical shot of computer screen showing real-time fact-checking interface with data streams and verification indicators.",
+3,"Interview segment with media executive discussing AI adoption",6,HERO,"Professional interview setup with media executive in modern office discussing AI transformation in journalism.",
+4,"B-roll of reporters using AI research tools",4,FILLER,"Documentary style shots of journalists working with AI-assisted research tools, split screens showing traditional and AI-enhanced workflows.",
+5,"Data visualization showing AI adoption across media companies",3,FILLER,"Clean motion graphics style visualization of charts and graphs showing AI adoption statistics in news organizations.",
+6,"Newsroom meeting about AI implementation strategy",5,FILLER,"Corporate meeting style with team discussing AI strategy around conference table with presentation screens.",
+7,"Closing shot of anchor summarizing key points",4,HERO,"Return to anchor desk for professional closing statement about the future of AI in journalism with confident delivery."
+

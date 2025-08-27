@@ -43,6 +43,7 @@ class DataCollector:
         (self.output_dir / "research").mkdir(exist_ok=True)
         (self.output_dir / "feedback").mkdir(exist_ok=True)
         (self.output_dir / "processed").mkdir(exist_ok=True)
+        (self.output_dir / "datasafe").mkdir(exist_ok=True)
         
         logger.info("DataCollector initialized")
     
@@ -294,8 +295,10 @@ class DataCollector:
             logger.error(f"Error collecting feedback: {e}")
             return 0
     
-    def process_and_consolidate(self) -> int:
-        """Process and consolidate all collected data into training format"""
+    def process_and_consolidate(self, include_datasafe: bool = False) -> int:
+        """Process and consolidate all collected data into training format
+        include_datasafe: if True, append DataSafe threat summaries as alert examples
+        """
         logger.info("Processing and consolidating data...")
         
         training_data = []
@@ -355,6 +358,15 @@ class DataCollector:
             except Exception as e:
                 logger.error(f"Error processing {txt_file}: {e}")
         
+        # Optionally include DataSafe threats as training examples (alert-style)
+        if include_datasafe:
+            try:
+                ds_examples = self._export_datasafe_threats()
+                training_data.extend(ds_examples)
+                total_tokens += sum(len(ex['input'].split()) + len(ex['output'].split()) for ex in ds_examples)
+            except Exception as e:
+                logger.error(f"Error exporting DataSafe threats: {e}")
+
         # Save consolidated training data
         output_file = self.output_dir / "processed" / "training_dataset.json"
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -366,7 +378,8 @@ class DataCollector:
             'total_tokens': total_tokens,
             'sources': {
                 'user_conversations': len([x for x in training_data if x['source'] == 'user_conversation']),
-                'pdf_documents': len([x for x in training_data if x['source'] == 'pdf_document'])
+                'pdf_documents': len([x for x in training_data if x['source'] == 'pdf_document']),
+                'datasafe_threats': len([x for x in training_data if x.get('source') == 'datasafe_threat'])
             },
             'created_at': datetime.now().isoformat()
         }
@@ -377,6 +390,76 @@ class DataCollector:
         
         logger.info(f"Created {len(training_data)} training examples with {total_tokens} total tokens")
         return total_tokens
+
+    def _export_datasafe_threats(self, limit: int = 500) -> List[Dict[str, Any]]:
+        """Export recent DataSafe threats into instruction-output pairs.
+        Uses threat summary as the target output (no fabricated labels).
+        """
+        examples: List[Dict[str, Any]] = []
+        try:
+            import sys
+            # Add project root to path for DataSafe imports
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+            sys.path.insert(0, project_root)
+            
+            # Temporarily change to project root for correct DB path resolution
+            original_cwd = os.getcwd()
+            os.chdir(project_root)
+            
+            from datasafe.storage.sqlite_store import query_recent, ensure_schema  # type: ignore
+            ensure_schema()
+            threats = query_recent(limit=limit)
+            
+            # Restore original working directory
+            os.chdir(original_cwd)
+        except Exception as e:
+            logger.error(f"Failed to read DataSafe threats: {e}")
+            return examples
+
+        # Save a raw export for traceability
+        export_path = self.output_dir / "datasafe" / "threats_export.json"
+        try:
+            with open(export_path, 'w', encoding='utf-8') as f:
+                json.dump(threats, f, indent=2, ensure_ascii=False, default=str)
+        except Exception:
+            pass
+
+        for t in threats:
+            title = t.get('title') or ''
+            summary = t.get('summary') or ''
+            if not summary:
+                continue
+            severity = t.get('severity') or ''
+            risk = t.get('risk') or {}
+            threats_list = t.get('threats') or []
+            sectors = t.get('sectors') or []
+            iocs = t.get('iocs') or {}
+
+            input_text = (
+                f"Create a concise newsroom security alert based on the following threat record.\n"
+                f"Title: {title}\n"
+                f"Severity: {severity}\n"
+                f"Risk: digital={risk.get('digital', '')} physical={risk.get('physical', '')}\n"
+                f"Threats: {', '.join(threats_list)}\n"
+                f"Sectors: {', '.join(sectors)}\n"
+                f"IOCs: {', '.join([k for k in (iocs.keys() if isinstance(iocs, dict) else [])]) or 'None'}\n"
+                f"Context summary: {summary[:500]}"
+            )
+
+            examples.append({
+                'input': input_text,
+                'output': summary,  # use provided summary; do not fabricate
+                'context': {
+                    'severity': severity,
+                    'risk': risk,
+                    'source': t.get('source'),
+                    'url': t.get('url')
+                },
+                'source': 'datasafe_threat'
+            })
+
+        logger.info(f"Exported {len(examples)} DataSafe threat examples")
+        return examples
     
     def split_text_into_chunks(self, text: str, max_tokens: int = 512) -> List[str]:
         """Split text into smaller chunks for training"""

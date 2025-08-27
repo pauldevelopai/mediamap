@@ -1,45 +1,96 @@
-## DataSafe (HF-powered) Quickstart
+# AIMAP - AI Adoption Intelligence Platform
 
-Run Streamlit Dashboard:
+AIMAP is a comprehensive AI adoption intelligence platform that tracks, scores, and benchmarks AI implementation across multiple sectors, starting with Media and Communications/PR.
 
-```bash
-streamlit run datasafe/app_streamlit/app.py
-```
+## Quick Start
 
-Run FastAPI API:
+### Local Development
 
 ```bash
-uvicorn datasafe.app_api.main:app --reload
-```
-
-Seed data:
-
-```bash
-python -m datasafe.scripts.ingest_media
-```
-
-Environment example: see `datasafe/secrets.example.env`.
-
-# DataSafe Hook PLUS
-
-Why was the previous zip small? Because it contains **code only** — models auto‑download from Hugging Face at first run (hundreds of MB). This pack adds **more collectors** and a **config switch** to keep non‑finance items while you test.
-
-## Install
+# Setup
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-## Ingest (seed your DB)
-# Keep everything while testing:
-export DS_KEEP_NON_FINANCE=true
-python scripts/ingest_finance.py
+# Database setup
+alembic upgrade head
 
-# Later (finance‑only):
-unset DS_KEEP_NON_FINANCE
-python scripts/ingest_finance.py
+# Seed demo data
+python scripts/aimap_cli.py seed-demo --sector Media --n 10
+python scripts/aimap_cli.py seed-demo --sector Communications --n 10
 
-Optional env:
-- PHISHTANK_CSV_URL=https://data.phishtank.com/data/<key>/online-valid.csv
-- NVD_API_KEY=<your_key> (optional)
-- NVD_QUERY="bank OR payment OR visa OR mastercard"
-- DS_RSS=https://www.itweb.co.za/rss/categories/security
+# Run ingestion
+python scripts/aimap_cli.py ingest --all --sector Communications
 
-Models download on first run — expect a big download.
+# Generate scores
+python scripts/aimap_cli.py score --period 2025-08 --sector Communications
+
+# Start the application
+python -m backend.app
+```
+
+### Docker
+
+```bash
+docker-compose up --build
+```
+
+## Features
+
+- **Multi-sector AI adoption tracking** (Media, Communications/PR)
+- **Intelligent scoring engine** with sector-specific benchmarks
+- **Automated ingestion** from company websites and public sources
+- **Export capabilities** (PPTX reports, PDF summaries)
+- **Peer benchmarking** by sector, region, and size
+- **Security intelligence** via integrated DataSafe module
+
+## API Endpoints
+
+### Organisations
+- `GET /api/organisations` - List organisations with filters
+- `GET /api/organisations/{id}` - Get organisation details
+- `POST /api/organisations` - Create new organisation
+
+### Reports & Analytics
+- `POST /api/reports/{id}/pptx` - Generate PowerPoint report
+- `POST /api/reports/{id}/pdf` - Generate PDF report
+- `GET /api/benchmarks` - Get benchmark data
+
+### Ingestion & Scoring
+- `POST /api/ingest/run` - Run data ingestion
+- `POST /api/score/run` - Calculate AI adoption scores
+
+## CLI Commands
+
+```bash
+# Seed demo data
+python scripts/aimap_cli.py seed-demo --sector Media --n 10
+python scripts/aimap_cli.py seed-demo --sector Communications --n 10
+
+# Run ingestion
+python scripts/aimap_cli.py ingest --all --sector Communications
+
+# Generate scores
+python scripts/aimap_cli.py score --period 2025-08 --sector Media
+
+# Generate reports
+python scripts/aimap_cli.py report --org "Test Company" --fmt pdf
+
+# Check status
+python scripts/aimap_cli.py status
+```
+
+## Configuration
+
+Set environment variables:
+- `OPENAI_API_KEY` - For AI-powered features
+- `DATABASE_URL` - Custom database connection (optional)
+
+## Testing
+
+```bash
+# Run all tests
+python -m pytest backend/tests/ -v
+
+# Run specific test
+python -m pytest backend/tests/test_scoring.py -v
+```

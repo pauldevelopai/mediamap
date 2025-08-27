@@ -36,6 +36,15 @@ import html2text
 from notion_client import Client as NotionClient
 from strategies_crawler import StrategiesCrawler, StrategyEntry
 
+# Import AIMAP modules
+try:
+    from aimap.api.routes import aimap_api
+    from aimap.models import Organisation, Metrics
+except ImportError:
+    aimap_api = None
+    Organisation = None
+    Metrics = None
+
 # Create the ai_utility blueprint
 ai_utility_bp = Blueprint('ai_utility', __name__, url_prefix='/ai-utility')
 
@@ -217,6 +226,10 @@ app.register_blueprint(auth)
 app.register_blueprint(ai_utility_bp)
 app.register_blueprint(metadata_bp)
 
+# Register AIMAP API blueprint
+if aimap_api:
+    app.register_blueprint(aimap_api)
+
 # Create the IMS blueprint (Internal Management Suite)
 ims_bp = Blueprint('ims', __name__, url_prefix='/ims')
 
@@ -268,7 +281,8 @@ except Exception as e:
 @app.route('/datasafe')
 @login_required
 def datasafe_tools():
-    return render_template('datasafe_tools.html')
+    # DataSafe is now integrated into MediaMap as a tab
+    return redirect(url_for('user_dashboard') + '#datasafe')
 
 # === Model management endpoints (Hugging Face integration) ===
 @app.route('/api/model/load-hf', methods=['POST'])
@@ -2267,10 +2281,12 @@ def training_lab():
 def crimecast():
     return render_template('crimecast.html')
 
-# Root route - redirect based on user role
+# Root route - show the new user dashboard shell when authenticated
 @app.route('/')
 def root():
-    # For now, always show the login page for debugging
+    if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+        return redirect(url_for('user_dashboard'))
+    # Not logged in: show login
     return render_template('auth_landing.html')
 
 # User Dashboard - Simple chat interface for regular users
@@ -2278,11 +2294,7 @@ def root():
 @login_required
 def user_dashboard():
     """Simple dashboard for regular users - just the chat interface"""
-    if hasattr(current_user, 'is_admin') and current_user.is_admin:
-        # Admins get redirected to the full landing page
-        return redirect(url_for('landing_page1'))
-    
-    # Regular users get the simple chat interface
+    # Always use the new shell UI, whether admin or not
     return render_template('user_dashboard.html')
 
 @app.route('/my-chats')
@@ -2319,11 +2331,8 @@ def login():
             if next_page:
                 return redirect(next_page)
             
-            # Redirect based on user role
-            if hasattr(user, 'is_admin') and user.is_admin:
-                return redirect(url_for('admin_dashboard'))  # Admin dashboard for admins
-            else:
-                return redirect(url_for('user_dashboard'))  # Simple chat for regular users
+            # Default to the new unified shell for everyone (admins can access Admin from there)
+            return redirect(url_for('user_dashboard'))
         else:
             flash('Invalid username or password.', 'danger')
     
@@ -3049,6 +3058,13 @@ def real_collect_training_data():
         for subdir in ['conversations', 'pdfs', 'research', 'feedback', 'notion', 'websites', 'processed']:
             os.makedirs(os.path.join(training_dir, subdir), exist_ok=True)
         
+        include_datasafe = False
+        try:
+            payload = request.get_json(silent=True)
+            include_datasafe = bool(payload.get('include_datasafe')) if payload else False
+        except Exception:
+            include_datasafe = False
+
         stats = {
             'conversations': 0,
             'pdfs': 0,
@@ -3056,7 +3072,8 @@ def real_collect_training_data():
             'feedback': 0,
             'notion_pages': 0,
             'websites': 0,
-            'total_examples': 0
+            'total_examples': 0,
+            'datasafe_threats': 0
         }
         
         # 1. Collect real conversations from database
@@ -3137,6 +3154,21 @@ def real_collect_training_data():
             stats['websites']
         )
         
+        # Consolidate into training_dataset.json (optionally include DataSafe threats)
+        try:
+            from training.data_collector import DataCollector
+            collector = DataCollector(
+                db_path=os.path.join(basedir, 'instance', 'media_analysis.db'),
+                data_dir=os.path.join(project_root, 'data'),
+                output_dir=os.path.join(basedir, 'training', 'training_data')
+            )
+            total_tokens = collector.process_and_consolidate(include_datasafe=include_datasafe)
+            stats['datasafe_threats'] = collector.get_collection_stats().get('sources', {}).get('datasafe_threats', 0)
+            # Optional: replace rough token estimate with actual
+            # stats['total_tokens'] = total_tokens
+        except Exception as e:
+            print(f"Error consolidating training data: {e}")
+        
         # Update dataset stats
         dataset_stats = {
             'total_examples': stats['total_examples'],
@@ -3147,7 +3179,8 @@ def real_collect_training_data():
                 'research_papers': stats['research'],
                 'feedback_entries': stats['feedback'],
                 'notion_pages': stats['notion_pages'],
-                'websites': stats['websites']
+                'websites': stats['websites'],
+                'datasafe_threats': stats['datasafe_threats']
             },
             'collected_at': datetime.now().isoformat(),
             'collected_by': current_user.username

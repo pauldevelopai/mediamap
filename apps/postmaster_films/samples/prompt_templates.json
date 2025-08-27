@@ -1,0 +1,33 @@
+{
+  "styles": {
+    "cinematic": "A cinematic, high dynamic range, shallow depth of field, natural film grain, realistic motion physics. CAMERA: tracked dolly-in, gentle parallax. LIGHTING: golden hour, soft key, practicals.",
+    "documentary": "Documentary style, handheld camera movement, natural lighting, realistic colors, authentic atmosphere. CAMERA: steady handheld with subtle shake. LIGHTING: available light, natural shadows.",
+    "commercial": "Professional commercial quality, smooth camera movements, perfect lighting, vibrant colors, polished aesthetic. CAMERA: precise tracking shots. LIGHTING: professional three-point setup.",
+    "news": "News broadcast style, steady camera, bright even lighting, professional presentation, clear visibility. CAMERA: locked-off or slow push-in. LIGHTING: bright, even, professional broadcast lighting.",
+    "corporate": "Clean corporate aesthetic, professional environment, modern settings, business attire. CAMERA: stable movements. LIGHTING: clean, professional office lighting."
+  },
+  "subjects": {
+    "news_anchor": "A professional news anchor in business attire, confident and authoritative demeanor",
+    "reporter": "A field reporter with microphone, professional but approachable appearance",
+    "newsroom": "A modern newsroom with multiple screens, desks, and professional equipment",
+    "office": "A contemporary office environment with modern furniture and technology",
+    "studio": "A professional TV studio with cameras, lighting equipment, and branded backdrop",
+    "executive": "A business executive in professional attire, confident and experienced appearance"
+  },
+  "actions": {
+    "presenting": "presenting information with confident gestures and direct eye contact",
+    "reporting": "reporting live with microphone, engaging with camera professionally",
+    "discussing": "engaged in professional discussion with thoughtful expressions",
+    "working": "working productively at desk with computer and documents",
+    "walking": "walking purposefully through professional environment",
+    "meeting": "participating in professional meeting or conference"
+  },
+  "environments": {
+    "newsroom": "bustling newsroom with screens showing breaking news, journalists at work",
+    "studio": "professional broadcast studio with branded elements and perfect lighting",
+    "office": "modern corporate office with glass walls, contemporary furniture",
+    "conference_room": "professional conference room with large table and presentation screen",
+    "outdoor": "professional outdoor setting with urban or natural background"
+  }
+}
+

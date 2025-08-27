@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.postmaster
+    command: uvicorn apps.postmaster_films.backend.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+      - postmaster_media:/app/_postmaster_media
+    environment:
+      - DATABASE_URL=sqlite:///./mediamap_postmaster.db
+      - REDIS_URL=redis://redis:6379/0
+      - MEDIA_ROOT=/app/_postmaster_media
+      - USE_VEO=true
+      - USE_TTS=false
+      - LOG_LEVEL=INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Redis for job queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # RQ Worker for background jobs
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.postmaster
+    command: python -m apps.postmaster_films.worker.worker
+    volumes:
+      - .:/app
+      - postmaster_media:/app/_postmaster_media
+    environment:
+      - DATABASE_URL=sqlite:///./mediamap_postmaster.db
+      - REDIS_URL=redis://redis:6379/0
+      - MEDIA_ROOT=/app/_postmaster_media
+      - USE_VEO=true
+      - USE_TTS=false
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+      - api
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  # Streamlit UI
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.postmaster
+    command: streamlit run apps/postmaster_films/ui/postmaster_films_app.py --server.port=8501 --server.address=0.0.0.0
+    volumes:
+      - .:/app
+    environment:
+      - POSTMASTER_API=http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # Optional: ComfyUI for AnimateDiff/SVD (if available)
+  # comfyui:
+  #   image: comfyui/comfyui:latest
+  #   ports:
+  #     - "8188:8188"
+  #   volumes:
+  #     - comfyui_models:/app/models
+  #     - comfyui_output:/app/output
+  #   restart: unless-stopped
+
+volumes:
+  postmaster_media:
+    driver: local
+  redis_data:
+    driver: local
+  # comfyui_models:
+  #   driver: local
+  # comfyui_output:
+  #   driver: local
+
+networks:
+  default:
+    name: postmaster_films_network
+
