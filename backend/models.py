@@ -417,3 +417,34 @@ class CheatSheet(db.Model):
 
     def __repr__(self):
         return f'<CheatSheet {self.title[:50]}...>'
+
+class UserSession(db.Model):
+    """Track admin user sessions and memory access"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    session_token = db.Column(db.String(255), unique=True, nullable=False)
+    login_time = db.Column(db.DateTime, default=datetime.utcnow)
+    last_activity = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    
+    # Memory and access control
+    accessible_memories = db.Column(db.JSON)  # List of memory IDs this session can access
+    access_level = db.Column(db.String(50), default='full')  # full, limited, read_only
+    session_notes = db.Column(db.Text)  # Notes about this session's purpose
+    
+    user = db.relationship('User', backref='sessions')
+
+class Memory(db.Model):
+    """Store session-specific memories and information"""
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('user_session.id'), nullable=False)
+    memory_type = db.Column(db.String(50))  # conversation, analysis, strategy, insight
+    content = db.Column(db.Text)
+    memory_metadata = db.Column(db.JSON)  # Additional context
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    accessed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    importance_score = db.Column(db.Float, default=0.0)  # 0-1 score for memory importance
+    
+    session = db.relationship('UserSession', backref='memories')

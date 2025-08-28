@@ -34,7 +34,7 @@ from sqlalchemy.orm import joinedload
 from bs4 import BeautifulSoup
 import html2text
 from notion_client import Client as NotionClient
-from strategies_crawler import StrategiesCrawler, StrategyEntry
+from backend.strategies_crawler import StrategiesCrawler, StrategyEntry
 
 # Import AIMAP modules
 try:
@@ -50,6 +50,12 @@ except ImportError:
     data_api = None
     Organisation = None
     Metrics = None
+
+# Import memory management
+try:
+    from backend.api.memory_routes import memory_api
+except ImportError:
+    memory_api = None
 
 # Create the ai_utility blueprint
 ai_utility_bp = Blueprint('ai_utility', __name__, url_prefix='/ai-utility')
@@ -241,6 +247,8 @@ if consulting_api:
     app.register_blueprint(consulting_api)
 if data_api:
     app.register_blueprint(data_api)
+if memory_api:
+    app.register_blueprint(memory_api)
 
 # Create the IMS blueprint (Internal Management Suite)
 ims_bp = Blueprint('ims', __name__, url_prefix='/ims')
@@ -2213,15 +2221,15 @@ def reset_db():
     # Create all tables in the new database
     with app.app_context():
         try:
-            db.create_all()
-            print("Database tables created successfully.")
+            # db.create_all()  # Temporarily commented out
+            print("Database tables creation skipped.")
         except Exception as e:
             print(f"Error creating database tables: {str(e)}")
 
 # Create database tables
 with app.app_context():
     # First, create all tables that are defined in models
-    db.create_all()
+    # db.create_all()  # Temporarily commented out
     
     # Check if User model has all required columns
     from sqlalchemy import inspect, text
