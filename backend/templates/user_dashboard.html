@@ -662,31 +662,19 @@
                 </a>
                 <a href="#" onclick="showOrganisationsSection()" class="btn-secondary" id="orgs-nav-btn">
                     <i class="bi bi-building-gear"></i>
-                    Organisations
-                </a>
-                <a href="#" onclick="showReportsSection()" class="btn-secondary" id="reports-nav-btn">
-                    <i class="bi bi-file-earmark-bar-graph"></i>
-                    Reports
-                </a>
-                <a href="#" onclick="showPredictionsSection()" class="btn-secondary" id="predictions-nav-btn">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    Predictions
+                    Organizations
                 </a>
                 <a href="#" onclick="showConsultingSection()" class="btn-secondary" id="consulting-nav-btn">
                     <i class="bi bi-briefcase"></i>
                     Consulting
                 </a>
-                <a href="#" onclick="showDataSafeSection()" class="btn-secondary" id="datasafe-nav-btn">
-                    <i class="bi bi-shield-check"></i>
-                    DataSafe
+                <a href="#" onclick="showPredictionsSection()" class="btn-secondary" id="predictions-nav-btn">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Predictions
                 </a>
-                <a href="{{ url_for('clients.clients_index') }}" class="btn-secondary">
-                    <i class="bi bi-people"></i>
-                    Clients
-                </a>
-                <a href="{{ url_for('today_news') }}" class="btn-secondary">
-                    <i class="bi bi-newspaper"></i>
-                    Today's News
+                <a href="#" onclick="showReportsSection()" class="btn-secondary" id="reports-nav-btn">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                    Reports
                 </a>
                 <a href="{{ url_for('logout') }}" class="btn-primary">
                     <i class="bi bi-box-arrow-right"></i>
@@ -712,7 +700,7 @@
                     <div id="chat-messages" class="chat-messages">
                         <div class="message ai-message">
                             <strong><i class="bi bi-robot me-2"></i>Highlander:</strong><br>
-                            I'm Highlander, your AI business consultant. Tell me about your media business - what challenges are you facing and what are you trying to achieve?
+                            I'm Highlander, your AI consulting assistant. I can help you analyze organizations, generate AI strategies, and provide consulting insights. What would you like to work on today?
                         </div>
                     </div>
                     
@@ -1532,7 +1520,7 @@
     <script>
         // AIMAP Section Management
         function hideAllSections() {
-            const sections = ['chat-section', 'organisations-section', 'reports-section', 'predictions-section', 'consulting-section', 'datasafe-section'];
+            const sections = ['chat-section', 'organisations-section', 'reports-section', 'predictions-section', 'consulting-section'];
             sections.forEach(sectionId => {
                 const section = document.querySelector(`.${sectionId}`);
                 if (section) section.style.display = 'none';
@@ -1565,11 +1553,7 @@
             loadConsultingOrganisations();
         }
 
-        function showDataSafeSection() {
-            hideAllSections();
-            document.getElementById('datasafe-section').style.display = 'block';
-            loadThreats();
-        }
+
 
         // Load organisations data
         async function loadOrganisations() {
