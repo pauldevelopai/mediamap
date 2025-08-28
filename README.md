@@ -41,6 +41,9 @@ docker-compose up --build
 - **Predictive analytics** with ML-powered forecasting models
 - **Risk assessment** for organizations falling behind peers
 - **ROI estimation** for AI investment scenarios
+- **AI consulting intelligence** with comprehensive strategy generation
+- **Process library** with real implementation strategies and tool recommendations
+- **Success tracking** with measurement frameworks and progress monitoring
 - **Automated ingestion** from company websites and public sources
 - **Export capabilities** (PPTX reports, PDF summaries)
 - **Peer benchmarking** by sector, region, and size
@@ -70,6 +73,17 @@ docker-compose up --build
 - `GET /api/ml/sector-insights/{sector}` - Get sector-wide predictive insights
 - `GET /api/ml/recommendations/{id}` - Get AI investment recommendations
 - `GET /api/ml/risk-assessment/{id}` - Get detailed risk assessment
+
+### AI Consulting Intelligence
+- `GET /api/consulting/processes` - Get available AI processes
+- `POST /api/consulting/strategy/{id}` - Generate comprehensive AI strategy
+- `POST /api/consulting/package/{id}` - Generate complete consulting package
+- `GET /api/consulting/insights/{id}` - Get consulting insights and recommendations
+- `GET /api/consulting/recommendations/{id}` - Get AI process recommendations
+- `POST /api/consulting/success-plan/{id}` - Create success tracking plan
+- `POST /api/consulting/track-progress/{id}` - Track progress against success plan
+- `GET /api/consulting/sectors` - Get available sectors for consulting
+- `GET /api/consulting/deliverables/{id}` - Get consulting deliverables
 
 ## CLI Commands
 
