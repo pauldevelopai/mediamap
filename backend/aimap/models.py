@@ -167,7 +167,7 @@ class CustomData(Base):
     title = Column(String)
     content = Column(JSON)  # Flexible JSON storage
     tags = Column(JSON)
-    metadata = Column(JSON)  # Additional metadata
+    custom_metadata = Column(JSON)  # Additional metadata (renamed to avoid conflict)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

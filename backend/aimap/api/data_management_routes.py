@@ -317,7 +317,7 @@ def get_custom_data():
                 'title': c.title,
                 'content': c.content or {},
                 'tags': c.tags or [],
-                'metadata': c.metadata or {},
+                'metadata': c.custom_metadata or {},
                 'created_at': c.created_at.isoformat() if c.created_at else None
             } for c in custom_data]
         })
@@ -341,7 +341,7 @@ def create_custom_data():
             title=data['title'],
             content=data.get('content', {}),
             tags=data.get('tags', []),
-            metadata=data.get('metadata', {})
+            custom_metadata=data.get('metadata', {})
         )
         
         from ..db import db
