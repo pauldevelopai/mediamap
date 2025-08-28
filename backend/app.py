@@ -18,7 +18,7 @@ import json
 from datetime import datetime, timezone
 import urllib.parse
 import requests
-from auth import auth
+from backend.auth import auth
 import time
 import threading
 import uuid
@@ -41,11 +41,13 @@ try:
     from aimap.api.routes import aimap_api
     from aimap.api.ml_routes import ml_api
     from aimap.api.consulting_routes import consulting_api
+    from aimap.api.data_management_routes import data_api
     from aimap.models import Organisation, Metrics
 except ImportError:
     aimap_api = None
     ml_api = None
     consulting_api = None
+    data_api = None
     Organisation = None
     Metrics = None
 
@@ -237,6 +239,8 @@ if ml_api:
     app.register_blueprint(ml_api)
 if consulting_api:
     app.register_blueprint(consulting_api)
+if data_api:
+    app.register_blueprint(data_api)
 
 # Create the IMS blueprint (Internal Management Suite)
 ims_bp = Blueprint('ims', __name__, url_prefix='/ims')
