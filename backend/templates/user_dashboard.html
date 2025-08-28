@@ -672,6 +672,10 @@
                     <i class="bi bi-graph-up-arrow"></i>
                     Predictions
                 </a>
+                <a href="#" onclick="showConsultingSection()" class="btn-secondary" id="consulting-nav-btn">
+                    <i class="bi bi-briefcase"></i>
+                    Consulting
+                </a>
                 <a href="#" onclick="showDataSafeSection()" class="btn-secondary" id="datasafe-nav-btn">
                     <i class="bi bi-shield-check"></i>
                     DataSafe
@@ -843,6 +847,146 @@
                         <div id="organisations-empty" style="display: none;" class="text-center py-4">
                             <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mt-2">No organisations found</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consulting Section -->
+        <section class="consulting-section" id="consulting-section" style="display: none;">
+            <div class="chat-body">
+                <div class="chat-status">
+                    <div class="status-indicator">
+                        <i class="bi bi-briefcase text-primary me-1"></i>
+                        <span>AI Consulting Intelligence</span>
+                    </div>
+                </div>
+                
+                <!-- Organization Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Select Organization for Consulting</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Organization</label>
+                                <select class="form-select" id="consulting-org-select">
+                                    <option value="">Choose organization...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Team Size</label>
+                                <input type="number" class="form-control" id="consulting-team-size" value="5" min="1" max="100">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Budget (USD)</label>
+                                <input type="number" class="form-control" id="consulting-budget" value="100000" min="1000" step="1000">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary" onclick="generateConsultingPackage()">
+                                <i class="bi bi-magic"></i> Generate Consulting Package
+                            </button>
+                            <button class="btn btn-outline-secondary ms-2" onclick="getConsultingInsights()">
+                                <i class="bi bi-lightbulb"></i> Get Insights
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consulting Results -->
+                <div id="consulting-results" style="display: none;">
+                    <!-- Key Insights -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Key Insights</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="insights-content">
+                                <!-- Insights will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Strategy Summary -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Strategy Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Success Probability</h6>
+                                            <div class="h3 text-primary" id="success-probability">--</div>
+                                            <small class="text-muted">Likelihood of successful implementation</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Expected ROI</h6>
+                                            <div class="h3 text-success" id="expected-roi">--</div>
+                                            <small class="text-muted">Return on investment percentage</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Process Recommendations -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recommended AI Processes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="process-recommendations">
+                                <!-- Process recommendations will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Implementation Timeline -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Implementation Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="implementation-timeline">
+                                <!-- Timeline will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deliverables -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Consulting Deliverables</h5>
+                            <button class="btn btn-outline-primary btn-sm" onclick="generateDeliverables()">
+                                <i class="bi bi-download"></i> Generate All
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="deliverables-list">
+                                <!-- Deliverables will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Assessment -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Risk Assessment & Mitigation</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="risk-assessment">
+                                <!-- Risk assessment will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1388,7 +1532,7 @@
     <script>
         // AIMAP Section Management
         function hideAllSections() {
-            const sections = ['chat-section', 'organisations-section', 'reports-section', 'predictions-section', 'datasafe-section'];
+            const sections = ['chat-section', 'organisations-section', 'reports-section', 'predictions-section', 'consulting-section', 'datasafe-section'];
             sections.forEach(sectionId => {
                 const section = document.querySelector(`.${sectionId}`);
                 if (section) section.style.display = 'none';
@@ -1413,6 +1557,12 @@
             document.getElementById('predictions-section').style.display = 'block';
             loadModelStatus();
             loadPredictionOrganisations();
+        }
+
+        function showConsultingSection() {
+            hideAllSections();
+            document.getElementById('consulting-section').style.display = 'block';
+            loadConsultingOrganisations();
         }
 
         function showDataSafeSection() {
@@ -2045,6 +2195,290 @@
                     </p>
                 </div>
             `;
+        }
+
+        // Consulting Functions
+        async function loadConsultingOrganisations() {
+            try {
+                const response = await fetch('/api/organisations');
+                const data = await response.json();
+                
+                const select = document.getElementById('consulting-org-select');
+                select.innerHTML = '<option value="">Choose organization...</option>';
+                
+                if (data.status === 'success') {
+                    data.data.forEach(org => {
+                        const option = document.createElement('option');
+                        option.value = org.id;
+                        option.textContent = `${org.name} (${org.sector})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading organisations for consulting:', error);
+            }
+        }
+
+        async function generateConsultingPackage() {
+            const orgId = document.getElementById('consulting-org-select').value;
+            const teamSize = document.getElementById('consulting-team-size').value;
+            const budget = document.getElementById('consulting-budget').value;
+            
+            if (!orgId) {
+                alert('Please select an organization');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/consulting/package/${orgId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        team_size: parseInt(teamSize),
+                        budget: parseInt(budget)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayConsultingPackage(data.data);
+                } else {
+                    alert('Error generating consulting package: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error generating consulting package: ' + error.message);
+            }
+        }
+
+        async function getConsultingInsights() {
+            const orgId = document.getElementById('consulting-org-select').value;
+            
+            if (!orgId) {
+                alert('Please select an organization');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/consulting/insights/${orgId}`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayConsultingInsights(data.data);
+                } else {
+                    alert('Error getting insights: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error getting insights: ' + error.message);
+            }
+        }
+
+        function displayConsultingPackage(package) {
+            // Show results section
+            document.getElementById('consulting-results').style.display = 'block';
+            
+            // Display insights
+            displayConsultingInsights(package);
+            
+            // Display strategy summary
+            const strategy = package.consulting_package.strategy;
+            const summary = strategy.strategy_summary;
+            
+            document.getElementById('success-probability').textContent = 
+                `${(summary.success_probability * 100).toFixed(1)}%`;
+            document.getElementById('expected-roi').textContent = 
+                `${summary.expected_roi.roi_percentage}%`;
+            
+            // Display process recommendations
+            displayProcessRecommendations(package.consulting_package.process_recommendations);
+            
+            // Display timeline
+            displayImplementationTimeline(package.timeline);
+            
+            // Display deliverables
+            displayDeliverables(package.deliverables);
+            
+            // Display risk assessment
+            displayRiskAssessment(package.consulting_package.risk_assessment);
+        }
+
+        function displayConsultingInsights(insights) {
+            const container = document.getElementById('insights-content');
+            
+            let insightsHtml = '<div class="row g-3">';
+            
+            insights.key_insights.forEach(insight => {
+                const priorityClass = insight.priority === 'High' ? 'text-danger' : 
+                                    insight.priority === 'Medium' ? 'text-warning' : 'text-success';
+                
+                insightsHtml += `
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    ${insight.insight}
+                                    <span class="badge ${priorityClass} ms-2">${insight.priority}</span>
+                                </h6>
+                                <p class="card-text">${insight.value}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            insightsHtml += '</div>';
+            
+            if (insights.top_recommendations) {
+                insightsHtml += `
+                    <div class="mt-4">
+                        <h6>Top Recommendations:</h6>
+                        <ul>
+                            ${insights.top_recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = insightsHtml;
+        }
+
+        function displayProcessRecommendations(recommendations) {
+            const container = document.getElementById('process-recommendations');
+            
+            let html = '<div class="row g-3">';
+            
+            recommendations.forEach(rec => {
+                const score = (rec.recommendation_score * 100).toFixed(1);
+                const scoreClass = score > 80 ? 'text-success' : score > 60 ? 'text-warning' : 'text-danger';
+                
+                html += `
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">${rec.name}</h6>
+                                <span class="badge ${scoreClass}">${score}% Match</span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Complexity:</strong> ${rec.complexity}</p>
+                                <p><strong>Timeline:</strong> ${rec.timeline_weeks} weeks</p>
+                                <p><strong>Budget:</strong> ${rec.budget_range}</p>
+                                <p><strong>Team Size:</strong> ${rec.team_size} people</p>
+                                <div class="mt-2">
+                                    <strong>Tools:</strong>
+                                    <div class="mt-1">
+                                        ${rec.tools.map(tool => `<span class="badge bg-light text-dark me-1">${tool}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function displayImplementationTimeline(timeline) {
+            const container = document.getElementById('implementation-timeline');
+            
+            let html = `
+                <div class="mb-3">
+                    <strong>Total Duration:</strong> ${timeline.total_duration_months} months (${timeline.total_duration_weeks} weeks)
+                </div>
+                <div class="timeline">
+            `;
+            
+            timeline.phases.forEach(phase => {
+                html += `
+                    <div class="timeline-item mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Phase ${phase.phase}: ${phase.name}</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Duration:</strong> ${phase.duration_weeks} weeks</p>
+                                <p><strong>Focus:</strong> ${phase.focus}</p>
+                                <div class="mt-2">
+                                    <strong>Deliverables:</strong>
+                                    <ul class="mt-1">
+                                        ${phase.deliverables.map(d => `<li>${d}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function displayDeliverables(deliverables) {
+            const container = document.getElementById('deliverables-list');
+            
+            let html = '<div class="row g-3">';
+            
+            deliverables.forEach(deliverable => {
+                html += `
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">${deliverable.name}</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">${deliverable.description}</p>
+                                <p><strong>Format:</strong> ${deliverable.format}</p>
+                                <p><strong>Pages:</strong> ${deliverable.estimated_pages}</p>
+                                <button class="btn btn-outline-primary btn-sm" onclick="generateDeliverable('${deliverable.type}')">
+                                    <i class="bi bi-download"></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function displayRiskAssessment(risks) {
+            const container = document.getElementById('risk-assessment');
+            
+            let html = '<div class="row g-3">';
+            
+            risks.forEach(risk => {
+                const impactClass = risk.impact === 'High' ? 'text-danger' : 
+                                  risk.impact === 'Medium' ? 'text-warning' : 'text-success';
+                const probabilityClass = risk.probability === 'High' ? 'text-danger' : 
+                                       risk.probability === 'Medium' ? 'text-warning' : 'text-success';
+                
+                html += `
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">${risk.risk}</h6>
+                                <p><strong>Impact:</strong> <span class="${impactClass}">${risk.impact}</span></p>
+                                <p><strong>Probability:</strong> <span class="${probabilityClass}">${risk.probability}</span></p>
+                                <p><strong>Mitigation:</strong> ${risk.mitigation}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function generateDeliverables() {
+            alert('Deliverable generation feature coming soon!');
+        }
+
+        function generateDeliverable(type) {
+            alert(`Generating ${type} deliverable... Feature coming soon!`);
         }
 
         // DataSafe threats loading (existing function)
