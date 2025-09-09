@@ -5,8 +5,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from backend.app import app, db
-from backend.models import UserSession, Memory
+from app import app, db
+from models import UserSession, Memory
 
 def create_tables():
     """Create the new database tables"""

@@ -1,0 +1,568 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}AI Prototyping | MediaMap{% endblock %}
+
+{% block header %}AI Prototyping{% endblock %}
+
+{% block extra_css %}
+<style>
+.prototype-card {
+    transition: transform 0.2s ease-in-out;
+}
+.prototype-card:hover {
+    transform: translateY(-2px);
+}
+.stage-badge {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+.progress-bar {
+    height: 8px;
+    border-radius: 4px;
+}
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+.metric-card .card-body {
+    padding: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Prototyping Dashboard -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-cpu"></i> AI Prototyping Dashboard
+                </h6>
+                <div>
+                    <button class="btn btn-success me-2" onclick="addNewPrototype()">
+                        <i class="bi bi-plus-circle"></i> Add Prototype
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="exportPrototypeData()">
+                        <i class="bi bi-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Summary Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Total Prototypes</h6>
+                                <h3 class="mb-0">{{ total_prototypes|default(0) }}</h3>
+                                <small>AI products in development</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h6 class="text-success">Active Prototypes</h6>
+                                <h3 class="text-success">{{ active_prototypes|default(0) }}</h3>
+                                <small>Currently in progress</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h6 class="text-info">Completed</h6>
+                                <h3 class="text-info">{{ completed_prototypes|default(0) }}</h3>
+                                <small>Successfully launched</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="text-warning">In Testing</h6>
+                                <h3 class="text-warning">{{ testing_count|default(0) }}</h3>
+                                <small>Beta testing phase</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage Breakdown -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3"><i class="bi bi-diagram-3"></i> Prototype Stages</h6>
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-primary">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-primary">Ideation</h6>
+                                        <h4 class="text-primary">{{ ideation_count|default(0) }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-success">Development</h6>
+                                        <h4 class="text-success">{{ development_count|default(0) }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-warning">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-warning">Testing</h6>
+                                        <h4 class="text-warning">{{ testing_count|default(0) }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-info">Production</h6>
+                                        <h4 class="text-info">{{ production_count|default(0) }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter and Search -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="prototypeSearch" placeholder="Search prototypes...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="stageFilter">
+                            <option value="">All Stages</option>
+                            <option value="Ideation">Ideation</option>
+                            <option value="Development">Development</option>
+                            <option value="Testing">Testing</option>
+                            <option value="Production">Production</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="newsroomFilter">
+                            <option value="">All Newsrooms</option>
+                            {% for newsroom in newsrooms %}
+                            <option value="{{ newsroom.name }}">{{ newsroom.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Prototypes Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Prototype</th>
+                                <th>Newsroom</th>
+                                <th>Category</th>
+                                <th>Stage</th>
+                                <th>Progress</th>
+                                <th>Team Size</th>
+                                <th>Budget</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prototypes-table-body">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">
+                                    <i class="bi bi-inbox"></i>
+                                    <p class="mt-2">No prototypes found. Start by adding your first AI prototype.</p>
+                                    <button class="btn btn-primary btn-sm" onclick="addNewPrototype()">
+                                        <i class="bi bi-plus-circle"></i> Add Your First Prototype
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Updates Panel -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-clock-history"></i> Recent Updates
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="recent-updates-container">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-journal-text"></i>
+                        <p class="mt-3">No updates yet. Add progress updates to track prototype development.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-graph-up"></i> Success Metrics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Completion Rate</span>
+                        <span>75%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>On-Time Delivery</span>
+                        <span>60%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Budget Adherence</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Prototype Modal -->
+<div class="modal fade" id="addPrototypeModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New AI Prototype</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPrototypeForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeName" class="form-label">Prototype Name *</label>
+                                <input type="text" class="form-control" id="prototypeName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeNewsroom" class="form-label">Newsroom</label>
+                                <select class="form-select" id="prototypeNewsroom">
+                                    <option value="">Select Newsroom</option>
+                                    {% for newsroom in newsrooms %}
+                                    <option value="{{ newsroom.id }}" data-name="{{ newsroom.name }}">{{ newsroom.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeCategory" class="form-label">Category</label>
+                                <select class="form-select" id="prototypeCategory">
+                                    <option value="">Select Category</option>
+                                    <option value="Content Generation">Content Generation</option>
+                                    <option value="Fact-Checking">Fact-Checking</option>
+                                    <option value="Personalization">Personalization</option>
+                                    <option value="Analytics">Analytics</option>
+                                    <option value="Automation">Automation</option>
+                                    <option value="Translation">Translation</option>
+                                    <option value="Moderation">Content Moderation</option>
+                                    <option value="Recommendation">Recommendation Engine</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeStage" class="form-label">Current Stage</label>
+                                <select class="form-select" id="prototypeStage">
+                                    <option value="Ideation">Ideation</option>
+                                    <option value="Development">Development</option>
+                                    <option value="Testing">Testing</option>
+                                    <option value="Production">Production</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prototypeDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="prototypeDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeTechStack" class="form-label">Technology Stack</label>
+                                <input type="text" class="form-control" id="prototypeTechStack" placeholder="e.g., GPT-4, Python, TensorFlow">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeProgress" class="form-label">Progress (%)</label>
+                                <input type="number" class="form-control" id="prototypeProgress" min="0" max="100" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prototypeStartDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="prototypeStartDate">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prototypeTargetDate" class="form-label">Target Completion</label>
+                                <input type="date" class="form-control" id="prototypeTargetDate">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="prototypeTeamSize" class="form-label">Team Size</label>
+                                <input type="number" class="form-control" id="prototypeTeamSize" min="1" value="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypeBudget" class="form-label">Budget ($)</label>
+                                <input type="number" class="form-control" id="prototypeBudget" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="prototypePartners" class="form-label">External Partners</label>
+                                <input type="text" class="form-control" id="prototypePartners" placeholder="e.g., OpenAI, Google AI">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prototypeSuccessMetrics" class="form-label">Success Metrics</label>
+                        <textarea class="form-control" id="prototypeSuccessMetrics" rows="2" placeholder="e.g., 95% accuracy, 50% time reduction"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prototypeNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="prototypeNotes" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="savePrototype()">Save Prototype</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Prototyping Functions
+function addNewPrototype() {
+    const modal = new bootstrap.Modal(document.getElementById('addPrototypeModal'));
+    modal.show();
+}
+
+function savePrototype() {
+    const formData = {
+        name: document.getElementById('prototypeName').value,
+        description: document.getElementById('prototypeDescription').value,
+        newsroom_id: document.getElementById('prototypeNewsroom').value,
+        newsroom_name: document.getElementById('prototypeNewsroom').selectedOptions[0]?.dataset.name || '',
+        category: document.getElementById('prototypeCategory').value,
+        stage: document.getElementById('prototypeStage').value,
+        technology_stack: document.getElementById('prototypeTechStack').value,
+        progress_percentage: parseInt(document.getElementById('prototypeProgress').value) || 0,
+        start_date: document.getElementById('prototypeStartDate').value,
+        target_completion: document.getElementById('prototypeTargetDate').value,
+        team_size: parseInt(document.getElementById('prototypeTeamSize').value) || 1,
+        budget: parseFloat(document.getElementById('prototypeBudget').value) || 0,
+        external_partners: document.getElementById('prototypePartners').value,
+        success_metrics: document.getElementById('prototypeSuccessMetrics').value,
+        notes: document.getElementById('prototypeNotes').value,
+        status: 'Active'
+    };
+    
+    // Validate required fields
+    if (!formData.name.trim()) {
+        alert('Prototype name is required');
+        return;
+    }
+    
+    fetch('/admin/map/prototypes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Prototype saved successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addPrototypeModal'));
+            modal.hide();
+            // Clear the form
+            document.getElementById('addPrototypeForm').reset();
+            // Refresh the prototypes list
+            loadPrototypesData();
+        } else {
+            alert('Error saving prototype: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving prototype: ' + error.message);
+    });
+}
+
+function loadPrototypesData() {
+    fetch('/admin/map/prototypes')
+        .then(response => response.json())
+        .then(data => {
+            const prototypesTableBody = document.getElementById('prototypes-table-body');
+            
+            if (data.prototypes && data.prototypes.length > 0) {
+                let prototypesHtml = '';
+                data.prototypes.forEach(prototype => {
+                    const stageBadgeClass = {
+                        'Ideation': 'bg-primary',
+                        'Development': 'bg-success',
+                        'Testing': 'bg-warning',
+                        'Production': 'bg-info',
+                        'Completed': 'bg-secondary'
+                    }[prototype.stage] || 'bg-secondary';
+                    
+                    const budget = prototype.budget ? `$${prototype.budget.toLocaleString()}` : 'Not set';
+                    
+                    prototypesHtml += `
+                        <tr>
+                            <td>
+                                <strong>${prototype.name}</strong>
+                                ${prototype.description ? `<br><small class="text-muted">${prototype.description.substring(0, 100)}${prototype.description.length > 100 ? '...' : ''}</small>` : ''}
+                            </td>
+                            <td>${prototype.newsroom_name || 'Not assigned'}</td>
+                            <td>${prototype.category || 'Not specified'}</td>
+                            <td><span class="badge ${stageBadgeClass}">${prototype.stage || 'Unknown'}</span></td>
+                            <td>
+                                <div class="progress progress-bar" style="height: 8px;">
+                                    <div class="progress-bar" style="width: ${prototype.progress_percentage || 0}%"></div>
+                                </div>
+                                <small class="text-muted">${prototype.progress_percentage || 0}%</small>
+                            </td>
+                            <td>${prototype.team_size || 0}</td>
+                            <td>${budget}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="viewPrototype(${prototype.id})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-success" onclick="editPrototype(${prototype.id})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-info" onclick="addPrototypeUpdate(${prototype.id})">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deletePrototype(${prototype.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                prototypesTableBody.innerHTML = prototypesHtml;
+            } else {
+                prototypesTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mt-2">No prototypes found. Start by adding your first AI prototype.</p>
+                            <button class="btn btn-primary btn-sm" onclick="addNewPrototype()">
+                                <i class="bi bi-plus-circle"></i> Add Your First Prototype
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading prototypes:', error);
+            const prototypesTableBody = document.getElementById('prototypes-table-body');
+            prototypesTableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading prototypes. Please try again.</td></tr>';
+        });
+}
+
+function viewPrototype(prototypeId) {
+    alert('View prototype: ' + prototypeId);
+}
+
+function editPrototype(prototypeId) {
+    alert('Edit prototype: ' + prototypeId);
+}
+
+function addPrototypeUpdate(prototypeId) {
+    alert('Add update for prototype: ' + prototypeId);
+}
+
+function deletePrototype(prototypeId) {
+    if (!confirm('Are you sure you want to delete this prototype? This action cannot be undone.')) {
+        return;
+    }
+    
+    fetch('/admin/map/prototypes', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({id: prototypeId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Prototype deleted successfully!');
+            loadPrototypesData();
+        } else {
+            alert('Error deleting prototype: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting prototype: ' + error.message);
+    });
+}
+
+function exportPrototypeData() {
+    alert('Export functionality will be implemented here.');
+}
+
+// Initialize page when DOM loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadPrototypesData();
+});
+</script>
+{% endblock %}

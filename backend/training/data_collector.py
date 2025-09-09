@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import hashlib
 import logging
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, inspect
 import pandas as pd
 
 # Set up logging
@@ -83,6 +83,12 @@ class DataCollector:
         
         try:
             engine = create_engine(f'sqlite:///{self.db_path}')
+            
+            # Check if tables exist first
+            inspector = inspect(engine)
+            if 'chats' not in inspector.get_table_names():
+                logger.info("No chats table found - no conversations to collect")
+                return 0
             
             # Get all chats with messages
             query = """
@@ -372,7 +378,7 @@ class DataCollector:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(training_data, f, indent=2, ensure_ascii=False, default=str)
         
-        # Create dataset statistics
+        # Create dataset statistics - only real data
         stats = {
             'total_examples': len(training_data),
             'total_tokens': total_tokens,
@@ -383,6 +389,14 @@ class DataCollector:
             },
             'created_at': datetime.now().isoformat()
         }
+        
+        # If no real data, return early
+        if len(training_data) == 0:
+            logger.info("No real training data found - returning empty dataset")
+            stats_file = self.output_dir / "processed" / "dataset_stats.json"
+            with open(stats_file, 'w') as f:
+                json.dump(stats, f, indent=2, default=str)
+            return 0
         
         stats_file = self.output_dir / "processed" / "dataset_stats.json"
         with open(stats_file, 'w') as f:

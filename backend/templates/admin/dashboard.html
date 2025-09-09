@@ -4,83 +4,278 @@
 
 {% block header %}Admin Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+.border-purple {
+    border-left: 4px solid #6f42c1 !important;
+}
+.text-purple {
+    color: #6f42c1 !important;
+}
+.btn-outline-purple {
+    color: #6f42c1;
+    border-color: #6f42c1;
+}
+.btn-outline-purple:hover {
+    color: #fff;
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Quick Access Links -->
+
+<!-- System Dashboard Section -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="card shadow">
-            <div class="card-header py-3">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="bi bi-lightning-charge"></i> Quick Access
+                    <i class="bi bi-speedometer2"></i> System Dashboard
                 </h6>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="refreshDashboard()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="exportDashboardReport()">
+                        <i class="bi bi-download"></i> Export Report
+                    </button>
+                </div>
             </div>
+            
             <div class="card-body">
                 <div class="row">
+                    <!-- Row 1 -->
                     <div class="col-md-3 mb-3">
-                        <h6 class="text-success"><i class="bi bi-people"></i> User Management</h6>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-list-ul"></i> All Users
-                            </a>
-                            <a href="{{ url_for('create_admin') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-person-plus"></i> Create Admin
-                            </a>
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-people-fill fa-2x text-primary position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-primary fw-bold">USERS</h6>
+                                <h4 class="text-primary">{{ user_count|default(0) }}</h4>
+                                <p class="text-muted small mb-2">users</p>
+                                <p class="text-muted small mb-2">{{ admin_count|default(0) }} admins</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewAllUsers()">View All →</button>
+                                    <button class="btn btn-sm btn-success" onclick="addNewAdmin()">+ Admin</button>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <h6 class="text-info"><i class="bi bi-chat-dots"></i> Communication</h6>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('admin_chats') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-chat"></i> All Chats
-                            </a>
-                            <a href="{{ url_for('admin_feedback') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-chat-quote"></i> User Feedback
-                            </a>
                         </div>
                     </div>
+                    
                     <div class="col-md-3 mb-3">
-                        <h6 class="text-warning"><i class="bi bi-cpu"></i> AI & Analytics</h6>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('admin_training') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-gear"></i> AI Training
-                            </a>
-                            <a href="{{ url_for('admin_analyses') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-graph-up"></i> Media Analyses
-                            </a>
-                            <a href="{{ url_for('admin_strategies') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-collection"></i> Strategy Crawler
-                            </a>
-                             <a href="{{ url_for('admin_plans') }}" class="list-group-item list-group-item-action">
-                                 <i class="bi bi-list-check"></i> Plans
-                             </a>
-                             <a href="{{ url_for('admin_reports') }}" class="list-group-item list-group-item-action">
-                                 <i class="bi bi-journal-text"></i> Daily Reports
-                             </a>
-                             <a href="{{ url_for('admin_cheatsheets') }}" class="list-group-item list-group-item-action">
-                                 <i class="bi bi-lightning-charge"></i> Cheat Sheets
-                             </a>
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-graph-up fa-2x text-success position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-success fw-bold">MEDIA ANALYSES</h6>
+                                <h4 class="text-success">{{ analysis_count|default(0) }}</h4>
+                                <p class="text-muted small mb-2">Content insights</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-success" onclick="viewMediaAnalyses()">View Details →</button>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <h6 class="text-danger"><i class="bi bi-database"></i> System</h6>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('admin_lessons') }}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-book"></i> Lessons
-                            </a>
-                            <a href="#" onclick="openDatabase()" class="list-group-item list-group-item-action">
-                                <i class="bi bi-database"></i> Database Info
-                            </a>
                         </div>
                     </div>
+                    
                     <div class="col-md-3 mb-3">
-                        <h6 class="text-info"><i class="bi bi-link-45deg"></i> External Links</h6>
-                        <div class="list-group list-group-flush">
-                            <a href="https://www.notion.so/team/224fc1c7-485a-81f0-8412-0042164a88c7/join" target="_blank" class="list-group-item list-group-item-action">
-                                <i class="bi bi-link-45deg"></i> Join Notion Team
-                            </a>
-                            <a href="https://developai.substack.com/" target="_blank" class="list-group-item list-group-item-action">
-                                <i class="bi bi-envelope"></i> Newsletter
-                            </a>
+                        <div class="card border-danger h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-chat-dots fa-2x text-danger position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-danger fw-bold">CHATS</h6>
+                                <h4 class="text-danger">{{ chat_count|default(0) }}</h4>
+                                <p class="text-muted small mb-2">{{ chat_count|default(0) }} messages</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="viewChats()">View Details →</button>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-book fa-2x text-warning position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-warning fw-bold">LESSONS</h6>
+                                <h4 class="text-warning">{{ lesson_count|default(0) }}</h4>
+                                <p class="text-muted small mb-2">Learning content</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-warning" onclick="viewLessons()">View Details →</button>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Row 2 -->
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-chat-quote fa-2x text-info position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-info fw-bold">USER FEEDBACK</h6>
+                                <h4 class="text-info">{{ feedback_count|default(0) }}</h4>
+                                <p class="text-muted small mb-2">User insights</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewUserFeedback()">View Details →</button>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-gear-wide-connected fa-2x text-primary position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-primary fw-bold">AI TRAINING</h6>
+                                <h4 class="text-primary">Pipeline</h4>
+                                <p class="text-muted small mb-2">Custom AI model</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="manageAITraining()">Manage Training →</button>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-robot fa-2x text-success position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-success fw-bold">AI MODEL</h6>
+                                <h4 class="text-success">Loaded</h4>
+                                <p class="text-muted small mb-2">AI Model</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-success me-1" onclick="viewDatabaseInfo()">View Details →</button>
+                                    <button class="btn btn-sm btn-success" onclick="openAIAssistant()">AI Assistant</button>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-robot fa-2x text-danger position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-danger fw-bold">HF PIPELINE</h6>
+                                <h4 class="text-danger">DataSafe</h4>
+                                <p class="text-muted small mb-2">Threat Intelligence</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="manageHFPipeline()">Manage Pipeline →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Row 3 -->
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-danger h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-folder2-open fa-2x text-danger position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-danger fw-bold">AI STRATEGIES</h6>
+                                <h4 class="text-danger">{{ strategy_count|default(0) }}</h4>
+                                <p class="text-muted small mb-2">Crawled strategies</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="manageAIStrategies()">Manage Strategies →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-hdd-stack fa-2x text-primary position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-primary fw-bold">DATABASE</h6>
+                                <h4 class="text-primary">SQLite</h4>
+                                <p class="text-muted small mb-2">media_analysis.db</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDatabaseInfo()">View Info →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-purple h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-geo-alt fa-2x text-purple position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-purple fw-bold">BUSINESS MAP</h6>
+                                <h4 class="text-purple">0 Clients</h4>
+                                <p class="text-muted small mb-2">0 Newsrooms</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-purple" onclick="viewBusinessMap()">View Map →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-heart-pulse fa-2x text-warning position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-warning fw-bold">SYSTEM HEALTH</h6>
+                                <h4 class="text-warning">Active</h4>
+                                <p class="text-muted small mb-2">All systems OK</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-warning" onclick="checkSystemStatus()">Check Status →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Row 4 -->
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-list-check fa-2x text-info position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-info fw-bold">PLANS</h6>
+                                <h4 class="text-info">{{ plan_count|default(0) }}</h4>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-info" onclick="managePlans()">Manage →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-file-text fa-2x text-primary position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-primary fw-bold">DAILY REPORTS</h6>
+                                <h4 class="text-primary">{{ report_count|default(0) }}</h4>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="manageDailyReports()">Manage →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-purple h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-lightning fa-2x text-purple position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-purple fw-bold">CHEAT SHEETS</h6>
+                                <h4 class="text-purple">{{ cheatsheet_count|default(0) }}</h4>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-purple" onclick="manageCheatSheets()">Manage →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-secondary h-100">
+                            <div class="card-body text-center position-relative">
+                                <i class="bi bi-plus-circle fa-2x text-secondary position-absolute top-0 end-0 mt-2 me-2"></i>
+                                <h6 class="card-title text-secondary fw-bold">ADD NEW</h6>
+                                <p class="text-muted small mb-2">Custom module</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="addCustomModule()">+ Module</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -89,286 +284,211 @@
     </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="row">
-    <!-- Users Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-users shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Users</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_count }}</div>
-                        <div class="text-xs text-muted">{{ admin_count }} admins</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-people fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('admin_users') }}" class="text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
-                    <a href="{{ url_for('create_admin') }}" class="text-decoration-none text-success">+ Admin</a>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Media Analyses Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-analyses shadow h-100 py-2">
+<!-- AI System Monitoring -->
+<div class="row mt-4" id="ai-monitoring-section" style="display: none;">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-robot"></i> AI System Monitoring
+                </h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="hideAIAssistant()">
+                    <i class="bi bi-x"></i> Close
+                </button>
+            </div>
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Media Analyses</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ analysis_count }}</div>
-                        <div class="text-xs text-muted">Content insights</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-graph-up fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_analyses') }}" class="text-decoration-none">View Details <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
+                <!-- Navigation Tabs -->
+                <ul class="nav nav-tabs" id="aiMonitoringTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="system-context-tab" data-bs-toggle="tab" data-bs-target="#system-context" type="button" role="tab">
+                            <i class="bi bi-info-circle"></i> System Context
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="model-status-tab" data-bs-toggle="tab" data-bs-target="#model-status" type="button" role="tab">
+                            <i class="bi bi-activity"></i> Model Status
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab">
+                            <i class="bi bi-graph-up"></i> Performance Analysis
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ai-assistant-tab" data-bs-toggle="tab" data-bs-target="#ai-assistant" type="button" role="tab">
+                            <i class="bi bi-chat-dots"></i> AI Assistant
+                        </button>
+                    </li>
+                </ul>
 
-    <!-- Chats Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-chats shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            Chats</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ chat_count }}</div>
-                        <div class="text-xs text-muted">{{ message_count }} messages</div>
+                <!-- Tab Content -->
+                <div class="tab-content mt-3" id="aiMonitoringTabContent">
+                    <!-- System Context Tab -->
+                    <div class="tab-pane fade show active" id="system-context" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div id="system-context-content">
+                                    <div class="text-center">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="mt-2">Loading system context...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Quick Actions</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary btn-sm" onclick="checkSystemHealth()">
+                                                <i class="bi bi-heart-pulse"></i> System Health
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="checkModelStatus()">
+                                                <i class="bi bi-robot"></i> Model Status
+                                            </button>
+                                            <button class="btn btn-info btn-sm" onclick="viewModelMetrics()">
+                                                <i class="bi bi-graph-up"></i> Performance
+                                            </button>
+                                            <button class="btn btn-warning btn-sm" onclick="testModelInference()">
+                                                <i class="bi bi-play-circle"></i> Test Model
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-chat-dots fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_chats') }}" class="text-decoration-none">View Details <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Lessons Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-lessons shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Lessons</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ lesson_count }}</div>
-                        <div class="text-xs text-muted">Learning content</div>
+                    <!-- Model Status Tab -->
+                    <div class="tab-pane fade" id="model-status" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Model Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="model-info-content">
+                                            <div class="text-center">
+                                                <div class="spinner-border text-primary" role="status"></div>
+                                                <p class="mt-2">Loading model information...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Model Testing</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="test-message">Test Message:</label>
+                                            <textarea class="form-control" id="test-message" rows="3" 
+                                                placeholder="Enter a message to test the AI model...">Tell me about AI implementation for media companies</textarea>
+                                        </div>
+                                        <button class="btn btn-primary mt-2" onclick="testModel()">
+                                            <i class="bi bi-play-circle"></i> Test Model
+                                        </button>
+                                        <div id="test-results" class="mt-3" style="display: none;">
+                                            <div class="alert alert-info">
+                                                <div id="test-output"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-book fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_lessons') }}" class="text-decoration-none">View Details <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Second Row of Stats -->
-<div class="row">
-    <!-- User Feedback Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-feedback shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            User Feedback</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ feedback_count }}</div>
-                        <div class="text-xs text-muted">User insights</div>
+                    <!-- Performance Analysis Tab -->
+                    <div class="tab-pane fade" id="performance" role="tabpanel">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Performance Metrics</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="performance-metrics-content">
+                                            <div class="text-center">
+                                                <div class="spinner-border text-primary" role="status"></div>
+                                                <p class="mt-2">Loading performance metrics...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-auto">
-                        <i class="bi bi-chat-quote fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_feedback') }}" class="text-decoration-none">View Details <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
 
-    <!-- AI Training Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-training shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            AI Training</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">Pipeline</div>
-                        <div class="text-xs text-muted">Custom AI model</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-cpu fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_training') }}" class="text-decoration-none">Manage Training <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <!-- DataSafe HF Integration Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin shadow h-100 py-2" style="border-left: 4px solid #e74c3c;">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            HF Pipeline</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">DataSafe</div>
-                        <div class="text-xs text-muted">Threat Intelligence</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-robot fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_datasafe_hf') }}" class="text-decoration-none">Manage Pipeline <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Strategies Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-strategies shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            AI Strategies</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ strategy_count|default(0) }}</div>
-                        <div class="text-xs text-muted">Crawled strategies</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-collection fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_strategies') }}" class="text-decoration-none">Manage Strategies <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Database Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-database shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                            Database</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">SQLite</div>
-                        <div class="text-xs text-muted">media_analysis.db</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-database fa-2x text-gray-300"></i>
+                    <!-- AI Assistant Tab -->
+                    <div class="tab-pane fade" id="ai-assistant" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">AI Assistant Chat</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px; margin-bottom: 10px;">
+                                            <div class="alert alert-info">
+                                                <strong>Admin GPT:</strong> Hello! I'm your AI assistant for interrogating the AIMAP system. I can help you understand:
+                                                <ul class="mb-0 mt-2">
+                                                    <li>System performance and metrics</li>
+                                                    <li>User activity and engagement</li>
+                                                    <li>AI model training status</li>
+                                                    <li>Database queries and data analysis</li>
+                                                    <li>Error logs and troubleshooting</li>
+                                                    <li>Process optimization suggestions</li>
+                                                </ul>
+                                                <p class="mb-0 mt-2"><strong>What would you like to know about the system?</strong></p>
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="chat-input" placeholder="Ask me about the system...">
+                                            <button class="btn btn-primary" onclick="sendChatMessage()">
+                                                <i class="bi bi-send"></i> Send
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Quick Actions</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary btn-sm" onclick="askSystemPerformance()">
+                                                <i class="bi bi-speedometer2"></i> System Performance
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="askUserActivity()">
+                                                <i class="bi bi-people"></i> User Activity
+                                            </button>
+                                            <button class="btn btn-warning btn-sm" onclick="askAITraining()">
+                                                <i class="bi bi-cpu"></i> AI Training Status
+                                            </button>
+                                            <button class="btn btn-info btn-sm" onclick="askDatabaseAnalysis()">
+                                                <i class="bi bi-database"></i> Database Analysis
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="askErrorAnalysis()">
+                                                <i class="bi bi-exclamation-triangle"></i> Error Analysis
+                                            </button>
+                                            <button class="btn btn-secondary btn-sm" onclick="askOptimization()">
+                                                <i class="bi bi-lightbulb"></i> Optimization Ideas
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="#" onclick="showDatabaseInfo()" class="text-decoration-none">View Info <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Health Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin card-health shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            System Health</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">Active</div>
-                        <div class="text-xs text-muted">All systems OK</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-heart-pulse fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="#" onclick="checkSystemHealth()" class="text-decoration-none">Check Status <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Plans/Reports/Cheatsheets Stats -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Plans</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ plan_count|default(0) }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-list-check fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_plans') }}" class="text-decoration-none">Manage <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Daily Reports</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ report_count|default(0) }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-journal-text fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_reports') }}" class="text-decoration-none">Manage <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card card-admin shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Cheat Sheets</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cheatsheet_count|default(0) }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-lightning-charge fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent border-0">
-                <a href="{{ url_for('admin_cheatsheets') }}" class="text-decoration-none">Manage <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
@@ -489,6 +609,527 @@ function showDatabaseInfo() {
 
 function checkSystemHealth() {
     alert('System Health Check:\n\n✅ Flask Application: Running\n✅ Database: Connected\n✅ AI Training: Available\n✅ Admin Interface: Active\n\nAll systems operational!');
+}
+
+function checkModelStatus() {
+    fetch('/health')
+        .then(response => response.json())
+        .then(data => {
+            const status = data.model_loaded ? '✅ Loaded' : '❌ Not Loaded';
+            const details = data.model_loaded ? 'Highlander AI Model Active' : 'Model Not Available';
+            
+            document.getElementById('model-status').textContent = data.model_loaded ? 'Loaded' : 'Not Loaded';
+            document.getElementById('model-details').textContent = details;
+            
+            alert(`AI Model Status:\n\n${status}\n${details}\n\nHealth Check: ${data.status}\nTimestamp: ${data.timestamp}`);
+        })
+        .catch(error => {
+            alert('Error checking model status: ' + error.message);
+        });
+}
+
+function viewModelMetrics() {
+    fetch('/admin/gpt/context')
+        .then(response => response.json())
+        .then(data => {
+            const modelInfo = data.model_info;
+            const metrics = data.performance_metrics;
+            
+            let message = 'AI Model Metrics:\n\n';
+            message += `Model Status: ${modelInfo.custom_model_loaded ? '✅ Loaded' : '❌ Not Loaded'}\n`;
+            message += `OpenAI Available: ${modelInfo.openai_available ? '✅ Yes' : '❌ No'}\n`;
+            message += `Training Date: ${modelInfo.training_date || 'N/A'}\n\n`;
+            
+            if (modelInfo.model_metadata) {
+                message += `Model Type: ${modelInfo.model_metadata.model_type}\n`;
+                message += `Base Model: ${modelInfo.model_metadata.base_model}\n`;
+                message += `Training Examples: ${modelInfo.model_metadata.training_examples}\n`;
+                message += `Validation Accuracy: ${modelInfo.model_metadata.performance.validation_accuracy}\n`;
+            }
+            
+            message += `\nPerformance: ${metrics.message || 'No data available'}`;
+            
+            alert(message);
+        })
+        .catch(error => {
+            alert('Error fetching model metrics: ' + error.message);
+        });
+}
+
+function testModelInference() {
+    const testMessage = prompt('Enter a test message for the AI model:');
+    if (!testMessage) return;
+    
+    // First login to get session
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'username=admin&password=admin123',
+        credentials: 'include'
+    })
+    .then(() => {
+        // Then test the model
+        return fetch('/admin/gpt/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: testMessage,
+                context: {}
+            }),
+            credentials: 'include'
+        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Model Test Results:\n\nInput: "${testMessage}"\n\nResponse: ${data.response}\n\nModel: ${data.source || 'Unknown'}`);
+        } else {
+            alert('Model test failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Error testing model: ' + error.message);
+    });
+}
+
+function viewSystemLogs() {
+    alert('System Logs:\n\nTo view system logs, check the terminal where the Flask app is running.\n\nRecent logs include:\n- Model loading status\n- API requests\n- Database operations\n- Error messages\n\nFor detailed logs, run: tail -f app.log');
+}
+
+function monitorResources() {
+    alert('Resource Monitor:\n\nTo monitor system resources:\n\n1. CPU Usage: Check terminal for Flask process\n2. Memory: Monitor Python process memory\n3. Database: Check SQLite file size\n4. Disk Space: Monitor project directory\n\nUse system monitoring tools or check the terminal output.');
+}
+
+// Enhanced functions for the integrated dashboard
+function loadSystemContext() {
+    fetch('/admin/gpt/context')
+        .then(response => response.json())
+        .then(data => {
+            let html = '<div class="row">';
+            html += '<div class="col-md-6">';
+            html += '<h5>System Overview</h5>';
+            html += '<ul class="list-group mb-4">';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'System Status';
+            html += '<span class="badge bg-success rounded-pill">' + data.status + '</span></li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'Total Users';
+            html += '<span class="badge bg-primary rounded-pill">' + data.user_count + '</span></li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'Total Chats';
+            html += '<span class="badge bg-info rounded-pill">' + data.chat_count + '</span></li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'Total Messages';
+            html += '<span class="badge bg-warning rounded-pill">' + data.message_count + '</span></li>';
+            html += '</ul></div>';
+            
+            html += '<div class="col-md-6">';
+            html += '<h5>AI Model Status</h5>';
+            html += '<ul class="list-group">';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'Model Status';
+            html += '<span class="badge ' + (data.model_status === 'Loaded' ? 'bg-success' : 'bg-danger') + ' rounded-pill">' + data.model_status + '</span></li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'OpenAI Available';
+            html += '<span class="badge ' + (data.system_info.openai_available ? 'bg-success' : 'bg-warning') + ' rounded-pill">' + (data.system_info.openai_available ? 'Yes' : 'No') + '</span></li>';
+            html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+            html += 'Python Version';
+            html += '<span class="badge bg-secondary rounded-pill">' + data.system_info.python_version + '</span></li>';
+            html += '</ul></div>';
+            html += '</div>';
+            
+            document.getElementById('system-context-content').innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('system-context-content').innerHTML = 
+                '<div class="alert alert-danger">Error loading system context: ' + error.message + '</div>';
+        });
+}
+
+function loadModelInfo() {
+    fetch('/admin/model/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayModelInfo(data.model_info);
+            } else {
+                document.getElementById('model-info-content').innerHTML = 
+                    '<div class="alert alert-danger">Error loading model information: ' + data.error + '</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('model-info-content').innerHTML = 
+                '<div class="alert alert-danger">Error loading model information: ' + error.message + '</div>';
+        });
+}
+
+function displayModelInfo(modelInfo) {
+    let html = '<div class="row">';
+    
+    // Model Status
+    html += '<div class="col-md-6">';
+    html += '<h6>Model Status</h6>';
+    html += '<ul class="list-group mb-3">';
+    html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+    html += 'Custom Model Loaded';
+    html += '<span class="badge ' + (modelInfo.custom_model_loaded ? 'bg-success' : 'bg-danger') + ' rounded-pill">';
+    html += modelInfo.custom_model_loaded ? 'Yes' : 'No';
+    html += '</span></li>';
+    html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+    html += 'OpenAI Available';
+    html += '<span class="badge ' + (modelInfo.openai_available ? 'bg-success' : 'bg-warning') + ' rounded-pill">';
+    html += modelInfo.openai_available ? 'Yes' : 'No';
+    html += '</span></li>';
+    html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+    html += 'Use Custom Model';
+    html += '<span class="badge ' + (modelInfo.use_custom_model ? 'bg-success' : 'bg-secondary') + ' rounded-pill">';
+    html += modelInfo.use_custom_model ? 'Yes' : 'No';
+    html += '</span></li>';
+    html += '</ul></div>';
+    
+    // Model Metadata
+    if (modelInfo.model_metadata) {
+        html += '<div class="col-md-6">';
+        html += '<h6>Model Details</h6>';
+        html += '<ul class="list-group">';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Model Type';
+        html += '<span class="badge bg-primary rounded-pill">' + modelInfo.model_metadata.model_type + '</span></li>';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Base Model';
+        html += '<span class="badge bg-info rounded-pill">' + modelInfo.model_metadata.base_model + '</span></li>';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Training Examples';
+        html += '<span class="badge bg-success rounded-pill">' + modelInfo.model_metadata.training_examples + '</span></li>';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Validation Accuracy';
+        html += '<span class="badge bg-warning rounded-pill">' + (modelInfo.model_metadata.performance.validation_accuracy * 100).toFixed(1) + '%</span></li>';
+        html += '</ul></div>';
+    }
+    
+    html += '</div>';
+    document.getElementById('model-info-content').innerHTML = html;
+}
+
+function loadPerformanceMetrics() {
+    fetch('/admin/model/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPerformanceMetrics(data.performance_metrics);
+            } else {
+                document.getElementById('performance-metrics-content').innerHTML = 
+                    '<div class="alert alert-danger">Error loading performance metrics: ' + data.error + '</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('performance-metrics-content').innerHTML = 
+                '<div class="alert alert-danger">Error loading performance metrics: ' + error.message + '</div>';
+        });
+}
+
+function displayPerformanceMetrics(metrics) {
+    if (metrics.message) {
+        document.getElementById('performance-metrics-content').innerHTML = 
+            '<div class="alert alert-info">' + metrics.message + '</div>';
+        return;
+    }
+    
+    let html = '<div class="row">';
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.total_requests + '</h5>';
+    html += '<p class="card-text">Total Requests</p>';
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.custom_model_usage + '</h5>';
+    html += '<p class="card-text">Custom Model Usage</p>';
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.openai_fallback_usage + '</h5>';
+    html += '<p class="card-text">OpenAI Fallback</p>';
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.avg_response_time + '</h5>';
+    html += '<p class="card-text">Avg Response Time</p>';
+    html += '</div></div></div>';
+    
+    html += '</div>';
+    document.getElementById('performance-metrics-content').innerHTML = html;
+}
+
+function testModel() {
+    const message = document.getElementById('test-message').value;
+    if (!message.trim()) {
+        alert('Please enter a test message');
+        return;
+    }
+    
+    document.getElementById('test-results').style.display = 'block';
+    document.getElementById('test-output').innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p>Testing model...</p></div>';
+    
+    fetch('/admin/gpt/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message,
+            context: {}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('test-output').innerHTML = `
+                <div class="alert alert-success">
+                    <h6>Test Successful!</h6>
+                    <p><strong>Input:</strong> ${message}</p>
+                    <p><strong>Response:</strong> ${data.response}</p>
+                </div>
+            `;
+        } else {
+            document.getElementById('test-output').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6>Test Failed</h6>
+                    <p>Error: ${data.error || 'Unknown error'}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('test-output').innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Test Failed</h6>
+                <p>Error: ${error.message}</p>
+            </div>
+        `;
+    });
+}
+
+// AI Assistant Chat Functions
+function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    // Add user message to chat
+    addChatMessage('You', message, 'user');
+    input.value = '';
+    
+    // Send to AI
+    fetch('/admin/gpt/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message,
+            context: {}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            addChatMessage('Admin GPT', data.response, 'ai');
+        } else {
+            addChatMessage('System', 'Error: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        addChatMessage('System', 'Error: ' + error.message, 'error');
+    });
+}
+
+function addChatMessage(sender, message, type) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'mb-2';
+    
+    let alertClass = 'alert-info';
+    if (type === 'user') alertClass = 'alert-primary';
+    else if (type === 'error') alertClass = 'alert-danger';
+    
+    messageDiv.innerHTML = `
+        <div class="alert ${alertClass}">
+            <strong>${sender}:</strong> ${message}
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Quick action functions for AI Assistant
+function askSystemPerformance() {
+    document.getElementById('chat-input').value = 'What is the current system performance and health status?';
+    sendChatMessage();
+}
+
+function askUserActivity() {
+    document.getElementById('chat-input').value = 'Show me user activity and engagement metrics';
+    sendChatMessage();
+}
+
+function askAITraining() {
+    document.getElementById('chat-input').value = 'What is the current AI model training status and performance?';
+    sendChatMessage();
+}
+
+function askDatabaseAnalysis() {
+    document.getElementById('chat-input').value = 'Analyze the database and show me key metrics';
+    sendChatMessage();
+}
+
+function askErrorAnalysis() {
+    document.getElementById('chat-input').value = 'Are there any errors or issues in the system logs?';
+    sendChatMessage();
+}
+
+function askOptimization() {
+    document.getElementById('chat-input').value = 'What optimization suggestions do you have for the system?';
+    sendChatMessage();
+}
+
+// AI Assistant Show/Hide Functions
+function showAIAssistant() {
+    document.getElementById('ai-monitoring-section').style.display = 'block';
+    // Scroll to the section
+    document.getElementById('ai-monitoring-section').scrollIntoView({ behavior: 'smooth' });
+    // Load data if not already loaded
+    loadSystemContext();
+    loadModelInfo();
+    loadPerformanceMetrics();
+}
+
+function hideAIAssistant() {
+    document.getElementById('ai-monitoring-section').style.display = 'none';
+}
+
+// Initialize dashboard on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add enter key support for chat
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    }
+});
+
+// System Dashboard JavaScript functions
+function refreshDashboard() {
+    location.reload();
+}
+
+function exportDashboardReport() {
+    // Create a simple dashboard report
+    const reportData = {
+        timestamp: new Date().toISOString(),
+        user_count: {{ user_count|default(0) }},
+        admin_count: {{ admin_count|default(0) }},
+        chat_count: {{ chat_count|default(0) }},
+        analysis_count: {{ analysis_count|default(0) }},
+        lesson_count: {{ lesson_count|default(0) }},
+        feedback_count: {{ feedback_count|default(0) }},
+        strategy_count: {{ strategy_count|default(0) }},
+        plan_count: {{ plan_count|default(0) }},
+        report_count: {{ report_count|default(0) }},
+        cheatsheet_count: {{ cheatsheet_count|default(0) }}
+    };
+    
+    // Create and download JSON report
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dashboard-report-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function viewAllUsers() {
+    window.location.href = "{{ url_for('admin_users') }}";
+}
+
+function addNewAdmin() {
+    window.location.href = "{{ url_for('create_admin') }}";
+}
+
+function viewMediaAnalyses() {
+    window.location.href = "{{ url_for('admin_analyses') }}";
+}
+
+function viewChats() {
+    window.location.href = "{{ url_for('admin_chats') }}";
+}
+
+function viewLessons() {
+    window.location.href = "{{ url_for('admin_lessons') }}";
+}
+
+function viewUserFeedback() {
+    window.location.href = "{{ url_for('admin_feedback') }}";
+}
+
+function manageAITraining() {
+    window.location.href = "{{ url_for('admin_training') }}";
+}
+
+function openAIAssistant() {
+    showAIAssistant();
+}
+
+function manageHFPipeline() {
+    window.location.href = "{{ url_for('admin_datasafe_hf') }}";
+}
+
+function manageAIStrategies() {
+    window.location.href = "{{ url_for('admin_strategies') }}";
+}
+
+function viewBusinessMap() {
+    window.location.href = "{{ url_for('admin_map') }}";
+}
+
+function checkSystemStatus() {
+    checkSystemHealth();
+}
+
+function managePlans() {
+    window.location.href = "{{ url_for('admin_plans') }}";
+}
+
+function manageDailyReports() {
+    window.location.href = "{{ url_for('admin_reports') }}";
+}
+
+function manageCheatSheets() {
+    window.location.href = "{{ url_for('admin_cheatsheets') }}";
+}
+
+function addCustomModule() {
+    // For now, redirect to create admin page as a placeholder
+    window.location.href = "{{ url_for('create_admin') }}";
 }
 </script>
 {% endblock %} 

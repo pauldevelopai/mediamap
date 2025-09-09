@@ -1,8 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
-from backend.models import User
-from backend.session_manager import SessionManager
+try:
+    from backend.models import User
+except ImportError:
+    from models import User
+try:
+    from backend.session_manager import SessionManager
+except ImportError:
+    from session_manager import SessionManager
 
 auth = Blueprint('auth', __name__)
 

@@ -16,8 +16,6 @@ sys.path.insert(0, str(backend_path))
 from aimap.models import Organisation, Metrics, db
 from aimap.ingest.pipeline import IngestionPipeline
 from aimap.scoring.engine import ScoringEngine
-from aimap.reports.pptx_export import PPTXReportGenerator
-from aimap.reports.pdf_export import PDFReportGenerator
 from aimap.config import DEFAULT_PERIOD
 from flask import Flask
 from models import db as main_db
@@ -285,9 +283,12 @@ def report(org, fmt, period, out, logo):
         
         try:
             if fmt == 'pptx':
+                # Lazy import to avoid requiring python-pptx for non-report commands
+                from aimap.reports.pptx_export import PPTXReportGenerator  # type: ignore
                 generator = PPTXReportGenerator()
                 filepath = generator.generate_report(org_obj, period, logo)
             else:  # pdf
+                from aimap.reports.pdf_export import PDFReportGenerator  # type: ignore
                 generator = PDFReportGenerator()
                 filepath = generator.generate_report(org_obj, period, logo)
             

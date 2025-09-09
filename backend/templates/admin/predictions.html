@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Predictions - Admin{% endblock %}
+
+{% block main_content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-graph-up-arrow"></i> Predictions Management</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="generatePredictions()">
+                <i class="bi bi-magic"></i> Generate Predictions
+            </button>
+            <button class="btn btn-outline-primary" onclick="refreshPredictions()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Organization Predictions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Select Organization</label>
+                            <select class="form-select" id="predictions-org-select">
+                                <option value="">Choose an organization...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Time Horizon</label>
+                            <select class="form-select" id="time-horizon">
+                                <option value="6">6 months</option>
+                                <option value="12" selected>12 months</option>
+                                <option value="24">24 months</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Confidence Level</label>
+                            <select class="form-select" id="confidence-level">
+                                <option value="0.8">80%</option>
+                                <option value="0.9" selected>90%</option>
+                                <option value="0.95">95%</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Prediction Type</label>
+                            <select class="form-select" id="prediction-type">
+                                <option value="ai-adoption">AI Adoption</option>
+                                <option value="market-position">Market Position</option>
+                                <option value="revenue-impact">Revenue Impact</option>
+                                <option value="competitive-risk">Competitive Risk</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="predictions-results" style="display: none;">
+                        <h5 class="mb-3">Prediction Results</h5>
+                        <div id="predictions-content">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                    <div id="predictions-placeholder">
+                        <div class="text-center py-4">
+                            <i class="bi bi-graph-up-arrow text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">AI Predictions</h5>
+                            <p class="text-muted">Select an organization and generate AI adoption predictions and insights.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load organizations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPredictionOrganizations();
+});
+
+function loadPredictionOrganizations() {
+    // This would typically fetch from an API endpoint
+    // For now, showing a placeholder
+    const select = document.getElementById('predictions-org-select');
+    select.innerHTML = '<option value="">Choose an organization...</option>';
+}
+
+function generatePredictions() {
+    const orgId = document.getElementById('predictions-org-select').value;
+    if (!orgId) {
+        alert('Please select an organization first');
+        return;
+    }
+    
+    // Show results section
+    document.getElementById('predictions-results').style.display = 'block';
+    document.getElementById('predictions-placeholder').style.display = 'none';
+    
+    // Populate with sample data
+    document.getElementById('predictions-content').innerHTML = `
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Prediction generation functionality will be implemented here.
+            This will include AI adoption trajectory predictions, market position analysis, and risk assessments.
+        </div>
+    `;
+}
+
+function refreshPredictions() {
+    const orgId = document.getElementById('predictions-org-select').value;
+    if (!orgId) {
+        alert('Please select an organization first');
+        return;
+    }
+    
+    // Refresh predictions
+    generatePredictions();
+}
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+

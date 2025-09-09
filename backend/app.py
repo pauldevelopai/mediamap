@@ -15,10 +15,18 @@ except ImportError:
     from models import db, User, MediaAnalysis, Chat, Message, Lesson, UserLesson, OrganizationInfo, OrganizationFact, Translation, TranslationFeedback, Location, Feedback, NotionIntegration, News, SavedStrategy, SavedNews, ImplementationPlan, DailyReport, CheatSheet
 from openai import OpenAI
 import json
-from datetime import datetime, timezone
+import uuid
+try:
+    from backend.aimap.config import OPENAI_API_KEY
+except ImportError:
+    from aimap.config import OPENAI_API_KEY
+from datetime import datetime, timezone, timedelta
 import urllib.parse
 import requests
-from backend.auth import auth
+try:
+    from backend.auth import auth
+except ImportError:
+    from auth import auth
 import time
 import threading
 import uuid
@@ -126,6 +134,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize extensions
 db.init_app(app)
 login_manager = LoginManager(app)
+
+# Ensure database is properly initialized
+with app.app_context():
+    try:
+        db.create_all()
+        print("✅ Database tables created/verified successfully!")
+    except Exception as e:
+        print(f"⚠️ Database initialization warning: {e}")
 login_manager.login_view = 'login'
 login_manager.login_message = None  # This will disable the message entirely
 
@@ -147,6 +163,7 @@ def admin_required(f):
 
 # Initialize OpenAI client (only if API key is available)
 openai_api_key = os.getenv('OPENAI_API_KEY')
+app.config['OPENAI_API_KEY'] = openai_api_key  # Add this line to set the API key in app config
 client = None
 if openai_api_key:
     try:
@@ -238,7 +255,7 @@ ALWAYS ASK QUESTIONS LIKE A JOURNALIST:
 
 NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally and ask probing questions that demonstrate your understanding of the global media development sector."""
 
-app.register_blueprint(auth)
+# app.register_blueprint(auth)  # Commented out to avoid route conflicts
 app.register_blueprint(ai_utility_bp)
 app.register_blueprint(metadata_bp)
 
@@ -1415,7 +1432,7 @@ def recommended_ai_tools():
 
 @app.route('/generate-insights')
 @login_required
-def generate_insights():
+def generate_user_insights():
     return render_template('generate_insights.html')
 
 @app.route('/your-info')
@@ -1481,6 +1498,13 @@ def admin_dashboard():
         cheatsheet_count=cheatsheet_count
     )
 
+@app.route('/admin/quick-access')
+@login_required
+@admin_required
+def admin_quick_access():
+    """Quick Access page with all admin shortcuts"""
+    return render_template('admin/quick_access.html')
+
 @app.route('/admin/users')
 @login_required
 @admin_required
@@ -1516,6 +1540,3431 @@ def admin_user_detail(user_id):
         lesson_progress=lesson_progress,
         translations=translations
     )
+
+# Business Intelligence Admin Routes
+@app.route('/admin/organizations')
+@login_required
+@admin_required
+def admin_organizations():
+    """Admin page for organization management"""
+    return render_template('admin/organizations.html')
+
+@app.route('/admin/consulting')
+@login_required
+@admin_required
+def admin_consulting():
+    """Admin page for consulting management"""
+    return render_template('admin/consulting.html')
+
+@app.route('/admin/predictions')
+@login_required
+@admin_required
+def admin_predictions():
+    """Admin page for predictions management"""
+    return render_template('admin/predictions.html')
+
+@app.route('/admin/intelligence-reports')
+@login_required
+@admin_required
+def admin_intelligence_reports():
+    """Admin page for intelligence reports"""
+    return render_template('admin/intelligence_reports.html')
+
+@app.route('/admin/prototyping')
+@login_required
+@admin_required
+def admin_prototyping():
+    """AI Prototyping page - track newsroom AI product prototypes"""
+    try:
+        from backend.models import AIPrototype, Newsroom, PrototypeUpdate
+        
+        # Get prototype statistics
+        total_prototypes = AIPrototype.query.count()
+        active_prototypes = AIPrototype.query.filter_by(status='Active').count()
+        completed_prototypes = AIPrototype.query.filter_by(status='Completed').count()
+        
+        # Get prototypes by stage
+        ideation_count = AIPrototype.query.filter_by(stage='Ideation').count()
+        development_count = AIPrototype.query.filter_by(stage='Development').count()
+        testing_count = AIPrototype.query.filter_by(stage='Testing').count()
+        production_count = AIPrototype.query.filter_by(stage='Production').count()
+        
+        # Get recent updates
+        recent_updates = PrototypeUpdate.query.order_by(PrototypeUpdate.created_at.desc()).limit(5).all()
+        
+        # Get newsrooms for dropdown
+        newsrooms = Newsroom.query.all()
+        
+        return render_template('admin/prototyping.html',
+                             total_prototypes=total_prototypes,
+                             active_prototypes=active_prototypes,
+                             completed_prototypes=completed_prototypes,
+                             ideation_count=ideation_count,
+                             development_count=development_count,
+                             testing_count=testing_count,
+                             production_count=production_count,
+                             recent_updates=recent_updates,
+                             newsrooms=newsrooms)
+    except Exception as e:
+        return render_template('admin/prototyping.html',
+                             total_prototypes=0,
+                             active_prototypes=0,
+                             completed_prototypes=0,
+                             ideation_count=0,
+                             development_count=0,
+                             testing_count=0,
+                             production_count=0,
+                             recent_updates=[],
+                             newsrooms=[],
+                             error=str(e))
+
+@app.route('/admin/map')
+@login_required
+@admin_required
+def admin_map():
+    """Business Map page - comprehensive overview of consulting business with AIMAP integration"""
+    # Get REAL statistics from AIMAP database
+    try:
+        from backend.aimap.models import Organisation, Metrics
+        from backend.models import Client, Newsroom, ResearchProject, DailyInsight
+        
+        # AIMAP Organization statistics (REAL DATA)
+        total_organisations = Organisation.query.count()
+        media_organisations = Organisation.query.filter_by(sector='Media').count()
+        communications_organisations = Organisation.query.filter_by(sector='Communications').count()
+        
+        # Process organizations to properly format tags
+        raw_organisations = Organisation.query.all()
+        aimap_organisations = []
+        for org in raw_organisations:
+            org_dict = {
+                'id': org.id,
+                'name': org.name,
+                'sector': org.sector,
+                'subsector': org.subsector,
+                'region': org.region,
+                'country': org.country,
+                'size_band': org.size_band,
+                'client_tag': org.client_tag,
+                'contact': org.contact,
+                'ai_tools': org.ai_tools,
+                'notes': org.notes,
+                'website_url': org.website_url,
+                'tags': org.tags.split(',') if org.tags else [],
+                'created_at': org.created_at
+            }
+            aimap_organisations.append(org_dict)
+        
+        # Client statistics
+        total_clients = Client.query.count()
+        active_clients = Client.query.filter_by(status='Active').count()
+        media_companies = Client.query.filter_by(industry='Media').count()
+        tech_startups = Client.query.filter_by(industry='Technology').count()
+        non_profits = Client.query.filter_by(industry='Non-Profit').count()
+        government_clients = Client.query.filter_by(industry='Government').count()
+        
+        # Newsroom statistics
+        total_newsrooms = Newsroom.query.count()
+        national_newsrooms = Newsroom.query.filter_by(type='National').count()
+        regional_newsrooms = Newsroom.query.filter_by(type='Regional').count()
+        digital_newsrooms = Newsroom.query.filter_by(type='Digital-First').count()
+        international_newsrooms = Newsroom.query.filter_by(type='International').count()
+        
+        # Research statistics (for uploaded/scraped AI research reports)
+        research_projects = ResearchProject.query.count()
+        ai_implementation_reports = ResearchProject.query.filter_by(category='AI Implementation').count()
+        newsroom_ai_reports = ResearchProject.query.filter_by(category='Newsroom AI').count()
+        tech_trends_reports = ResearchProject.query.filter_by(category='Technology Trends').count()
+        industry_reports = ResearchProject.query.filter_by(category='Industry Reports').count()
+        
+        # Insights statistics (for generated documents - excluding news articles)
+        total_insights = DailyInsight.query.filter(
+            DailyInsight.category != 'Admin News'
+        ).count()
+        weekly_insights = DailyInsight.query.filter(
+            DailyInsight.created_at >= datetime.now() - timedelta(days=7),
+            DailyInsight.category != 'Admin News'
+        ).count()
+        newsroom_insights = DailyInsight.query.filter_by(category='Newsroom Success Story').count()
+        ai_strategy_insights = DailyInsight.query.filter_by(category='AI Strategy').count()
+        
+        # Data source counts for insights
+        try:
+            from backend.models import HighlanderChat
+            highlander_chat_count = HighlanderChat.query.count()
+        except ImportError:
+            highlander_chat_count = 0
+        research_reports_count = research_projects
+        client_data_count = total_clients
+        
+        # Daily insights (excluding news articles)
+        daily_insights = DailyInsight.query.filter(
+            DailyInsight.created_at >= datetime.now().date(),
+            DailyInsight.category != 'Admin News'
+        ).count()
+        
+        # News counts (placeholder - will be from actual news sources)
+        ai_news_count = 0
+        media_news_count = 0
+        tech_news_count = 0
+        industry_updates = 0
+        
+        # People statistics (REAL DATA)
+        from backend.models import PersonManagement
+        total_people = PersonManagement.query.count()
+        ai_experts = PersonManagement.query.filter_by(role='AI Expert').count()
+        consultants = PersonManagement.query.filter_by(role='Consultant').count()
+        clients = PersonManagement.query.filter_by(role='Client Contact').count()
+        
+        people_stats = {
+            'total_people': total_people,
+            'ai_experts': ai_experts,
+            'consultants': consultants,
+            'clients': clients
+        }
+        
+        # Project statistics (REAL DATA)
+        from backend.models import Project
+        total_projects = Project.query.count()
+        active_projects = Project.query.filter_by(status='Active').count()
+        completed_projects = Project.query.filter_by(status='Completed').count()
+        ai_projects = Project.query.filter(Project.type.like('%AI%')).count()
+        
+        project_stats = {
+            'total_projects': total_projects,
+            'active_projects': active_projects,
+            'completed_projects': completed_projects,
+            'ai_projects': ai_projects
+        }
+        
+        # People and projects data (REAL DATA)
+        people = PersonManagement.query.all()
+        projects = Project.query.all()
+        
+    except Exception as e:
+        # If models don't exist yet, return zeros
+        total_organisations = media_organisations = communications_organisations = 0
+        aimap_organisations = []
+        total_clients = active_clients = media_companies = tech_startups = non_profits = government_clients = 0
+        total_newsrooms = national_newsrooms = regional_newsrooms = digital_newsrooms = international_newsrooms = 0
+        research_projects = ai_implementation_reports = newsroom_ai_reports = tech_trends_reports = industry_reports = 0
+        total_insights = weekly_insights = newsroom_insights = ai_strategy_insights = 0
+        highlander_chat_count = research_reports_count = client_data_count = 0
+        daily_insights = ai_news_count = media_news_count = tech_news_count = industry_updates = 0
+        
+        # People and projects defaults
+        people_stats = {
+            'total_people': 0,
+            'ai_experts': 0,
+            'consultants': 0,
+            'clients': 0
+        }
+        
+        project_stats = {
+            'total_projects': 0,
+            'active_projects': 0,
+            'completed_projects': 0,
+            'ai_projects': 0
+        }
+        
+        people = []
+        projects = []
+    
+    stats = {
+        # AIMAP Data (REAL)
+        'total_organisations': total_organisations,
+        'media_organisations': media_organisations,
+        'communications_organisations': communications_organisations,
+        'aimap_organisations': aimap_organisations,
+        
+        # Existing System Data
+        'total_clients': total_clients,
+        'active_clients': active_clients,
+        'total_newsrooms': total_newsrooms,
+        'research_projects': research_projects,
+        'daily_insights': daily_insights,
+        'media_companies': media_companies,
+        'tech_startups': tech_startups,
+        'non_profits': non_profits,
+        'government_clients': government_clients,
+        'national_newsrooms': national_newsrooms,
+        'regional_newsrooms': regional_newsrooms,
+        'digital_newsrooms': digital_newsrooms,
+        'international_newsrooms': international_newsrooms,
+        # Research tab statistics
+        'ai_implementation_reports': ai_implementation_reports,
+        'newsroom_ai_reports': newsroom_ai_reports,
+        'tech_trends_reports': tech_trends_reports,
+        'industry_reports': industry_reports,
+        # Insights tab statistics
+        'total_insights': total_insights,
+        'weekly_insights': weekly_insights,
+        'newsroom_insights': newsroom_insights,
+        'ai_strategy_insights': ai_strategy_insights,
+        'highlander_chat_count': highlander_chat_count,
+        'research_reports_count': research_reports_count,
+        'client_data_count': client_data_count,
+        # News tab statistics
+        'ai_news_count': ai_news_count,
+        'media_news_count': media_news_count,
+        'tech_news_count': tech_news_count,
+        'industry_updates': industry_updates,
+        # People and Projects tab statistics
+        'people_stats': people_stats,
+        'project_stats': project_stats,
+        'people': people,
+        'projects': projects
+    }
+    
+    return render_template('admin/map.html', **stats)
+
+# People Management API Endpoints
+@app.route('/admin/map/people', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_people():
+    """Manage people for AI consulting projects"""
+    if request.method == 'GET':
+        try:
+            from backend.models import PersonManagement
+            people = PersonManagement.query.all()
+            people_data = []
+            for person in people:
+                people_data.append(person.to_dict())
+            return jsonify({'people': people_data})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import PersonManagement
+            data = request.get_json()
+            
+            new_person = PersonManagement(
+                name=data['name'],
+                title=data.get('title', ''),
+                role=data.get('role', 'Team Member'),
+                organization=data.get('organization', ''),
+                email=data.get('email', ''),
+                phone=data.get('phone', ''),
+                linkedin_url=data.get('linkedin_url', ''),
+                expertise=','.join(data.get('expertise', [])),
+                ai_skills=','.join(data.get('ai_skills', [])),
+                industry_experience=','.join(data.get('industry_experience', [])),
+                current_projects=','.join(data.get('current_projects', [])),
+                availability=data.get('availability', 'Available'),
+                hourly_rate=data.get('hourly_rate'),
+                status=data.get('status', 'Active'),
+                notes=data.get('notes', ''),
+                tags=','.join(data.get('tags', []))
+            )
+            
+            db.session.add(new_person)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_person.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.models import PersonManagement
+            data = request.get_json()
+            person_id = data['id']
+            
+            person = PersonManagement.query.get(person_id)
+            if not person:
+                return jsonify({'error': 'Person not found'})
+            
+            # Update fields
+            for field in ['name', 'title', 'role', 'organization', 'email', 'phone', 'linkedin_url', 
+                         'availability', 'hourly_rate', 'status', 'notes']:
+                if field in data:
+                    setattr(person, field, data[field])
+            
+            # Update list fields
+            for field in ['expertise', 'ai_skills', 'industry_experience', 'current_projects', 'tags']:
+                if field in data:
+                    setattr(person, field, ','.join(data[field]))
+            
+            person.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.models import PersonManagement
+            data = request.get_json()
+            person_id = data['id']
+            
+            person = PersonManagement.query.get(person_id)
+            if not person:
+                return jsonify({'error': 'Person not found'})
+            
+            db.session.delete(person)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+
+# Project Management API Endpoints
+@app.route('/admin/map/projects', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_projects():
+    """Manage AI consulting projects"""
+    if request.method == 'GET':
+        try:
+            from backend.models import Project
+            projects = Project.query.all()
+            projects_data = []
+            for project in projects:
+                project_dict = project.to_dict()
+                # Get team members from assignments
+                from backend.models import ProjectAssignment
+                assignments = ProjectAssignment.query.filter_by(project_id=project.id).all()
+                team_members = []
+                for assignment in assignments:
+                    person = PersonManagement.query.get(assignment.person_id)
+                    if person:
+                        team_members.append(f"{person.name} ({assignment.role})")
+                project_dict['team_members'] = team_members
+                projects_data.append(project_dict)
+            return jsonify({'projects': projects_data})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import Project
+            data = request.get_json()
+            
+            new_project = Project(
+                name=data['name'],
+                description=data.get('description', ''),
+                type=data.get('type', 'Consulting'),
+                status=data.get('status', 'Planning'),
+                client_id=data.get('client_id'),
+                client_name=data.get('client_name', ''),
+                start_date=datetime.fromisoformat(data['start_date']) if data.get('start_date') else None,
+                end_date=datetime.fromisoformat(data['end_date']) if data.get('end_date') else None,
+                estimated_hours=data.get('estimated_hours'),
+                actual_hours=data.get('actual_hours'),
+                objectives=data.get('objectives', ''),
+                deliverables=data.get('deliverables', ''),
+                success_metrics=data.get('success_metrics', ''),
+                risks_and_challenges=data.get('risks_and_challenges', ''),
+                ai_technologies=','.join(data.get('ai_technologies', [])),
+                ai_maturity_level=data.get('ai_maturity_level', 'Beginner'),
+                data_requirements=data.get('data_requirements', ''),
+                budget=data.get('budget'),
+                actual_cost=data.get('actual_cost'),
+                billing_type=data.get('billing_type', 'Hourly'),
+                tags=','.join(data.get('tags', [])),
+                priority=data.get('priority', 'Medium'),
+                notes=data.get('notes', '')
+            )
+            
+            db.session.add(new_project)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_project.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.models import Project
+            data = request.get_json()
+            project_id = data['id']
+            
+            project = Project.query.get(project_id)
+            if not project:
+                return jsonify({'error': 'Project not found'})
+            
+            # Update fields
+            for field in ['name', 'description', 'type', 'status', 'client_id', 'client_name', 
+                         'estimated_hours', 'actual_hours', 'objectives', 'deliverables', 
+                         'success_metrics', 'risks_and_challenges', 'ai_maturity_level', 
+                         'data_requirements', 'budget', 'actual_cost', 'billing_type', 
+                         'priority', 'notes']:
+                if field in data:
+                    setattr(project, field, data[field])
+            
+            # Update date fields
+            if 'start_date' in data and data['start_date']:
+                project.start_date = datetime.fromisoformat(data['start_date'])
+            if 'end_date' in data and data['end_date']:
+                project.end_date = datetime.fromisoformat(data['end_date'])
+            
+            # Update list fields
+            if 'ai_technologies' in data:
+                project.ai_technologies = ','.join(data['ai_technologies'])
+            if 'tags' in data:
+                project.tags = ','.join(data['tags'])
+            
+            project.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.models import Project
+            data = request.get_json()
+            project_id = data['id']
+            
+            project = Project.query.get(project_id)
+            if not project:
+                return jsonify({'error': 'Project not found'})
+            
+            db.session.delete(project)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+
+# Import/Export API Endpoints
+@app.route('/admin/map/export/people', methods=['GET'])
+@login_required
+@admin_required
+def export_people_csv():
+    """Export people data to CSV"""
+    try:
+        from backend.models import PersonManagement
+        import csv
+        from io import StringIO
+        
+        people = PersonManagement.query.all()
+        
+        # Create CSV data
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Name', 'Title', 'Role', 'Organization', 'Email', 'Phone', 'LinkedIn', 'Expertise', 'AI Skills', 'Industry Experience', 'Availability', 'Hourly Rate', 'Status', 'Tags', 'Notes'])
+        
+        # Write data
+        for person in people:
+            writer.writerow([
+                person.name,
+                person.title or '',
+                person.role,
+                person.organization or '',
+                person.email or '',
+                person.phone or '',
+                person.linkedin_url or '',
+                person.expertise or '',
+                person.ai_skills or '',
+                person.industry_experience or '',
+                person.availability,
+                person.hourly_rate or '',
+                person.status,
+                person.tags or '',
+                person.notes or ''
+            ])
+        
+        output.seek(0)
+        
+        from flask import Response
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=people_export.csv'}
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+
+@app.route('/admin/map/export/projects', methods=['GET'])
+@login_required
+@admin_required
+def export_projects_csv():
+    """Export projects data to CSV"""
+    try:
+        from backend.models import Project
+        import csv
+        from io import StringIO
+        
+        projects = Project.query.all()
+        
+        # Create CSV data
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Name', 'Description', 'Type', 'Status', 'Client', 'Start Date', 'End Date', 'Estimated Hours', 'Actual Hours', 'Budget', 'Actual Cost', 'Billing Type', 'AI Technologies', 'AI Maturity Level', 'Priority', 'Tags', 'Notes'])
+        
+        # Write data
+        for project in projects:
+            writer.writerow([
+                project.name,
+                project.description or '',
+                project.type,
+                project.status,
+                project.client_name or '',
+                project.start_date.isoformat() if project.start_date else '',
+                project.end_date.isoformat() if project.end_date else '',
+                project.estimated_hours or '',
+                project.actual_hours or '',
+                project.budget or '',
+                project.actual_cost or '',
+                project.billing_type or '',
+                project.ai_technologies or '',
+                project.ai_maturity_level or '',
+                project.priority,
+                project.tags or '',
+                project.notes or ''
+            ])
+        
+        output.seek(0)
+        
+        from flask import Response
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=projects_export.csv'}
+        )
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+
+# Project Templates API Endpoints
+@app.route('/admin/map/project-templates', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_project_templates():
+    """Manage AI project templates"""
+    if request.method == 'GET':
+        try:
+            from backend.models import ProjectTemplate
+            templates = ProjectTemplate.query.all()
+            templates_data = []
+            for template in templates:
+                templates_data.append(template.to_dict())
+            return jsonify({'templates': templates_data})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import ProjectTemplate
+            data = request.get_json()
+            
+            new_template = ProjectTemplate(
+                name=data['name'],
+                description=data.get('description', ''),
+                category=data.get('category', 'General'),
+                industry=data.get('industry', ''),
+                phases=data.get('phases', ''),
+                deliverables=data.get('deliverables', ''),
+                timeline=data.get('timeline', ''),
+                estimated_hours=data.get('estimated_hours'),
+                ai_technologies=','.join(data.get('ai_technologies', [])),
+                ai_maturity_requirements=data.get('ai_maturity_requirements', 'Beginner'),
+                data_requirements=data.get('data_requirements', ''),
+                success_metrics=data.get('success_metrics', ''),
+                risk_factors=data.get('risk_factors', ''),
+                tags=','.join(data.get('tags', []))
+            )
+            
+            db.session.add(new_template)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_template.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+
+# Organization Management API Endpoints
+@app.route('/admin/map/organizations', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_organizations():
+    """Manage AIMAP organizations"""
+    if request.method == 'GET':
+        try:
+            from backend.aimap.models import Organisation
+            organizations = Organisation.query.all()
+            org_data = []
+            for org in organizations:
+                org_data.append({
+                    'id': org.id,
+                    'name': org.name,
+                    'sector': org.sector,
+                    'subsector': org.subsector,
+                    'region': org.region,
+                    'country': org.country,
+                    'size_band': org.size_band,
+                    'client_tag': org.client_tag,
+                    'contact': org.contact,
+                    'ai_tools': org.ai_tools,
+                    'notes': org.notes,
+                    'website_url': org.website_url,
+                    'tags': org.tags.split(',') if org.tags else [],
+                    'created_at': org.created_at.isoformat() if org.created_at else None
+                })
+            return jsonify({'organizations': org_data})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.aimap.models import Organisation
+            data = request.get_json()
+            
+            new_org = Organisation(
+                name=data['name'],
+                sector=data.get('sector', ''),
+                subsector=data.get('subsector', ''),
+                region=data.get('region', ''),
+                country=data.get('country', ''),
+                size_band=data.get('size_band', ''),
+                client_tag=data.get('client_tag', ''),
+                contact=data.get('contact', ''),
+                ai_tools=data.get('ai_tools', ''),
+                notes=data.get('notes', ''),
+                website_url=data.get('website_url', ''),
+                tags=','.join(data.get('tags', []))
+            )
+            
+            db.session.add(new_org)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_org.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.aimap.models import Organisation
+            data = request.get_json()
+            org_id = data['id']
+            
+            org = Organisation.query.get(org_id)
+            if not org:
+                return jsonify({'error': 'Organization not found'})
+            
+            # Update fields
+            for field in ['name', 'sector', 'subsector', 'region', 'country', 'size_band', 
+                         'client_tag', 'contact', 'ai_tools', 'notes', 'website_url']:
+                if field in data:
+                    setattr(org, field, data[field])
+            
+            # Update tags
+            if 'tags' in data:
+                org.tags = ','.join(data['tags'])
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.aimap.models import Organisation
+            data = request.get_json()
+            org_id = data['id']
+            
+            org = Organisation.query.get(org_id)
+            if not org:
+                return jsonify({'error': 'Organization not found'})
+            
+            db.session.delete(org)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+# Organization Discovery API Endpoints
+@app.route('/admin/map/discover', methods=['POST'])
+@login_required
+@admin_required
+def start_discovery():
+    """Start organization discovery scan"""
+    try:
+        from backend.services.discovery_api import DiscoveryAPIService
+        
+        data = request.get_json()
+        keywords = data.get('keywords', '')
+        sector = data.get('sector', '')
+        sources = data.get('sources', ['news', 'crunchbase'])
+        max_results = data.get('max_results', 100)
+        
+        discovery_service = DiscoveryAPIService()
+        results = discovery_service.start_discovery_scan(
+            keywords=keywords,
+            sector=sector,
+            sources=sources,
+            max_results=max_results
+        )
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'organizations': []
+        })
+
+# Business Map API Endpoints
+@app.route('/admin/map/clients', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_clients():
+    """Manage consulting clients"""
+    if request.method == 'GET':
+        try:
+            from backend.models import Client
+            clients = Client.query.all()
+            client_data = []
+            for client in clients:
+                client_data.append({
+                    'id': client.id,
+                    'name': client.name,
+                    'website': client.website or '',
+                    'industry': client.industry or '',
+                    'status': client.status or '',
+                    'engagement': client.engagement_type or '',
+                    'last_contact': client.last_contact.strftime('%Y-%m-%d') if client.last_contact else '',
+                    'tags': client.tags.split(',') if hasattr(client, 'tags') and client.tags else [],
+                    'notes': client.notes or '',
+                    'contact_person': client.contact_person or '',
+                    'email': client.email or '',
+                    'phone': client.phone or ''
+                })
+            return jsonify({'clients': client_data})
+        except Exception as e:
+            return jsonify({'clients': [], 'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import Client
+            data = request.get_json()
+            
+            new_client = Client(
+                name=data['name'],
+                website=data.get('website', ''),
+                industry=data.get('industry', ''),
+                status=data.get('status', 'Active'),
+                engagement_type=data.get('engagement', ''),
+                notes=data.get('notes', ''),
+                contact_person=data.get('contact_person', ''),
+                email=data.get('email', ''),
+                phone=data.get('phone', ''),
+                tags=','.join(data.get('tags', []))
+            )
+            
+            db.session.add(new_client)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_client.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.models import Client
+            data = request.get_json()
+            client_id = data['id']
+            
+            client = Client.query.get(client_id)
+            if not client:
+                return jsonify({'error': 'Client not found'})
+            
+            # Update fields
+            for field in ['name', 'website', 'industry', 'status', 'engagement_type', 
+                         'notes', 'contact_person', 'email', 'phone']:
+                if field in data:
+                    setattr(client, field, data[field])
+            
+            # Update tags
+            if 'tags' in data:
+                client.tags = ','.join(data['tags'])
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.models import Client
+            data = request.get_json()
+            client_id = data['id']
+            
+            client = Client.query.get(client_id)
+            if not client:
+                return jsonify({'error': 'Client not found'})
+            
+            db.session.delete(client)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+@app.route('/admin/map/newsrooms', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_newsrooms():
+    """Manage newsrooms"""
+    if request.method == 'GET':
+        try:
+            from backend.models import Newsroom
+            newsrooms = Newsroom.query.all()
+            newsroom_data = []
+            for newsroom in newsrooms:
+                newsroom_data.append({
+                    'id': newsroom.id,
+                    'name': newsroom.name,
+                    'website': newsroom.website or '',
+                    'type': newsroom.type or '',
+                    'location': newsroom.location or '',
+                    'ai_readiness': newsroom.ai_readiness or '',
+                    'last_analysis': newsroom.last_analysis.strftime('%Y-%m-%d') if newsroom.last_analysis else '',
+                    'client_id': newsroom.client_id,
+                    'client_name': newsroom.client.name if newsroom.client else None,
+                    'notes': newsroom.notes or ''
+                })
+            return jsonify({'newsrooms': newsroom_data})
+        except Exception as e:
+            return jsonify({'newsrooms': [], 'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import Newsroom
+            data = request.get_json()
+            
+            new_newsroom = Newsroom(
+                name=data['name'],
+                website=data.get('website', ''),
+                type=data.get('type', ''),
+                location=data.get('location', ''),
+                ai_readiness=data.get('ai_readiness', 'Medium'),
+                notes=data.get('notes', ''),
+                client_id=data.get('client_id')
+            )
+            
+            db.session.add(new_newsroom)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_newsroom.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.models import Newsroom
+            data = request.get_json()
+            newsroom_id = data['id']
+            
+            newsroom = Newsroom.query.get(newsroom_id)
+            if not newsroom:
+                return jsonify({'error': 'Newsroom not found'})
+            
+            # Update fields
+            for field in ['name', 'website', 'type', 'location', 'ai_readiness', 'notes', 'client_id']:
+                if field in data:
+                    setattr(newsroom, field, data[field])
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.models import Newsroom
+            data = request.get_json()
+            newsroom_id = data['id']
+            
+            newsroom = Newsroom.query.get(newsroom_id)
+            if not newsroom:
+                return jsonify({'error': 'Newsroom not found'})
+            
+            db.session.delete(newsroom)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+# AI Prototype Management API Endpoints
+@app.route('/admin/map/prototypes', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_prototypes():
+    """Manage AI prototypes"""
+    if request.method == 'GET':
+        try:
+            from backend.models import AIPrototype, Newsroom
+            prototypes = AIPrototype.query.all()
+            prototype_data = []
+            for prototype in prototypes:
+                prototype_data.append({
+                    'id': prototype.id,
+                    'name': prototype.name,
+                    'description': prototype.description or '',
+                    'newsroom_id': prototype.newsroom_id,
+                    'newsroom_name': prototype.newsroom_name or '',
+                    'category': prototype.category or '',
+                    'technology_stack': prototype.technology_stack or '',
+                    'stage': prototype.stage or '',
+                    'progress_percentage': prototype.progress_percentage or 0,
+                    'start_date': prototype.start_date.strftime('%Y-%m-%d') if prototype.start_date else '',
+                    'target_completion': prototype.target_completion.strftime('%Y-%m-%d') if prototype.target_completion else '',
+                    'actual_completion': prototype.actual_completion.strftime('%Y-%m-%d') if prototype.actual_completion else '',
+                    'success_metrics': prototype.success_metrics or '',
+                    'current_results': prototype.current_results or '',
+                    'challenges': prototype.challenges or '',
+                    'team_size': prototype.team_size or 0,
+                    'external_partners': prototype.external_partners or '',
+                    'budget': prototype.budget or 0,
+                    'status': prototype.status or 'Active',
+                    'notes': prototype.notes or '',
+                    'lessons_learned': prototype.lessons_learned or '',
+                    'created_at': prototype.created_at.strftime('%Y-%m-%d') if prototype.created_at else '',
+                    'updated_at': prototype.updated_at.strftime('%Y-%m-%d') if prototype.updated_at else ''
+                })
+            return jsonify({'prototypes': prototype_data})
+        except Exception as e:
+            return jsonify({'prototypes': [], 'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import AIPrototype
+            data = request.get_json()
+            
+            new_prototype = AIPrototype(
+                name=data['name'],
+                description=data.get('description', ''),
+                newsroom_id=data.get('newsroom_id'),
+                newsroom_name=data.get('newsroom_name', ''),
+                category=data.get('category', ''),
+                technology_stack=data.get('technology_stack', ''),
+                stage=data.get('stage', 'Ideation'),
+                progress_percentage=data.get('progress_percentage', 0),
+                start_date=datetime.fromisoformat(data['start_date']) if data.get('start_date') else None,
+                target_completion=datetime.fromisoformat(data['target_completion']) if data.get('target_completion') else None,
+                success_metrics=data.get('success_metrics', ''),
+                current_results=data.get('current_results', ''),
+                challenges=data.get('challenges', ''),
+                team_size=data.get('team_size', 0),
+                external_partners=data.get('external_partners', ''),
+                budget=float(data.get('budget', 0)) if data.get('budget') else None,
+                status=data.get('status', 'Active'),
+                notes=data.get('notes', ''),
+                lessons_learned=data.get('lessons_learned', '')
+            )
+            
+            db.session.add(new_prototype)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_prototype.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.models import AIPrototype
+            data = request.get_json()
+            prototype_id = data['id']
+            
+            prototype = AIPrototype.query.get(prototype_id)
+            if not prototype:
+                return jsonify({'error': 'Prototype not found'})
+            
+            # Update fields
+            for field in ['name', 'description', 'newsroom_id', 'newsroom_name', 'category', 
+                         'technology_stack', 'stage', 'progress_percentage', 'success_metrics', 
+                         'current_results', 'challenges', 'team_size', 'external_partners', 
+                         'budget', 'status', 'notes', 'lessons_learned']:
+                if field in data:
+                    setattr(prototype, field, data[field])
+            
+            # Handle date fields
+            if 'start_date' in data and data['start_date']:
+                prototype.start_date = datetime.fromisoformat(data['start_date'])
+            if 'target_completion' in data and data['target_completion']:
+                prototype.target_completion = datetime.fromisoformat(data['target_completion'])
+            if 'actual_completion' in data and data['actual_completion']:
+                prototype.actual_completion = datetime.fromisoformat(data['actual_completion'])
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.models import AIPrototype
+            data = request.get_json()
+            prototype_id = data['id']
+            
+            prototype = AIPrototype.query.get(prototype_id)
+            if not prototype:
+                return jsonify({'error': 'Prototype not found'})
+            
+            db.session.delete(prototype)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+@app.route('/admin/map/prototype-updates', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_prototype_updates():
+    """Manage prototype updates and progress reports"""
+    if request.method == 'GET':
+        try:
+            from backend.models import PrototypeUpdate
+            prototype_id = request.args.get('prototype_id')
+            
+            if prototype_id:
+                updates = PrototypeUpdate.query.filter_by(prototype_id=prototype_id).order_by(PrototypeUpdate.created_at.desc()).all()
+            else:
+                updates = PrototypeUpdate.query.order_by(PrototypeUpdate.created_at.desc()).all()
+            
+            update_data = []
+            for update in updates:
+                update_data.append({
+                    'id': update.id,
+                    'prototype_id': update.prototype_id,
+                    'title': update.title,
+                    'content': update.content or '',
+                    'update_type': update.update_type or '',
+                    'progress_percentage': update.progress_percentage,
+                    'metrics_data': update.metrics_data or '',
+                    'attachments': update.attachments or '',
+                    'created_at': update.created_at.strftime('%Y-%m-%d %H:%M') if update.created_at else '',
+                    'created_by': update.created_by or ''
+                })
+            return jsonify({'updates': update_data})
+        except Exception as e:
+            return jsonify({'updates': [], 'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import PrototypeUpdate
+            data = request.get_json()
+            
+            new_update = PrototypeUpdate(
+                prototype_id=data['prototype_id'],
+                title=data['title'],
+                content=data.get('content', ''),
+                update_type=data.get('update_type', 'Progress'),
+                progress_percentage=data.get('progress_percentage'),
+                metrics_data=data.get('metrics_data', ''),
+                attachments=data.get('attachments', ''),
+                created_by=data.get('created_by', '')
+            )
+            
+            db.session.add(new_update)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_update.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+@app.route('/admin/map/insights', methods=['GET'])
+@login_required
+@admin_required
+def get_insights():
+    """Get all insights (excluding news articles)"""
+    try:
+        from backend.models import DailyInsight
+        # Only get insights, exclude news articles
+        insights = DailyInsight.query.filter(
+            DailyInsight.category != 'Admin News'
+        ).order_by(DailyInsight.created_at.desc()).limit(10).all()
+        
+        insights_data = []
+        for insight in insights:
+            insights_data.append({
+                'id': insight.id,
+                'title': insight.title,
+                'description': insight.content[:200] + '...' if len(insight.content) > 200 else insight.content,
+                'category': insight.category,
+                'content': insight.content,
+                'created_at': insight.created_at.strftime('%Y-%m-%d %H:%M') if insight.created_at else '',
+                'source': insight.source or ''
+            })
+        return jsonify({'insights': insights_data})
+    except Exception as e:
+        return jsonify({'insights': [], 'error': str(e)})
+
+@app.route('/admin/map/insights/<int:insight_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_insight_detail(insight_id):
+    """Get a specific insight by ID"""
+    try:
+        from backend.models import DailyInsight
+        insight = DailyInsight.query.get(insight_id)
+        if insight:
+            return jsonify({
+                'success': True,
+                'insight': {
+                    'id': insight.id,
+                    'title': insight.title,
+                    'content': insight.content,
+                    'category': insight.category,
+                    'created_at': insight.created_at.strftime('%Y-%m-%d %H:%M') if insight.created_at else '',
+                    'source': insight.source or ''
+                }
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Insight not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/research-projects', methods=['GET'])
+@login_required
+@admin_required
+def get_research_projects():
+    """Get all research projects"""
+    try:
+        from backend.models import ResearchProject
+        projects = ResearchProject.query.order_by(ResearchProject.created_at.desc()).all()
+        projects_data = []
+        for project in projects:
+            projects_data.append({
+                'id': project.id,
+                'title': project.title,
+                'description': project.description,
+                'category': project.category,
+                'status': project.status,
+                'created_at': project.created_at.strftime('%Y-%m-%d %H:%M') if project.created_at else '',
+                'updated_at': project.updated_at.strftime('%Y-%m-%d %H:%M') if project.updated_at else ''
+            })
+        return jsonify({'research_projects': projects_data})
+    except Exception as e:
+        return jsonify({'research_projects': [], 'error': str(e)})
+
+@app.route('/admin/map/research-projects/<int:project_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_research_project_detail(project_id):
+    """Get a specific research project by ID"""
+    try:
+        from backend.models import ResearchProject
+        project = ResearchProject.query.get(project_id)
+        if project:
+            return jsonify({
+                'success': True,
+                'research_project': project.to_dict()
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Research project not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/training-workshops', methods=['GET'])
+@login_required
+@admin_required
+def get_training_workshops():
+    """Get all training workshops"""
+    try:
+        from backend.models import TrainingWorkshop
+        workshops = TrainingWorkshop.query.order_by(TrainingWorkshop.scheduled_date.desc()).all()
+        workshops_data = []
+        for workshop in workshops:
+            workshops_data.append(workshop.to_dict())
+        return jsonify({'training_workshops': workshops_data})
+    except Exception as e:
+        return jsonify({'training_workshops': [], 'error': str(e)})
+
+@app.route('/admin/map/training-workshops/<int:workshop_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_training_workshop_detail(workshop_id):
+    """Get a specific training workshop by ID with attendees"""
+    try:
+        from backend.models import TrainingWorkshop, TrainingAttendance
+        workshop = TrainingWorkshop.query.get(workshop_id)
+        if workshop:
+            workshop_data = workshop.to_dict()
+            # Get attendees for this workshop
+            attendees = TrainingAttendance.query.filter_by(workshop_id=workshop_id).all()
+            workshop_data['attendees'] = [attendee.to_dict() for attendee in attendees]
+            return jsonify({
+                'success': True,
+                'training_workshop': workshop_data
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Training workshop not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/training-workshops', methods=['POST'])
+@login_required
+@admin_required
+def create_training_workshop():
+    """Create a new training workshop"""
+    try:
+        from backend.models import TrainingWorkshop, db
+        from datetime import datetime
+        
+        data = request.get_json()
+        
+        # Parse scheduled date
+        scheduled_date = None
+        if data.get('scheduled_date'):
+            scheduled_date = datetime.fromisoformat(data['scheduled_date'].replace('Z', '+00:00'))
+        
+        workshop = TrainingWorkshop(
+            title=data['title'],
+            description=data.get('description', ''),
+            category=data.get('category', 'AI Basics'),
+            duration_hours=float(data.get('duration_hours', 1.0)),
+            max_participants=int(data.get('max_participants', 20)) if data.get('max_participants') else None,
+            materials_url=data.get('materials_url', ''),
+            notes=data.get('notes', ''),
+            status=data.get('status', 'Scheduled'),
+            scheduled_date=scheduled_date
+        )
+        
+        db.session.add(workshop)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'training_workshop': workshop.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/training-workshops/<int:workshop_id>/attendees', methods=['POST'])
+@login_required
+@admin_required
+def add_workshop_attendee(workshop_id):
+    """Add an attendee to a training workshop"""
+    try:
+        from backend.models import TrainingWorkshop, TrainingAttendance, Newsroom, db
+        
+        workshop = TrainingWorkshop.query.get(workshop_id)
+        if not workshop:
+            return jsonify({'success': False, 'error': 'Training workshop not found'})
+        
+        data = request.get_json()
+        
+        # Check if newsroom exists
+        newsroom_id = None
+        if data.get('newsroom_name'):
+            newsroom = Newsroom.query.filter_by(name=data['newsroom_name']).first()
+            if newsroom:
+                newsroom_id = newsroom.id
+        
+        attendee = TrainingAttendance(
+            workshop_id=workshop_id,
+            newsroom_id=newsroom_id,
+            attendee_name=data['attendee_name'],
+            attendee_email=data.get('attendee_email', ''),
+            attendee_role=data.get('attendee_role', ''),
+            attendance_status=data.get('attendance_status', 'Registered')
+        )
+        
+        db.session.add(attendee)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'attendee': attendee.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/training-attendees/<int:attendee_id>', methods=['PUT'])
+@login_required
+@admin_required
+def update_training_attendee(attendee_id):
+    """Update training attendee information"""
+    try:
+        from backend.models import TrainingAttendance, db
+        
+        attendee = TrainingAttendance.query.get(attendee_id)
+        if not attendee:
+            return jsonify({'success': False, 'error': 'Attendee not found'})
+        
+        data = request.get_json()
+        
+        # Update attendee fields
+        if 'attendance_status' in data:
+            attendee.attendance_status = data['attendance_status']
+        if 'feedback_rating' in data:
+            attendee.feedback_rating = int(data['feedback_rating'])
+        if 'feedback_comments' in data:
+            attendee.feedback_comments = data['feedback_comments']
+        if 'certificate_issued' in data:
+            attendee.certificate_issued = bool(data['certificate_issued'])
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'attendee': attendee.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/chat-management')
+@login_required
+@admin_required
+def admin_chat_management():
+    """Admin page for managing chat data"""
+    try:
+        from backend.models import Chat, Message, User
+        
+        # Get statistics
+        total_chats = Chat.query.count()
+        total_messages = Message.query.count()
+        empty_chats = Chat.query.outerjoin(Message).filter(Message.id.is_(None)).count()
+        
+        # Get recent chats for preview
+        recent_chats = Chat.query.order_by(Chat.created_at.desc()).limit(10).all()
+        chat_previews = []
+        
+        for chat in recent_chats:
+            messages = chat.messages
+            preview = "No messages"
+            if messages:
+                preview = messages[0].content[:100] + "..." if len(messages[0].content) > 100 else messages[0].content
+            
+            chat_previews.append({
+                'id': chat.id,
+                'title': chat.title or f"Chat {chat.id}",
+                'message_count': len(messages),
+                'created_at': chat.created_at.strftime('%Y-%m-%d %H:%M') if chat.created_at else '',
+                'preview': preview
+            })
+        
+        return render_template('admin/chat_management.html', 
+                             total_chats=total_chats,
+                             total_messages=total_messages,
+                             empty_chats=empty_chats,
+                             recent_chats=chat_previews)
+    except Exception as e:
+        return render_template('admin/chat_management.html', 
+                             error=str(e),
+                             total_chats=0,
+                             total_messages=0,
+                             empty_chats=0,
+                             recent_chats=[])
+
+@app.route('/admin/chat-management/cleanup', methods=['POST'])
+@login_required
+@admin_required
+def admin_chat_cleanup():
+    """Admin endpoint for cleaning up chat data"""
+    try:
+        from backend.models import Chat, Message
+        from datetime import datetime, timedelta
+        import re
+        
+        data = request.get_json()
+        cleanup_type = data.get('type', 'all')
+        
+        chats_to_delete = []
+        
+        if cleanup_type == 'empty':
+            # Delete empty chats
+            empty_chats = Chat.query.outerjoin(Message).filter(Message.id.is_(None)).all()
+            chats_to_delete = empty_chats
+        
+        elif cleanup_type == 'old':
+            # Delete old chats (30+ days)
+            days = data.get('days', 30)
+            old_chats = Chat.query.filter(Chat.created_at < datetime.utcnow() - timedelta(days=days)).all()
+            chats_to_delete = old_chats
+        
+        elif cleanup_type == 'test':
+            # Delete test chats
+            test_patterns = [r'test', r'hello', r'hi there', r'how are you', r'what can you do']
+            all_chats = Chat.query.all()
+            
+            for chat in all_chats:
+                messages = chat.messages
+                if len(messages) <= 2:  # Short chats
+                    content = ' '.join([msg.content.lower() for msg in messages])
+                    if any(re.search(pattern, content) for pattern in test_patterns):
+                        chats_to_delete.append(chat)
+        
+        elif cleanup_type == 'all':
+            # Delete all suspicious chats
+            # Empty chats
+            empty_chats = Chat.query.outerjoin(Message).filter(Message.id.is_(None)).all()
+            chats_to_delete.extend(empty_chats)
+            
+            # Old chats
+            old_chats = Chat.query.filter(Chat.created_at < datetime.utcnow() - timedelta(days=30)).all()
+            chats_to_delete.extend(old_chats)
+            
+            # Test chats
+            test_patterns = [r'test', r'hello', r'hi there', r'how are you', r'what can you do']
+            all_chats = Chat.query.all()
+            
+            for chat in all_chats:
+                if chat in chats_to_delete:  # Skip if already marked
+                    continue
+                    
+                messages = chat.messages
+                if len(messages) <= 2:  # Short chats
+                    content = ' '.join([msg.content.lower() for msg in messages])
+                    if any(re.search(pattern, content) for pattern in test_patterns):
+                        chats_to_delete.append(chat)
+        
+        # Remove duplicates
+        chats_to_delete = list(set(chats_to_delete))
+        
+        # Actually delete
+        deleted_count = 0
+        for chat in chats_to_delete:
+            try:
+                db.session.delete(chat)
+                deleted_count += 1
+            except Exception as e:
+                print(f"Error deleting chat {chat.id}: {e}")
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'deleted_count': deleted_count,
+            'message': f'Successfully deleted {deleted_count} chats'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/admin/map/generate-insights', methods=['POST'])
+@login_required
+@admin_required
+def generate_map_insights():
+    """Generate insights for a client or newsroom"""
+    data = request.get_json()
+    target_id = data.get('target_id')
+    target_type = data.get('target_type')  # 'client' or 'newsroom'
+    
+    # Sample insight generation
+    insights = {
+        'target_id': target_id,
+        'target_type': target_type,
+        'insights': [
+            'AI adoption readiness: High',
+            'Recommended next steps: Implement content generation',
+            'Market opportunity: $2.5M potential',
+            'Competitive advantage: Early adopter position'
+        ],
+        'generated_at': datetime.now().isoformat()
+    }
+    
+    return jsonify({'success': True, 'insights': insights})
+
+@app.route('/admin/map/refresh-news', methods=['POST'])
+@login_required
+@admin_required
+def admin_refresh_news():
+    """Admin endpoint to refresh news for the dashboard"""
+    try:
+        # Ensure we're in the app context
+        if not hasattr(app, 'app_context'):
+            with app.app_context():
+                return _admin_refresh_news_internal()
+        else:
+            return _admin_refresh_news_internal()
+    except Exception as e:
+        print(f"Error refreshing admin news: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+def _admin_refresh_news_internal():
+    """Internal function to refresh news within app context"""
+    try:
+        # Get general media/tech news for admin dashboard
+        news_api_key = "a5e5898731c74bfe97bae546ef04dea6"
+        
+        # Define categories and their search terms
+        categories = {
+            'ai_news': ['artificial intelligence', 'AI technology', 'machine learning'],
+            'media_news': ['media industry', 'journalism', 'newsroom'],
+            'tech_news': ['technology', 'digital transformation', 'innovation'],
+            'industry_updates': ['business news', 'industry trends', 'market analysis']
+        }
+        
+        all_news = {}
+        
+        for category, search_terms in categories.items():
+            articles = []
+            for term in search_terms[:2]:  # Use top 2 search terms per category
+                try:
+                    url = "https://newsapi.org/v2/everything"
+                    params = {
+                        'q': term,
+                        'language': 'en',
+                        'sortBy': 'publishedAt',
+                        'pageSize': 3,
+                        'apiKey': news_api_key
+                    }
+                    
+                    response = requests.get(url, params=params, timeout=10)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('articles'):
+                            articles.extend(data['articles'][:2])  # Get top 2 articles per term
+                    else:
+                        print(f"❌ NewsAPI error for {category}: {response.status_code}")
+                except Exception as e:
+                    print(f"❌ Error fetching news for {category}: {e}")
+                    continue
+            
+            # Remove duplicates and limit to top 3 per category
+            unique_articles = []
+            seen_urls = set()
+            for article in articles:
+                if article.get('url') and article['url'] not in seen_urls:
+                    unique_articles.append({
+                        'title': article.get('title', ''),
+                        'description': article.get('description', ''),
+                        'url': article.get('url', ''),
+                        'source': article.get('source', {}).get('name', ''),
+                        'publishedAt': article.get('publishedAt', ''),
+                        'category': category
+                    })
+                    seen_urls.add(article['url'])
+                    if len(unique_articles) >= 3:
+                        break
+            
+            all_news[category] = unique_articles
+        
+        # Store in database for admin dashboard
+        from backend.models import DailyInsight
+        
+        with app.app_context():
+            # Clear old admin news
+            DailyInsight.query.filter_by(category='Admin News').delete()
+            
+            # Store new articles
+            for category, articles in all_news.items():
+                for article in articles:
+                    insight = DailyInsight(
+                        title=article['title'],
+                        content=article['description'],
+                        category='Admin News',
+                        source=f"{article['source']} - {category}",
+                        created_at=datetime.utcnow()
+                    )
+                    db.session.add(insight)
+            
+            db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'News refreshed successfully',
+            'news': all_news
+        })
+        
+    except Exception as e:
+        print(f"Error refreshing admin news: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/admin/map/get-news', methods=['GET'])
+@login_required
+@admin_required
+def admin_get_news():
+    """Get current news for admin dashboard"""
+    try:
+        from backend.models import DailyInsight
+        
+        # Get recent admin news
+        admin_news = DailyInsight.query.filter_by(category='Admin News').order_by(DailyInsight.created_at.desc()).limit(12).all()
+        
+        # Group by category
+        news_by_category = {
+            'ai_news': [],
+            'media_news': [],
+            'tech_news': [],
+            'industry_updates': []
+        }
+        
+        for news in admin_news:
+            source = news.source or ''
+            if 'ai_news' in source.lower():
+                news_by_category['ai_news'].append({
+                    'title': news.title,
+                    'description': news.content,
+                    'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
+                })
+            elif 'media_news' in source.lower():
+                news_by_category['media_news'].append({
+                    'title': news.title,
+                    'description': news.content,
+                    'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
+                })
+            elif 'tech_news' in source.lower():
+                news_by_category['tech_news'].append({
+                    'title': news.title,
+                    'description': news.content,
+                    'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
+                })
+            elif 'industry_updates' in source.lower():
+                news_by_category['industry_updates'].append({
+                    'title': news.title,
+                    'description': news.content,
+                    'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
+                })
+        
+        return jsonify({
+            'success': True,
+            'news': news_by_category
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/admin/map/save-news', methods=['POST'])
+@login_required
+@admin_required
+def save_news():
+    """Save a news story to the database"""
+    try:
+        data = request.get_json()
+        title = data.get('title', '')
+        content = data.get('content', '')
+        url = data.get('url', '')
+        source = data.get('source', '')
+        category = data.get('category', '')
+        notes = data.get('notes', '')
+        
+        if not title:
+            return jsonify({'success': False, 'error': 'Title is required'})
+        
+        # Check if news already exists
+        from backend.models import SavedNews
+        existing_news = SavedNews.query.filter_by(
+            title=title,
+            user_id=current_user.id
+        ).first()
+        
+        if existing_news:
+            return jsonify({'success': False, 'error': 'This news story is already saved'})
+        
+        # Save the news story
+        saved_news = SavedNews(
+            title=title,
+            description=content,
+            url=url,
+            source_name=source,
+            notes=notes,
+            user_id=current_user.id
+        )
+        
+        db.session.add(saved_news)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'News story saved successfully',
+            'saved_news': saved_news.to_dict()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/saved-news', methods=['GET'])
+@login_required
+@admin_required
+def get_saved_news():
+    """Get user's saved news stories"""
+    try:
+        from backend.models import SavedNews
+        
+        saved_news = SavedNews.query.filter_by(user_id=current_user.id).order_by(SavedNews.created_at.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'saved_news': [news.to_dict() for news in saved_news]
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/saved-news/<int:news_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_saved_news(news_id):
+    """Delete a saved news story"""
+    try:
+        from backend.models import SavedNews
+        
+        saved_news = SavedNews.query.filter_by(id=news_id, user_id=current_user.id).first()
+        
+        if not saved_news:
+            return jsonify({'success': False, 'error': 'News story not found'})
+        
+        db.session.delete(saved_news)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'News story deleted successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/generate-newsroom-insight', methods=['POST'])
+@login_required
+@admin_required
+def generate_newsroom_insight():
+    """Generate a 500-word article about how a newsroom overcame a challenge"""
+    try:
+        data = request.get_json()
+        newsroom_id = data.get('newsroom_id')
+        newsroom_name = data.get('newsroom_name')
+        challenge_type = data.get('challenge_type')
+        article_title = data.get('article_title', '')
+        additional_context = data.get('additional_context', '')
+        
+        if not newsroom_name or not challenge_type:
+            return jsonify({'success': False, 'error': 'Missing required fields'})
+        
+        # Get newsroom details from database if available
+        newsroom_details = {}
+        try:
+            from backend.models import Newsroom
+            if newsroom_id and newsroom_id != 'daily-chronicle':
+                newsroom = Newsroom.query.get(newsroom_id)
+                if newsroom:
+                    newsroom_details = {
+                        'name': newsroom.name,
+                        'type': newsroom.type,
+                        'location': newsroom.location,
+                        'ai_readiness': newsroom.ai_readiness,
+                        'website': newsroom.website
+                    }
+        except Exception as e:
+            print(f"Error fetching newsroom details: {e}")
+        
+        # If no newsroom details from database, use the provided name
+        if not newsroom_details:
+            newsroom_details = {
+                'name': newsroom_name,
+                'type': 'National',
+                'location': 'New York, NY',
+                'ai_readiness': 'High',
+                'website': 'daily-chronicle.com'
+            }
+        
+        # Create the prompt for OpenAI
+        prompt = f"""Write a comprehensive 500-word article about how {newsroom_details['name']} overcame {challenge_type} challenges.
+
+Newsroom Details:
+- Name: {newsroom_details['name']}
+- Type: {newsroom_details['type']}
+- Location: {newsroom_details['location']}
+- AI Readiness: {newsroom_details['ai_readiness']}
+- Website: {newsroom_details['website']}
+
+Challenge Type: {challenge_type}
+
+Additional Context: {additional_context if additional_context else 'None provided'}
+
+Requirements:
+1. Write exactly 500 words
+2. Focus on the specific challenge and how it was overcome
+3. Include practical strategies and solutions
+4. Make it engaging and informative
+5. Use a professional tone suitable for business consulting
+6. Include specific examples and actionable insights
+7. End with lessons learned and recommendations for other newsrooms
+
+Title: {article_title if article_title else f'How {newsroom_details["name"]} Overcame {challenge_type} Challenges'}
+
+Please provide the article in this format:
+Title: [Title]
+Word Count: [exact word count]
+
+[500-word article content]"""
+        
+        # Use OpenAI to generate the article
+        try:
+            from openai import OpenAI
+            
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert business consultant specializing in media and newsroom transformation. Write compelling, professional articles about newsroom challenges and solutions."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1000,
+                temperature=0.7
+            )
+            
+            article_content = response.choices[0].message.content.strip()
+            
+            # Extract title and content
+            lines = article_content.split('\n')
+            title = article_title if article_title else f'How {newsroom_details["name"]} Overcame {challenge_type} Challenges'
+            content = article_content
+            
+            # If the response includes a title line, extract it
+            if lines and lines[0].startswith('Title:'):
+                title = lines[0].replace('Title:', '').strip()
+                content = '\n'.join(lines[2:])  # Skip title and word count lines
+            
+            # Create insight record in database
+            from backend.models import DailyInsight
+            insight = DailyInsight(
+                title=title,
+                content=content,
+                category='Newsroom Success Story',
+                source=f'Generated for {newsroom_details["name"]}',
+                created_at=datetime.utcnow()
+            )
+            db.session.add(insight)
+            db.session.commit()
+            
+            # Return the generated insight
+            return jsonify({
+                'success': True,
+                'insight': {
+                    'id': insight.id,
+                    'title': insight.title,
+                    'description': content[:200] + '...' if len(content) > 200 else content,
+                    'category': insight.category,
+                    'content': content,
+                    'newsroom_name': newsroom_details['name'],
+                    'challenge_type': challenge_type
+                }
+            })
+            
+        except Exception as e:
+            print(f"Error generating article with OpenAI: {e}")
+            return jsonify({'success': False, 'error': f'Error generating article: {str(e)}'})
+            
+    except Exception as e:
+        print(f"Error in generate_newsroom_insight: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+# Highlander AI Endpoints
+@app.route('/admin/map/highlander/chat', methods=['POST'])
+@login_required
+@admin_required
+def highlander_chat():
+    """Handle Highlander AI chat requests with OpenAI integration"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        session_id = data.get('session_id', str(uuid.uuid4()))
+        category = data.get('category', 'General')
+        
+        if not message:
+            return jsonify({'success': False, 'error': 'No message provided'})
+        
+        # Get comprehensive business context for Highlander AI
+        try:
+            from backend.models import Client, Newsroom, ResearchProject, User, HighlanderChat
+            from backend.aimap.models import Organisation, Metrics
+            
+            # Core business data
+            client_count = Client.query.count()
+            newsroom_count = Newsroom.query.count()
+            research_count = ResearchProject.query.count()
+            user_count = User.query.count()
+            chat_count = HighlanderChat.query.count()
+            
+            # AIMAP organizations data
+            total_organisations = Organisation.query.count()
+            media_organisations = Organisation.query.filter_by(sector='Media').count()
+            communications_organisations = Organisation.query.filter_by(sector='Communications').count()
+            
+            # Get detailed data for context
+            recent_clients = Client.query.limit(5).all()
+            recent_organisations = Organisation.query.limit(5).all()
+            
+            # Format detailed data
+            client_details = []
+            for c in recent_clients:
+                client_details.append(f"{c.name} (Industry: {c.industry}, Tags: {c.tags or 'None'})")
+            
+            org_details = []
+            for o in recent_organisations:
+                org_details.append(f"{o.name} (Sector: {o.sector}, Tags: {o.tags or 'None'})")
+            
+        except Exception as e:
+            client_count = newsroom_count = research_count = user_count = chat_count = 0
+            total_organisations = media_organisations = communications_organisations = 0
+            client_details = org_details = []
+        
+        # Create comprehensive system prompt with full data access
+        system_prompt = f"""You are Highlander AI, an advanced business advisor with FULL ACCESS to all AIMAP system data. You are the user's personal AI consultant and business intelligence partner.
+
+COMPREHENSIVE BUSINESS CONTEXT:
+- Total Users: {user_count}
+- Total Clients: {client_count}
+- Total Newsrooms: {newsroom_count}
+- Research Projects: {research_count}
+- Total Chats: {chat_count}
+- AIMAP Organizations: {total_organisations}
+- Media Organizations: {media_organisations}
+- Communications Organizations: {communications_organisations}
+
+DETAILED DATA SAMPLES:
+- Recent Clients: {', '.join(client_details) if client_details else 'None'}
+- Recent Organizations: {', '.join(org_details) if org_details else 'None'}
+
+YOUR CAPABILITIES:
+1. FULL DATA ACCESS: You can access and analyze ALL data in the system
+2. BUSINESS INTELLIGENCE: Provide insights on organizations, clients, projects, and trends
+3. STRATEGIC ADVISORY: Offer strategic recommendations based on comprehensive data analysis
+4. AI IMPLEMENTATION: Guide AI adoption and technology decisions
+5. PERFORMANCE ANALYSIS: Analyze business metrics and identify opportunities
+6. MARKET INSIGHTS: Provide industry trends and competitive analysis
+7. OPERATIONAL GUIDANCE: Help optimize business processes and workflows
+
+CONTEXT: {data.get('context', 'General business inquiry')}
+USER: {current_user.username}
+
+IMPORTANT: You have FULL ACCESS to all system data. Use this comprehensive knowledge to provide detailed, actionable insights. When asked about specific data, you can reference actual numbers, trends, and relationships in the system. Be specific, professional, and focus on practical business value.
+
+Respond as Highlander AI, your trusted business advisor. Always provide actionable insights and specific recommendations based on the data available.
+"""
+        
+        # Use OpenAI for natural language processing
+        try:
+            if app.config.get('OPENAI_API_KEY'):
+                openai_client = OpenAI(api_key=app.config['OPENAI_API_KEY'])
+                
+                # Get response from OpenAI
+                response = openai_client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": message}
+                    ],
+                    max_tokens=800,
+                    temperature=0.7
+                ).choices[0].message.content
+                
+                # Store the chat in database
+                from backend.models import HighlanderChat
+                chat = HighlanderChat(
+                    user_id=current_user.id,
+                    session_id=session_id,
+                    message=message,
+                    response=response,
+                    category=category,
+                    context=json.dumps({
+                        'client_count': client_count,
+                        'newsroom_count': newsroom_count,
+                        'research_count': research_count,
+                        'user_count': user_count,
+                        'chat_count': chat_count,
+                        'total_organisations': total_organisations,
+                        'media_organisations': media_organisations,
+                        'communications_organisations': communications_organisations,
+                        'recent_clients': client_details,
+                        'recent_organisations': org_details,
+                        'context': data.get('context', 'General business inquiry'),
+                        'openai_model': 'gpt-4',
+                        'tokens_used': response.count(' ') + 1  # Approximate token count
+                    }, ensure_ascii=False)
+                )
+                db.session.add(chat)
+                db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'response': response,
+                    'session_id': session_id,
+                    'model': 'gpt-4',
+                    'context': {
+                        'client_count': client_count,
+                        'total_organisations': total_organisations,
+                        'chat_count': chat_count
+                    }
+                })
+            else:
+                return jsonify({'success': False, 'error': 'OpenAI API key not configured'})
+                
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Highlander AI Error: {str(e)}")
+            return jsonify({'success': False, 'error': f'AI processing error: {str(e)}'})
+                
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/highlander/chats', methods=['GET'])
+@login_required
+@admin_required
+def highlander_chats():
+    """Get all Highlander AI chat history"""
+    try:
+        from backend.models import HighlanderChat
+        chats = HighlanderChat.query.order_by(HighlanderChat.created_at.desc()).all()
+        
+        chat_data = []
+        for chat in chats:
+            chat_data.append({
+                'id': chat.id,
+                'message': chat.message,
+                'response': chat.response,
+                'category': chat.category,
+                'session_id': chat.session_id,
+                'created_at': chat.created_at.isoformat() if chat.created_at else None,
+                'user_id': chat.user_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'chats': chat_data
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/highlander/export', methods=['POST'])
+@login_required
+@admin_required
+def highlander_export():
+    """Export Highlander AI chat data"""
+    try:
+        from backend.models import HighlanderChat
+        chats = HighlanderChat.query.order_by(HighlanderChat.created_at.desc()).all()
+        
+        export_data = []
+        for chat in chats:
+            export_data.append({
+                'id': chat.id,
+                'message': chat.message,
+                'response': chat.response,
+                'category': chat.category,
+                'session_id': chat.session_id,
+                'created_at': chat.created_at.isoformat() if chat.created_at else None,
+                'user_id': chat.user_id,
+                'context': chat.context
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': export_data,
+            'total_chats': len(export_data)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/highlander/process', methods=['POST'])
+@login_required
+@admin_required
+def highlander_process():
+    """Process and analyze Highlander AI chat data"""
+    try:
+        from backend.models import HighlanderChat
+        chats = HighlanderChat.query.all()
+        
+        # Basic processing - count chats by category
+        category_counts = {}
+        for chat in chats:
+            category = chat.category or 'Uncategorized'
+            category_counts[category] = category_counts.get(category, 0) + 1
+        
+        return jsonify({
+            'success': True,
+            'processed_chats': len(chats),
+            'category_breakdown': category_counts,
+            'message': f'Successfully processed {len(chats)} chat records'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/highlander')
+@login_required
+@admin_required
+def highlander_page():
+    """Dedicated Highlander AI page"""
+    return render_template('admin/highlander_chat.html')
+
+@app.route('/admin/map/highlander/chats', methods=['GET'])
+@login_required
+@admin_required
+def get_highlander_chats():
+    """Get Highlander AI chat history"""
+    try:
+        from backend.models import HighlanderChat
+        chats = HighlanderChat.query.filter_by(user_id=current_user.id).order_by(HighlanderChat.created_at.desc()).limit(50).all()
+        
+        chat_data = []
+        for chat in chats:
+            chat_data.append({
+                'id': chat.id,
+                'message': chat.message,
+                'response': chat.response,
+                'category': chat.category,
+                'created_at': chat.created_at.isoformat(),
+                'processed': chat.processed
+            })
+        
+        return jsonify({'success': True, 'chats': chat_data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/highlander/export', methods=['POST'])
+@login_required
+@admin_required
+def export_highlander_chats():
+    """Export Highlander AI chat data for processing"""
+    try:
+        from backend.models import HighlanderChat
+        chats = HighlanderChat.query.filter_by(user_id=current_user.id).all()
+        
+        export_data = []
+        for chat in chats:
+            export_data.append({
+                'message': chat.message,
+                'response': chat.response,
+                'category': chat.category,
+                'context': json.loads(chat.context) if chat.context else {},
+                'created_at': chat.created_at.isoformat()
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': export_data,
+            'total_chats': len(export_data)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/highlander/process', methods=['POST'])
+@login_required
+@admin_required
+def process_highlander_data():
+    """Process Highlander AI chat data for insights"""
+    try:
+        from backend.models import HighlanderChat
+        unprocessed_chats = HighlanderChat.query.filter_by(user_id=current_user.id, processed=False).all()
+        
+        # Process chats for insights
+        insights = []
+        for chat in unprocessed_chats:
+            # Mark as processed
+            chat.processed = True
+            
+            # Extract insights based on category
+            if chat.category == 'Client Analysis':
+                insights.append(f"Client insight from {chat.created_at.strftime('%Y-%m-%d')}: {chat.message[:100]}...")
+            elif chat.category == 'Business Strategy':
+                insights.append(f"Strategy insight from {chat.created_at.strftime('%Y-%m-%d')}: {chat.message[:100]}...")
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'processed_chats': len(unprocessed_chats),
+            'insights': insights
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# Implementation Experience Endpoints
+@app.route('/implementation-experience/chat', methods=['POST'])
+@login_required
+def implementation_experience_chat():
+    """Handle implementation experience chat with Highlander AI"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        session_id = data.get('session_id', str(uuid.uuid4()))
+        
+        if not message:
+            return jsonify({'success': False, 'error': 'No message provided'})
+        
+        # Get user's newsroom
+        from backend.models import Newsroom
+        newsroom = Newsroom.query.filter_by(user_id=current_user.id).first()
+        
+        if not newsroom:
+            return jsonify({'success': False, 'error': 'No newsroom found for this user'})
+        
+        # Get or create chat session
+        from backend.models import ImplementationChatSession
+        session = ImplementationChatSession.query.filter_by(
+            session_id=session_id,
+            user_id=current_user.id
+        ).first()
+        
+        if not session:
+            session = ImplementationChatSession(
+                newsroom_id=newsroom.id,
+                user_id=current_user.id,
+                session_id=session_id,
+                session_type='Implementation Experience'
+            )
+            db.session.add(session)
+            db.session.commit()
+        
+        # Store user message
+        from backend.models import ImplementationChatMessage
+        user_message = ImplementationChatMessage(
+            session_id=session.id,
+            sender_type='user',
+            message_content=message,
+            message_type='text'
+        )
+        db.session.add(user_message)
+        
+        # Create system prompt for implementation experience
+        system_prompt = f"""You are Highlander AI, an expert consultant helping newsrooms share their AIMAP implementation experiences.
+
+You are talking to {current_user.username} from {newsroom.name}.
+
+Your role is to:
+1. Help them share their implementation experiences in a structured way
+2. Ask follow-up questions to gather detailed insights
+3. Guide them through sharing challenges, solutions, and outcomes
+4. Help them quantify their success metrics
+5. Collect recommendations for other newsrooms
+
+Key areas to explore:
+- What type of AIMAP implementation they undertook
+- When it was implemented and how long it took
+- What challenges they faced and how they solved them
+- What outcomes and improvements they achieved
+- Time savings, cost savings, quality improvements
+- Whether they would recommend it to others
+- Suggestions for improvement
+
+Be conversational, encouraging, and help them think through their experience systematically.
+"""
+        
+        # Generate AI response
+        try:
+            from backend.training.model_manager import get_model_manager
+            manager = get_model_manager()
+            
+            conversation = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ]
+            
+            response = manager.generate_response(conversation)
+            
+        except Exception as e:
+            response = f"I'm here to help you share your AIMAP implementation experience! Please tell me about your implementation - what type of AI tools or strategies did you implement, and what was your experience like?"
+        
+        # Store AI response
+        ai_message = ImplementationChatMessage(
+            session_id=session.id,
+            sender_type='ai',
+            message_content=response,
+            message_type='text'
+        )
+        db.session.add(ai_message)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'response': response,
+            'session_id': session_id
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/implementation-experience/submit', methods=['POST'])
+@login_required
+def submit_implementation_experience():
+    """Submit a structured implementation experience"""
+    try:
+        data = request.get_json()
+        
+        # Get user's newsroom
+        from backend.models import Newsroom
+        newsroom = Newsroom.query.filter_by(user_id=current_user.id).first()
+        
+        if not newsroom:
+            return jsonify({'success': False, 'error': 'No newsroom found for this user'})
+        
+        # Create implementation experience
+        from backend.models import NewsroomImplementationExperience
+        experience = NewsroomImplementationExperience(
+            newsroom_id=newsroom.id,
+            user_id=current_user.id,
+            implementation_type=data.get('implementation_type'),
+            implementation_date=datetime.strptime(data.get('implementation_date'), '%Y-%m-%d').date(),
+            implementation_duration_weeks=data.get('implementation_duration_weeks'),
+            experience_summary=data.get('experience_summary'),
+            challenges_faced=data.get('challenges_faced'),
+            solutions_found=data.get('solutions_found'),
+            outcomes_achieved=data.get('outcomes_achieved'),
+            success_rating=data.get('success_rating'),
+            time_saved_hours_per_week=data.get('time_saved_hours_per_week'),
+            cost_savings_percentage=data.get('cost_savings_percentage'),
+            quality_improvement_rating=data.get('quality_improvement_rating'),
+            would_recommend=data.get('would_recommend', True),
+            recommendations_for_others=data.get('recommendations_for_others'),
+            suggestions_for_improvement=data.get('suggestions_for_improvement')
+        )
+        
+        db.session.add(experience)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'experience_id': experience.id,
+            'message': 'Implementation experience submitted successfully!'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/implementation-experience/history', methods=['GET'])
+@login_required
+def get_implementation_experience_history():
+    """Get user's implementation experience history"""
+    try:
+        from backend.models import NewsroomImplementationExperience
+        experiences = NewsroomImplementationExperience.query.filter_by(
+            user_id=current_user.id
+        ).order_by(NewsroomImplementationExperience.created_at.desc()).all()
+        
+        return jsonify({
+            'success': True,
+            'experiences': [exp.to_dict() for exp in experiences]
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# Admin endpoints for reviewing implementation experiences
+@app.route('/admin/implementation-experiences', methods=['GET'])
+@login_required
+@admin_required
+def admin_implementation_experiences():
+    """Admin view of all implementation experiences"""
+    try:
+        from backend.models import NewsroomImplementationExperience
+        experiences = NewsroomImplementationExperience.query.order_by(
+            NewsroomImplementationExperience.created_at.desc()
+        ).all()
+        
+        # Calculate statistics
+        total_experiences = len(experiences)
+        avg_success_rating = sum(exp.success_rating or 0 for exp in experiences) / max(total_experiences, 1)
+        avg_time_saved = sum(exp.time_saved_hours_per_week or 0 for exp in experiences) / max(total_experiences, 1)
+        recommendations_count = sum(1 for exp in experiences if exp.would_recommend)
+        
+        return render_template('admin/implementation_experiences.html', 
+                             experiences=experiences,
+                             total_experiences=total_experiences,
+                             avg_success_rating=round(avg_success_rating, 1),
+                             avg_time_saved=round(avg_time_saved, 1),
+                             recommendations_count=recommendations_count)
+        
+    except Exception as e:
+        flash(f'Error loading implementation experiences: {str(e)}', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/implementation-experiences/<int:experience_id>', methods=['GET'])
+@login_required
+@admin_required
+def admin_view_implementation_experience(experience_id):
+    """Admin view of a specific implementation experience"""
+    try:
+        from backend.models import NewsroomImplementationExperience
+        experience = NewsroomImplementationExperience.query.get_or_404(experience_id)
+        
+        return render_template('admin/implementation_experience_detail.html', 
+                             experience=experience)
+        
+    except Exception as e:
+        flash(f'Error loading implementation experience: {str(e)}', 'error')
+        return redirect(url_for('admin_implementation_experiences'))
+
+@app.route('/admin/implementation-experiences/<int:experience_id>/update', methods=['POST'])
+@login_required
+@admin_required
+def admin_update_implementation_experience(experience_id):
+    """Admin update of implementation experience status and notes"""
+    try:
+        from backend.models import NewsroomImplementationExperience
+        experience = NewsroomImplementationExperience.query.get_or_404(experience_id)
+        
+        data = request.get_json()
+        experience.status = data.get('status', experience.status)
+        experience.admin_notes = data.get('admin_notes', experience.admin_notes)
+        experience.follow_up_required = data.get('follow_up_required', experience.follow_up_required)
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Experience updated successfully'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/implementation-experiences/export', methods=['POST'])
+@login_required
+@admin_required
+def export_implementation_experiences():
+    """Export all implementation experiences to CSV"""
+    try:
+        from backend.models import NewsroomImplementationExperience
+        experiences = NewsroomImplementationExperience.query.order_by(
+            NewsroomImplementationExperience.created_at.desc()
+        ).all()
+        
+        # Create CSV data
+        csv_data = []
+        csv_data.append([
+            'Date', 'Newsroom', 'User', 'Implementation Type', 'Success Rating',
+            'Time Saved (hrs/week)', 'Cost Savings (%)', 'Would Recommend',
+            'Status', 'Admin Notes'
+        ])
+        
+        for exp in experiences:
+            csv_data.append([
+                exp.created_at.strftime('%Y-%m-%d'),
+                exp.newsroom.name if exp.newsroom else 'Unknown',
+                exp.user.username if exp.user else 'Unknown',
+                exp.implementation_type,
+                exp.success_rating or 0,
+                exp.time_saved_hours_per_week or 0,
+                exp.cost_savings_percentage or 0,
+                'Yes' if exp.would_recommend else 'No',
+                exp.status,
+                exp.admin_notes or ''
+            ])
+        
+        # Create CSV file
+        import io
+        import csv
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerows(csv_data)
+        
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=implementation_experiences.csv'}
+        )
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# Newsletter Routes
+@app.route('/admin/map/newsletters', methods=['GET'])
+@login_required
+@admin_required
+def get_newsletters():
+    """Get all newsletters"""
+    try:
+        from backend.models import Newsletter
+        newsletters = Newsletter.query.order_by(Newsletter.created_at.desc()).limit(20).all()
+        return jsonify({
+            'success': True,
+            'newsletters': [newsletter.to_dict() for newsletter in newsletters]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/newsletters/<int:newsletter_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_newsletter_detail(newsletter_id):
+    """Get a specific newsletter"""
+    try:
+        from backend.models import Newsletter
+        newsletter = Newsletter.query.get(newsletter_id)
+        if not newsletter:
+            return jsonify({'success': False, 'error': 'Newsletter not found'})
+        return jsonify({
+            'success': True,
+            'newsletter': newsletter.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/generate-newsletter', methods=['POST'])
+@login_required
+@admin_required
+def generate_newsletter():
+    """Generate a new AI newsletter based on current news and training data"""
+    try:
+        data = request.get_json()
+        topic = data.get('topic', 'AI News and Tools')
+        focus_areas = data.get('focus_areas', ['AI News', 'Tools', 'Reports', 'Use Cases'])
+        
+        # Get training data (past newsletters)
+        from backend.models import Newsletter
+        training_newsletters = Newsletter.query.filter_by(is_training_data=True).order_by(Newsletter.created_at.desc()).limit(10).all()
+        
+        # Get current news and insights
+        from backend.models import DailyInsight
+        recent_news = DailyInsight.query.filter_by(category='Admin News').order_by(DailyInsight.created_at.desc()).limit(15).all()
+        
+        # Build training context
+        training_context = ""
+        for newsletter in training_newsletters:
+            training_context += f"\n\nTitle: {newsletter.title}\nContent: {newsletter.content[:500]}...\n"
+        
+        # Build current news context
+        news_context = ""
+        for news in recent_news:
+            news_context += f"\n- {news.title}: {news.content[:200]}...\n"
+        
+        # Create the prompt for newsletter generation
+        prompt = f"""You are an expert AI newsletter writer with 2 years of experience writing about AI news, tools, reports, and use cases for Substack.
+
+Based on your past newsletters and current news, create a compelling newsletter that includes:
+
+TOPIC: {topic}
+FOCUS AREAS: {', '.join(focus_areas)}
+
+Your writing style from past newsletters:
+{training_context}
+
+Current news and developments to include:
+{news_context}
+
+Create a newsletter that:
+1. Has a compelling headline
+2. Includes 3-5 main sections covering different aspects of AI
+3. Provides actionable insights and practical value
+4. Maintains your established voice and style
+5. Is approximately 800-1200 words
+6. Includes relevant links and references where appropriate
+
+Format the newsletter with clear sections, bullet points, and engaging prose."""
+        
+        # Generate the newsletter using OpenAI
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an expert AI newsletter writer with a proven track record of engaging content."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=2000,
+                temperature=0.7
+            )
+            
+            newsletter_content = response.choices[0].message.content.strip()
+            
+            # Calculate word count and reading time
+            word_count = len(newsletter_content.split())
+            reading_time = max(1, word_count // 200)  # Rough estimate: 200 words per minute
+            
+            # Extract title from content (first line)
+            lines = newsletter_content.split('\n')
+            title = lines[0].replace('#', '').strip() if lines else f"AI Newsletter - {datetime.now().strftime('%B %d, %Y')}"
+            
+            # Save the newsletter
+            newsletter = Newsletter(
+                title=title,
+                content=newsletter_content,
+                summary=f"AI-generated newsletter covering {topic}",
+                category="AI Newsletter",
+                tags="AI, News, Tools, Reports, Use Cases",
+                is_generated=True,
+                word_count=word_count,
+                reading_time=reading_time
+            )
+            db.session.add(newsletter)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'newsletter': newsletter.to_dict()
+            })
+            
+        except Exception as e:
+            return jsonify({'success': False, 'error': f'Error generating newsletter: {str(e)}'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/upload-training-newsletter', methods=['POST'])
+@login_required
+@admin_required
+def upload_training_newsletter():
+    """Upload a past newsletter as training data"""
+    try:
+        data = request.get_json()
+        title = data.get('title', '')
+        content = data.get('content', '')
+        published_date = data.get('published_date')
+        
+        if not title or not content:
+            return jsonify({'success': False, 'error': 'Title and content are required'})
+        
+        # Calculate word count and reading time
+        word_count = len(content.split())
+        reading_time = max(1, word_count // 200)
+        
+        # Parse published date
+        published_at = None
+        if published_date:
+            try:
+                published_at = datetime.fromisoformat(published_date.replace('Z', '+00:00'))
+            except:
+                published_at = datetime.now()
+        
+        # Save as training data
+        from backend.models import Newsletter
+        newsletter = Newsletter(
+            title=title,
+            content=content,
+            summary=f"Training data: {title}",
+            category="Training Data",
+            tags="Training, Past Newsletter",
+            is_training_data=True,
+            is_generated=False,
+            word_count=word_count,
+            reading_time=reading_time,
+            published_at=published_at
+        )
+        db.session.add(newsletter)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'newsletter': newsletter.to_dict()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# AI Tools API Endpoints
+@app.route('/admin/map/ai-tools', methods=['GET'])
+@login_required
+@admin_required
+def get_ai_tools():
+    """Get all AI tools with statistics"""
+    try:
+        from backend.models import AITool, AIToolRecommendation
+        
+        # Get all tools
+        tools = AITool.query.all()
+        tools_data = [tool.to_dict() for tool in tools]
+        
+        # Calculate statistics
+        total_tools = len(tools)
+        data_safe_tools = len([t for t in tools if t.data_safety_score >= 7.0])
+        recommended_tools = len([t for t in tools if t.recommendation_score >= 8.0])
+        categories = len(set(t.category for t in tools))
+        
+        # Data safety breakdown
+        high_safety_tools = len([t for t in tools if t.data_safety_score >= 8.0])
+        medium_safety_tools = len([t for t in tools if 5.0 <= t.data_safety_score < 8.0])
+        low_safety_tools = len([t for t in tools if t.data_safety_score < 5.0])
+        
+        # Get top recommendations
+        recommendations = AIToolRecommendation.query.filter_by(status='Active').order_by(AIToolRecommendation.created_at.desc()).limit(5).all()
+        recommendations_data = [rec.to_dict() for rec in recommendations]
+        
+        stats = {
+            'total_tools': total_tools,
+            'data_safe_tools': data_safe_tools,
+            'recommended_tools': recommended_tools,
+            'categories': categories,
+            'high_safety_tools': high_safety_tools,
+            'medium_safety_tools': medium_safety_tools,
+            'low_safety_tools': low_safety_tools
+        }
+        
+        return jsonify({
+            'success': True,
+            'tools': tools_data,
+            'stats': stats,
+            'recommendations': recommendations_data
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/ai-tools', methods=['POST'])
+@login_required
+@admin_required
+def add_ai_tool():
+    """Add a new AI tool"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['name', 'category']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'{field} is required'})
+        
+        # Create new tool
+        tool = AITool(
+            name=data['name'],
+            description=data.get('description'),
+            website_url=data.get('website_url'),
+            company=data.get('company'),
+            category=data['category'],
+            subcategory=data.get('subcategory'),
+            pricing_model=data.get('pricing_model'),
+            pricing_details=data.get('pricing_details'),
+            data_safety_score=float(data.get('data_safety_score', 0)),
+            data_safety_assessment=data.get('data_safety_assessment'),
+            privacy_policy_url=data.get('privacy_policy_url'),
+            data_retention_policy=data.get('data_retention_policy'),
+            gdpr_compliant=data.get('gdpr_compliant', False),
+            ccpa_compliant=data.get('ccpa_compliant', False),
+            data_encryption=data.get('data_encryption', False),
+            data_localization=data.get('data_localization'),
+            api_available=data.get('api_available', False),
+            api_documentation_url=data.get('api_documentation_url'),
+            integration_options=data.get('integration_options'),
+            supported_languages=data.get('supported_languages'),
+            model_type=data.get('model_type'),
+            user_count=data.get('user_count'),
+            rating=float(data.get('rating', 0)),
+            review_count=int(data.get('review_count', 0)),
+            recommendation_score=float(data.get('recommendation_score', 0)),
+            recommendation_reason=data.get('recommendation_reason'),
+            use_cases=data.get('use_cases'),
+            limitations=data.get('limitations'),
+            alternatives=data.get('alternatives'),
+            status=data.get('status', 'Active')
+        )
+        
+        db.session.add(tool)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'tool': tool.to_dict(),
+            'message': 'AI tool added successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/ai-tools/<int:tool_id>', methods=['GET'])
+@login_required
+@admin_required
+def get_ai_tool(tool_id):
+    """Get a specific AI tool by ID"""
+    try:
+        tool = AITool.query.get(tool_id)
+        if not tool:
+            return jsonify({'success': False, 'error': 'Tool not found'})
+        
+        return jsonify({
+            'success': True,
+            'tool': tool.to_dict()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/ai-tools/<int:tool_id>', methods=['PUT'])
+@login_required
+@admin_required
+def update_ai_tool(tool_id):
+    """Update an AI tool"""
+    try:
+        tool = AITool.query.get(tool_id)
+        if not tool:
+            return jsonify({'success': False, 'error': 'Tool not found'})
+        
+        data = request.get_json()
+        
+        # Update fields
+        for field, value in data.items():
+            if hasattr(tool, field):
+                setattr(tool, field, value)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'tool': tool.to_dict(),
+            'message': 'AI tool updated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/ai-tools/<int:tool_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_ai_tool(tool_id):
+    """Delete an AI tool"""
+    try:
+        tool = AITool.query.get(tool_id)
+        if not tool:
+            return jsonify({'success': False, 'error': 'Tool not found'})
+        
+        db.session.delete(tool)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'AI tool deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/ai-tools/export', methods=['GET'])
+@login_required
+@admin_required
+def export_ai_tools():
+    """Export AI tools data as JSON"""
+    try:
+        from backend.models import AITool, AIToolRecommendation, AIToolReview
+        
+        tools = AITool.query.all()
+        recommendations = AIToolRecommendation.query.all()
+        reviews = AIToolReview.query.all()
+        
+        export_data = {
+            'export_date': datetime.now().isoformat(),
+            'tools': [tool.to_dict() for tool in tools],
+            'recommendations': [rec.to_dict() for rec in recommendations],
+            'reviews': [review.to_dict() for review in reviews]
+        }
+        
+        return jsonify(export_data)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/ai-tools/recommendations', methods=['POST'])
+@login_required
+@admin_required
+def add_ai_recommendation():
+    """Add a new AI tool recommendation"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data.get('title'):
+            return jsonify({'success': False, 'error': 'Title is required'})
+        
+        # Create new recommendation
+        recommendation = AIToolRecommendation(
+            title=data['title'],
+            description=data.get('description'),
+            target_audience=data.get('target_audience'),
+            use_case=data.get('use_case'),
+            budget_range=data.get('budget_range'),
+            recommended_tools=data.get('recommended_tools'),
+            alternatives=data.get('alternatives'),
+            implementation_steps=data.get('implementation_steps'),
+            timeline=data.get('timeline'),
+            estimated_cost=data.get('estimated_cost'),
+            training_requirements=data.get('training_requirements'),
+            status=data.get('status', 'Active')
+        )
+        
+        db.session.add(recommendation)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'recommendation': recommendation.to_dict(),
+            'message': 'Recommendation added successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+# Consulting API Endpoints
+@app.route('/admin/map/consulting', methods=['GET'])
+@login_required
+@admin_required
+def get_consulting_data():
+    """Get all consulting data with statistics"""
+    try:
+        from backend.models import ConsultingClient, ConsultingSession, ConsultingProgressReport
+        
+        # Get all clients
+        clients = ConsultingClient.query.all()
+        clients_data = [client.to_dict() for client in clients]
+        
+        # Get all sessions
+        sessions = ConsultingSession.query.order_by(ConsultingSession.session_date.desc()).all()
+        sessions_data = [session.to_dict() for session in sessions]
+        
+        # Calculate statistics
+        total_clients = len(clients)
+        active_clients = len([c for c in clients if c.status == 'Active'])
+        total_sessions = len(sessions)
+        active_sessions = len([s for s in sessions if s.status == 'Scheduled'])
+        total_hours = sum(s.duration_hours for s in sessions if s.duration_hours)
+        
+        # Calculate average satisfaction
+        satisfaction_ratings = [s.client_satisfaction for s in sessions if s.client_satisfaction]
+        avg_satisfaction = sum(satisfaction_ratings) / len(satisfaction_ratings) if satisfaction_ratings else 0
+        
+        # Get upcoming sessions (next 7 days)
+        from datetime import datetime, timedelta
+        upcoming_date = datetime.now() + timedelta(days=7)
+        upcoming_sessions = [s for s in sessions if s.session_date and s.session_date > datetime.now() and s.session_date <= upcoming_date]
+        upcoming_data = [session.to_dict() for session in upcoming_sessions]
+        
+        stats = {
+            'total_clients': total_clients,
+            'active_clients': active_clients,
+            'total_sessions': total_sessions,
+            'active_sessions': active_sessions,
+            'total_hours': total_hours,
+            'avg_satisfaction': round(avg_satisfaction, 1)
+        }
+        
+        return jsonify({
+            'success': True,
+            'clients': clients_data,
+            'sessions': sessions_data,
+            'upcoming_sessions': upcoming_data,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/consulting/clients', methods=['POST'])
+@login_required
+@admin_required
+def add_consulting_client():
+    """Add a new consulting client"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['name', 'organization', 'email']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'{field} is required'})
+        
+        # Create new client
+        client = ConsultingClient(
+            name=data['name'],
+            organization=data['organization'],
+            email=data['email'],
+            phone=data.get('phone'),
+            website=data.get('website'),
+            industry=data.get('industry'),
+            organization_size=data.get('organization_size'),
+            location=data.get('location'),
+            timezone=data.get('timezone'),
+            engagement_type=data.get('engagement_type'),
+            contract_value=float(data.get('contract_value', 0)) if data.get('contract_value') else None,
+            start_date=datetime.fromisoformat(data['start_date']) if data.get('start_date') else None,
+            end_date=datetime.fromisoformat(data['end_date']) if data.get('end_date') else None,
+            status=data.get('status', 'Active'),
+            contact_person=data.get('contact_person'),
+            contact_role=data.get('contact_role'),
+            contact_email=data.get('contact_email'),
+            notes=data.get('notes'),
+            goals=data.get('goals'),
+            challenges=data.get('challenges'),
+            success_metrics=data.get('success_metrics')
+        )
+        
+        db.session.add(client)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'client': client.to_dict(),
+            'message': 'Consulting client added successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/consulting/sessions', methods=['POST'])
+@login_required
+@admin_required
+def add_consulting_session():
+    """Add a new consulting session"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['client_id', 'title', 'session_type', 'session_date']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'{field} is required'})
+        
+        # Create new session
+        session = ConsultingSession(
+            client_id=data['client_id'],
+            title=data['title'],
+            description=data.get('description'),
+            session_type=data['session_type'],
+            session_date=datetime.fromisoformat(data['session_date']),
+            duration_hours=float(data.get('duration_hours', 0)) if data.get('duration_hours') else None,
+            session_notes=data.get('session_notes'),
+            recording_url=data.get('recording_url'),
+            recording_file_path=data.get('recording_file_path'),
+            recording_duration=int(data.get('recording_duration', 0)) if data.get('recording_duration') else None,
+            materials_shared=data.get('materials_shared'),
+            topics_covered=data.get('topics_covered'),
+            action_items=data.get('action_items'),
+            next_steps=data.get('next_steps'),
+            client_satisfaction=int(data.get('client_satisfaction', 0)) if data.get('client_satisfaction') else None,
+            client_feedback=data.get('client_feedback'),
+            client_questions=data.get('client_questions'),
+            status=data.get('status', 'Scheduled'),
+            follow_up_required=data.get('follow_up_required', False),
+            follow_up_date=datetime.fromisoformat(data['follow_up_date']) if data.get('follow_up_date') else None
+        )
+        
+        db.session.add(session)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'session': session.to_dict(),
+            'message': 'Consulting session added successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/consulting/sessions/<int:session_id>', methods=['PUT'])
+@login_required
+@admin_required
+def update_consulting_session(session_id):
+    """Update a consulting session"""
+    try:
+        session = ConsultingSession.query.get(session_id)
+        if not session:
+            return jsonify({'success': False, 'error': 'Session not found'})
+        
+        data = request.get_json()
+        
+        # Update fields
+        for field, value in data.items():
+            if hasattr(session, field):
+                if field in ['session_date', 'follow_up_date'] and value:
+                    setattr(session, field, datetime.fromisoformat(value))
+                else:
+                    setattr(session, field, value)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'session': session.to_dict(),
+            'message': 'Session updated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/consulting/upload-recording', methods=['POST'])
+@login_required
+@admin_required
+def upload_session_recording():
+    """Upload a session recording"""
+    try:
+        if 'recording' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'})
+        
+        file = request.files['recording']
+        session_id = request.form.get('session_id')
+        
+        if not session_id:
+            return jsonify({'success': False, 'error': 'Session ID is required'})
+        
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'})
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(app.root_path, 'static', 'uploads', 'recordings')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"session_{session_id}_{timestamp}_{file.filename}"
+        filepath = os.path.join(upload_dir, filename)
+        
+        # Save file
+        file.save(filepath)
+        
+        # Update session with recording info
+        session = ConsultingSession.query.get(session_id)
+        if session:
+            session.recording_file_path = filepath
+            session.recording_url = f"/static/uploads/recordings/{filename}"
+            db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'file_url': f"/static/uploads/recordings/{filename}",
+            'message': 'Recording uploaded successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/map/consulting/export', methods=['GET'])
+@login_required
+@admin_required
+def export_consulting_data():
+    """Export consulting data as JSON"""
+    try:
+        from backend.models import ConsultingClient, ConsultingSession, ConsultingProgressReport, ConsultingProgressEntry, ConsultingSuccessMetric
+        
+        clients = ConsultingClient.query.all()
+        sessions = ConsultingSession.query.all()
+        progress_reports = ConsultingProgressReport.query.all()
+        progress_entries = ConsultingProgressEntry.query.all()
+        success_metrics = ConsultingSuccessMetric.query.all()
+        
+        export_data = {
+            'export_date': datetime.now().isoformat(),
+            'clients': [client.to_dict() for client in clients],
+            'sessions': [session.to_dict() for session in sessions],
+            'progress_reports': [report.to_dict() for report in progress_reports],
+            'progress_entries': [entry.to_dict() for entry in progress_entries],
+            'success_metrics': [metric.to_dict() for metric in success_metrics]
+        }
+        
+        return jsonify(export_data)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# Admin GPT route removed - now integrated into dashboard
+
+@app.route('/admin/gpt/context')
+@login_required
+@admin_required
+def admin_gpt_context():
+    """Get system context for Admin GPT"""
+    try:
+        # Get system statistics
+        user_count = User.query.count()
+        analysis_count = MediaAnalysis.query.count()
+        chat_count = Chat.query.count()
+        message_count = Message.query.count()
+        
+        # Get AI model status
+        try:
+            from backend.training.model_manager import get_model_manager
+            manager = get_model_manager()
+            model_info = manager.get_model_info()
+            model_status = "Loaded" if model_info.get('custom_model_loaded', False) else "Not Loaded"
+        except:
+            model_status = "Not Available"
+        
+        # Get recent activity
+        recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+        recent_analyses = MediaAnalysis.query.order_by(MediaAnalysis.created_at.desc()).limit(5).all()
+        
+        # Get additional system info
+        try:
+            lesson_count = Lesson.query.count()
+            feedback_count = Feedback.query.count()
+            translation_count = Translation.query.count()
+        except:
+            lesson_count = feedback_count = translation_count = 0
+        
+        # Get system performance metrics
+        try:
+            from backend.training.model_manager import get_model_manager
+            manager = get_model_manager()
+            model_info = manager.get_model_info()
+            performance_metrics = manager.get_performance_metrics()
+        except:
+            model_info = {}
+            performance_metrics = {}
+        
+        context = {
+            'status': 'Healthy',
+            'user_count': user_count,
+            'analysis_count': analysis_count,
+            'chat_count': chat_count,
+            'message_count': message_count,
+            'lesson_count': lesson_count,
+            'feedback_count': feedback_count,
+            'translation_count': translation_count,
+            'model_status': model_status,
+            'model_info': model_info,
+            'performance_metrics': performance_metrics,
+            'timestamp': datetime.now().isoformat(),
+            'recent_users': [{'username': u.username, 'created_at': u.created_at.isoformat()} for u in recent_users],
+            'recent_analyses': [{'title': a.title, 'created_at': a.created_at.isoformat()} for a in recent_analyses],
+            'system_info': {
+                'flask_version': getattr(app, 'version', 'Unknown'),
+                'python_version': '.'.join([str(x) for x in sys.version_info[:3]]),
+                'database_size': 'Available',
+                'openai_available': bool(app.config.get('OPENAI_API_KEY'))
+            }
+        }
+        
+        return jsonify(context)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/gpt/chat', methods=['POST'])
+@login_required
+@admin_required
+def admin_gpt_chat():
+    """Handle Admin GPT chat requests"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        context = data.get('context', {})
+        
+        if not message:
+            return jsonify({'success': False, 'error': 'No message provided'})
+        
+        # Create system prompt with context
+        system_prompt = f"""You are an AI assistant for the AIMAP (Advanced AI Media Analysis Platform) system. 
+You have access to the following system context:
+
+System Status: {context.get('status', 'Unknown')}
+Total Users: {context.get('user_count', 0)}
+Total Analyses: {context.get('analysis_count', 0)}
+Total Chats: {context.get('chat_count', 0)}
+Total Messages: {context.get('message_count', 0)}
+AI Model Status: {context.get('model_status', 'Unknown')}
+
+Your role is to help administrators understand and interrogate the system. You can:
+- Analyze system performance and metrics
+- Explain user activity patterns
+- Provide insights about AI model training and usage
+- Help troubleshoot issues
+- Suggest optimizations
+- Answer questions about the platform's functionality
+
+Please provide clear, actionable insights and recommendations. If you need more specific data to answer a question, let the admin know what additional information would be helpful."""
+
+        # Use OpenAI API to get response
+        try:
+            from openai import OpenAI
+            openai_client = OpenAI(api_key=app.config.get('OPENAI_API_KEY'))
+            
+            response = openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": message}
+                ],
+                max_tokens=1000,
+                temperature=0.7
+            )
+            
+            ai_response = response.choices[0].message.content
+            
+            return jsonify({
+                'success': True,
+                'response': ai_response
+            })
+            
+        except Exception as e:
+            # Fallback response if OpenAI is not available
+            fallback_response = f"""I understand you're asking about: "{message}"
+
+Based on the current system context:
+- The system appears to be running normally
+- There are {context.get('user_count', 0)} users in the system
+- {context.get('analysis_count', 0)} media analyses have been performed
+- The AI model status is: {context.get('model_status', 'Unknown')}
+
+To get more detailed information, you might want to:
+1. Check the specific admin panels for detailed metrics
+2. Review the system logs for any errors
+3. Monitor the AI training dashboard for model performance
+
+Note: OpenAI API integration is currently unavailable, so I'm providing a basic analysis based on the system context."""
+
+            return jsonify({
+                'success': True,
+                'response': fallback_response
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/model/status')
+@login_required
+@admin_required
+def admin_model_status():
+    """Admin endpoint to get detailed model status"""
+    try:
+        from backend.training.model_manager import get_model_manager
+        manager = get_model_manager()
+        model_info = manager.get_model_info()
+        performance_metrics = manager.get_performance_metrics()
+        
+        return jsonify({
+            'success': True,
+            'model_info': model_info,
+            'performance_metrics': performance_metrics,
+            'system_health': {
+                'flask_running': True,
+                'database_connected': True,
+                'openai_available': bool(app.config.get('OPENAI_API_KEY')),
+                'timestamp': datetime.now().isoformat()
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/model/monitor')
+@login_required
+@admin_required
+def admin_model_monitor():
+    """Admin page for AI model monitoring"""
+    return render_template('admin/model_monitor.html')
 
 @app.route('/admin/chats')
 @login_required
@@ -1907,7 +5356,14 @@ def start_training():
 def training_status():
     """Get training status and model information"""
     try:
-        from training.model_manager import get_model_manager
+        try:
+            from backend.training.model_manager import get_model_manager
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Training module not available'
+            }), 500
+        
         import os
         import json
         
@@ -1990,7 +5446,14 @@ def training_status():
 def deploy_model():
     """Deploy latest trained model"""
     try:
-        from training.model_manager import get_model_manager
+        try:
+            from backend.training.model_manager import get_model_manager
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Training module not available'
+            }), 500
+        
         import os
         import shutil
         
@@ -2063,8 +5526,14 @@ def deploy_model():
 def model_status():
     """Get current model status and usage statistics"""
     try:
-        from training.model_manager import get_model_manager
-        from training.training_history import get_training_history
+        try:
+            from backend.training.model_manager import get_model_manager
+            from backend.training.training_history import get_training_history
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Training module not available'
+            }), 500
         
         manager = get_model_manager()
         model_info = manager.get_model_info()
@@ -2092,7 +5561,14 @@ def model_status():
 def training_history():
     """Get detailed training history"""
     try:
-        from training.training_history import get_training_history
+        try:
+            from backend.training.training_history import get_training_history
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Training module not available'
+            }), 500
+        
         import os
         
         history = get_training_history()
@@ -2305,13 +5781,13 @@ def training_lab():
 def crimecast():
     return render_template('crimecast.html')
 
-# Root route - show the new user dashboard shell when authenticated
+# Root route - redirect to clean login page
 @app.route('/')
 def root():
     if hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
         return redirect(url_for('user_dashboard'))
-    # Not logged in: show login
-    return render_template('auth_landing.html')
+    # Not logged in: redirect to clean login page
+    return redirect(url_for('login'))
 
 # User Dashboard - Simple chat interface for regular users
 @app.route('/user-dashboard')
@@ -3168,7 +6644,7 @@ def real_collect_training_data():
             website_files = [f for f in os.listdir(website_dir) if f.endswith('.json')]
             stats['websites'] = len(website_files)
         
-        # Calculate total examples
+        # Calculate total examples - only count real data
         stats['total_examples'] = (
             stats['conversations'] + 
             stats['pdfs'] + 
@@ -3178,9 +6654,48 @@ def real_collect_training_data():
             stats['websites']
         )
         
+        # If no real data exists, return empty stats
+        if stats['total_examples'] == 0:
+            return jsonify({
+                'success': True,
+                'message': 'No real training data found. Start using the app to generate conversations and data.',
+                'stats': {
+                    'conversations': 0,
+                    'pdfs': 0,
+                    'research': 0,
+                    'feedback': 0,
+                    'notion_pages': 0,
+                    'websites': 0,
+                    'total_examples': 0,
+                    'datasafe_threats': 0
+                },
+                'dataset_stats': {
+                    'total_examples': 0,
+                    'total_tokens': 0,
+                    'sources': {
+                        'user_conversations': 0,
+                        'pdf_documents': 0,
+                        'research_papers': 0,
+                        'feedback_entries': 0,
+                        'notion_pages': 0,
+                        'websites': 0,
+                        'datasafe_threats': 0
+                    },
+                    'collected_at': datetime.now().isoformat(),
+                    'collected_by': current_user.username if current_user else 'system'
+                }
+            })
+        
         # Consolidate into training_dataset.json (optionally include DataSafe threats)
         try:
-            from training.data_collector import DataCollector
+            try:
+                from backend.training.data_collector import DataCollector
+            except ImportError:
+                print("Training data collector not available")
+                return jsonify({
+                    'success': False,
+                    'error': 'Training data collector not available'
+                }), 500
             collector = DataCollector(
                 db_path=os.path.join(basedir, 'instance', 'media_analysis.db'),
                 data_dir=os.path.join(project_root, 'data'),
@@ -3232,15 +6747,18 @@ def health_check():
     """Health check endpoint for load balancers and monitoring"""
     try:
         # Basic health checks
-        from training.model_manager import get_model_manager
-        
-        manager = get_model_manager()
-        model_info = manager.get_model_info()
+        try:
+            from backend.training.model_manager import get_model_manager
+            
+            manager = get_model_manager()
+            model_info = manager.get_model_info()
+        except ImportError:
+            model_info = {'model_loaded': False}
         
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
-            'model_loaded': model_info.get('model_loaded', False),
+            'model_loaded': model_info.get('custom_model_loaded', False),
             'version': '1.0.0'
         }), 200
     except Exception as e:
@@ -3784,76 +7302,7 @@ def get_saved_strategies():
         print(f"Error getting saved strategies: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/save-news', methods=['POST'])
-@login_required
-def save_news():
-    """Save a news article to the database"""
-    try:
-        data = request.get_json()
-        title = data.get('title', '')
-        description = data.get('description', '')
-        url = data.get('url', '')
-        source_name = data.get('source_name', '')
-        published_at = data.get('published_at', '')
-        notes = data.get('notes', '')
-        
-        if not title or not url:
-            return jsonify({'success': False, 'error': 'Title and URL are required'})
-        
-        # Parse published_at if provided
-        parsed_date = None
-        if published_at:
-            try:
-                parsed_date = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
-            except:
-                parsed_date = datetime.utcnow()
-        
-        # Check if news article already exists for this user
-        existing_news = SavedNews.query.filter_by(
-            user_id=current_user.id, 
-            url=url
-        ).first()
-        
-        if existing_news:
-            return jsonify({'success': False, 'error': 'This article is already saved'})
-        
-        # Create new saved news
-        news_article = SavedNews(
-            user_id=current_user.id,
-            title=title,
-            description=description,
-            url=url,
-            source_name=source_name,
-            published_at=parsed_date,
-            notes=notes
-        )
-        
-        db.session.add(news_article)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True, 
-            'message': 'News article saved successfully!',
-            'news_id': news_article.id
-        })
-        
-    except Exception as e:
-        print(f"Error saving news: {e}")
-        return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/get-saved-news')
-@login_required
-def get_saved_news():
-    """Get all saved news articles for the current user"""
-    try:
-        news_articles = SavedNews.query.filter_by(user_id=current_user.id).order_by(SavedNews.created_at.desc()).all()
-        return jsonify({
-            'success': True,
-            'news': [article.to_dict() for article in news_articles]
-        })
-    except Exception as e:
-        print(f"Error getting saved news: {e}")
-        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/strategies/crawl', methods=['POST'])
 @login_required
@@ -4319,6 +7768,126 @@ def get_crawl_stats():
             'success': False,
             'error': str(e)
         }), 500
+
+# Tag Management API Endpoints
+@app.route('/admin/map/tags', methods=['GET', 'POST', 'DELETE'])
+@login_required
+@admin_required
+def manage_tags():
+    """Manage tags for organizations and clients"""
+    if request.method == 'GET':
+        try:
+            from backend.aimap.models import Organisation
+            from backend.models import Client
+            
+            # Get all tags from organizations
+            org_tags = set()
+            for org in Organisation.query.all():
+                if org.tags:
+                    org_tags.update(org.tags.split(','))
+            
+            # Get all tags from clients
+            client_tags = set()
+            for client in Client.query.all():
+                if hasattr(client, 'tags') and client.tags:
+                    client_tags.update(client.tags.split(','))
+            
+            # Combine and count usage
+            all_tags = org_tags.union(client_tags)
+            tag_counts = {}
+            
+            for tag in all_tags:
+                if tag.strip():
+                    org_count = sum(1 for org in Organisation.query.all() 
+                                  if org.tags and tag in org.tags.split(','))
+                    client_count = sum(1 for client in Client.query.all() 
+                                     if hasattr(client, 'tags') and client.tags and tag in client.tags.split(','))
+                    tag_counts[tag.strip()] = {
+                        'organizations': org_count,
+                        'clients': client_count,
+                        'total': org_count + client_count
+                    }
+            
+            return jsonify({'tags': tag_counts})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            tag_name = data.get('tag', '').strip()
+            entity_type = data.get('entity_type', '')  # 'organization' or 'client'
+            entity_id = data.get('entity_id')
+            
+            if not tag_name or not entity_id:
+                return jsonify({'error': 'Tag name and entity ID required'})
+            
+            if entity_type == 'organization':
+                from backend.aimap.models import Organisation
+                org = Organisation.query.get(entity_id)
+                if not org:
+                    return jsonify({'error': 'Organization not found'})
+                
+                current_tags = org.tags.split(',') if org.tags else []
+                if tag_name not in current_tags:
+                    current_tags.append(tag_name)
+                    org.tags = ','.join(current_tags)
+                
+            elif entity_type == 'client':
+                from backend.models import Client
+                client = Client.query.get(entity_id)
+                if not client:
+                    return jsonify({'error': 'Client not found'})
+                
+                current_tags = client.tags.split(',') if hasattr(client, 'tags') and client.tags else []
+                if tag_name not in current_tags:
+                    current_tags.append(tag_name)
+                    client.tags = ','.join(current_tags)
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            data = request.get_json()
+            tag_name = data.get('tag', '').strip()
+            entity_type = data.get('entity_type', '')  # 'organization' or 'client'
+            entity_id = data.get('entity_id')
+            
+            if not tag_name or not entity_id:
+                return jsonify({'error': 'Tag name and entity ID required'})
+            
+            # Remove tag from entity
+            if entity_type == 'organization':
+                from backend.aimap.models import Organisation
+                org = Organisation.query.get(entity_id)
+                if not org:
+                    return jsonify({'error': 'Organization not found'})
+                
+                current_tags = org.tags.split(',') if org.tags else []
+                if tag_name in current_tags:
+                    current_tags.remove(tag_name)
+                    org.tags = ','.join(current_tags)
+                
+            elif entity_type == 'client':
+                from backend.models import Client
+                client = Client.query.get(entity_id)
+                if not client:
+                    return jsonify({'error': 'Client not found'})
+                
+                current_tags = client.tags.split(',') if hasattr(client, 'tags') and client.tags else []
+                if tag_name in current_tags:
+                    current_tags.remove(tag_name)
+                    client.tags = ','.join(current_tags)
+            
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    return jsonify({'error': 'Method not allowed'})
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')

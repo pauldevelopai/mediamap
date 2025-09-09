@@ -1,0 +1,190 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Quick Access | MediaMap{% endblock %}
+
+{% block header %}Quick Access{% endblock %}
+
+{% block content %}
+<!-- Quick Access Links -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-lightning-charge"></i> Quick Access
+                </h6>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success me-2">
+                        <i class="bi bi-robot"></i> AI System Active
+                    </span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showAIAssistant()">
+                        <i class="bi bi-chat-dots"></i> AI Assistant
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-success"><i class="bi bi-people"></i> User Management</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-list-ul"></i> All Users
+                            </a>
+                            <a href="{{ url_for('create_admin') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-plus"></i> Create Admin
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-info"><i class="bi bi-chat-dots"></i> Communication</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_chats') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-chat"></i> All Chats
+                            </a>
+                            <a href="{{ url_for('admin_feedback') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-chat-quote"></i> User Feedback
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-warning"><i class="bi bi-cpu"></i> AI & Analytics</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_training') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear"></i> AI Training
+                            </a>
+                            <a href="{{ url_for('admin_analyses') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up"></i> Media Analyses
+                            </a>
+                            <a href="{{ url_for('admin_strategies') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-collection"></i> Strategy Crawler
+                            </a>
+                             <a href="{{ url_for('admin_plans') }}" class="list-group-item list-group-item-action">
+                                 <i class="bi bi-list-check"></i> Plans
+                             </a>
+                             <a href="{{ url_for('admin_reports') }}" class="list-group-item list-group-item-action">
+                                 <i class="bi bi-journal-text"></i> Daily Reports
+                             </a>
+                             <a href="{{ url_for('admin_cheatsheets') }}" class="list-group-item list-group-item-action">
+                                 <i class="bi bi-lightning-charge"></i> Cheat Sheets
+                             </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-danger"><i class="bi bi-database"></i> System</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_lessons') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-book"></i> Lessons
+                            </a>
+                            <a href="#" onclick="openDatabase()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-database"></i> Database Info
+                            </a>
+                            <a href="#" onclick="showAIAssistant()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-robot"></i> AI Assistant
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-primary"><i class="bi bi-building"></i> Business Intelligence</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('admin_map') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-geo-alt"></i> Business Map
+                            </a>
+                            <a href="{{ url_for('admin_organizations') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-building-gear"></i> Organizations
+                            </a>
+                            <a href="{{ url_for('admin_consulting') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-briefcase"></i> Consulting
+                            </a>
+                            <a href="{{ url_for('admin_predictions') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up-arrow"></i> Predictions
+                            </a>
+                            <a href="{{ url_for('admin_intelligence_reports') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-file-earmark-bar-graph"></i> Intelligence Reports
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-success"><i class="bi bi-activity"></i> AI Model Status</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="#" onclick="checkModelStatus()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-check-circle"></i> Model Health
+                            </a>
+                            <a href="#" onclick="viewModelMetrics()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up"></i> Performance Metrics
+                            </a>
+                            <a href="#" onclick="testModelInference()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-play-circle"></i> Test Inference
+                            </a>
+                            <a href="{{ url_for('admin_model_monitor') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-speedometer2"></i> Model Monitor
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-warning"><i class="bi bi-gear-wide-connected"></i> System Health</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="#" onclick="checkSystemHealth()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-heart-pulse"></i> Health Check
+                            </a>
+                            <a href="#" onclick="viewSystemLogs()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-journal-text"></i> System Logs
+                            </a>
+                            <a href="#" onclick="monitorResources()" class="list-group-item list-group-item-action">
+                                <i class="bi bi-speedometer2"></i> Resource Monitor
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h6 class="text-info"><i class="bi bi-link-45deg"></i> External Links</h6>
+                        <div class="list-group list-group-flush">
+                            <a href="https://www.notion.so/team/224fc1c7-485a-81f0-8412-0042164a88c7/join" target="_blank" class="list-group-item list-group-item-action">
+                                <i class="bi bi-link-45deg"></i> Join Notion Team
+                            </a>
+                            <a href="https://developai.substack.com/" target="_blank" class="list-group-item list-group-item-action">
+                                <i class="bi bi-envelope"></i> Newsletter
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick Access JavaScript functions
+function showAIAssistant() {
+    alert('AI Assistant functionality will be implemented here.');
+}
+
+function checkModelStatus() {
+    alert('Checking model status...');
+}
+
+function viewModelMetrics() {
+    alert('Viewing model metrics...');
+}
+
+function testModelInference() {
+    alert('Testing model inference...');
+}
+
+function checkSystemHealth() {
+    alert('Checking system health...');
+}
+
+function viewSystemLogs() {
+    alert('Viewing system logs...');
+}
+
+function monitorResources() {
+    alert('Monitoring system resources...');
+}
+
+function openDatabase() {
+    alert('Opening database information...');
+}
+</script>
+{% endblock %}

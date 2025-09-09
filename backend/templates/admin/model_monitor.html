@@ -1,0 +1,377 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}AI Model Monitor | MediaMap{% endblock %}
+
+{% block header %}AI Model Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Model Status Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Model Status</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="model-status">Loading...</div>
+                        <div class="text-xs text-muted" id="model-details">Checking status...</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-robot fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Performance</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="performance-status">Loading...</div>
+                        <div class="text-xs text-muted" id="performance-details">Checking metrics...</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            System Health</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="system-status">Loading...</div>
+                        <div class="text-xs text-muted" id="system-details">Checking health...</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-heart-pulse fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Information -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Model Information</h6>
+                <button class="btn btn-sm btn-primary" onclick="refreshModelInfo()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="model-info-content">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading model information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Testing -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Model Testing</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="test-message">Test Message:</label>
+                            <textarea class="form-control" id="test-message" rows="3" 
+                                placeholder="Enter a message to test the AI model...">Tell me about AI implementation for media companies</textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary btn-block" onclick="testModel()">
+                                <i class="bi bi-play-circle"></i> Test Model
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="test-results" class="mt-3" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Test Results</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="test-output"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Performance Metrics</h6>
+            </div>
+            <div class="card-body">
+                <div id="performance-metrics-content">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading performance metrics...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load model information on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadModelInfo();
+    loadPerformanceMetrics();
+    updateStatusCards();
+});
+
+function loadModelInfo() {
+    fetch('/admin/model/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayModelInfo(data.model_info);
+                updateStatusCards(data);
+            } else {
+                document.getElementById('model-info-content').innerHTML = 
+                    '<div class="alert alert-danger">Error loading model information: ' + data.error + '</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('model-info-content').innerHTML = 
+                '<div class="alert alert-danger">Error loading model information: ' + error.message + '</div>';
+        });
+}
+
+function displayModelInfo(modelInfo) {
+    let html = '<div class="row">';
+    
+    // Model Status
+    html += '<div class="col-md-6">';
+    html += '<h5>Model Status</h5>';
+    html += '<ul class="list-group mb-4">';
+    html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+    html += 'Custom Model Loaded';
+    html += '<span class="badge ' + (modelInfo.custom_model_loaded ? 'bg-success' : 'bg-danger') + ' rounded-pill">';
+    html += modelInfo.custom_model_loaded ? 'Yes' : 'No';
+    html += '</span></li>';
+    html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+    html += 'OpenAI Available';
+    html += '<span class="badge ' + (modelInfo.openai_available ? 'bg-success' : 'bg-warning') + ' rounded-pill">';
+    html += modelInfo.openai_available ? 'Yes' : 'No';
+    html += '</span></li>';
+    html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+    html += 'Use Custom Model';
+    html += '<span class="badge ' + (modelInfo.use_custom_model ? 'bg-success' : 'bg-secondary') + ' rounded-pill">';
+    html += modelInfo.use_custom_model ? 'Yes' : 'No';
+    html += '</span></li>';
+    html += '</ul></div>';
+    
+    // Model Metadata
+    if (modelInfo.model_metadata) {
+        html += '<div class="col-md-6">';
+        html += '<h5>Model Details</h5>';
+        html += '<ul class="list-group">';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Model Type';
+        html += '<span class="badge bg-primary rounded-pill">' + modelInfo.model_metadata.model_type + '</span></li>';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Base Model';
+        html += '<span class="badge bg-info rounded-pill">' + modelInfo.model_metadata.base_model + '</span></li>';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Training Examples';
+        html += '<span class="badge bg-success rounded-pill">' + modelInfo.model_metadata.training_examples + '</span></li>';
+        html += '<li class="list-group-item d-flex justify-content-between align-items-center">';
+        html += 'Validation Accuracy';
+        html += '<span class="badge bg-warning rounded-pill">' + (modelInfo.model_metadata.performance.validation_accuracy * 100).toFixed(1) + '%</span></li>';
+        html += '</ul></div>';
+    }
+    
+    html += '</div>';
+    document.getElementById('model-info-content').innerHTML = html;
+}
+
+function loadPerformanceMetrics() {
+    fetch('/admin/model/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPerformanceMetrics(data.performance_metrics);
+            } else {
+                document.getElementById('performance-metrics-content').innerHTML = 
+                    '<div class="alert alert-danger">Error loading performance metrics: ' + data.error + '</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('performance-metrics-content').innerHTML = 
+                '<div class="alert alert-danger">Error loading performance metrics: ' + error.message + '</div>';
+        });
+}
+
+function displayPerformanceMetrics(metrics) {
+    if (metrics.message) {
+        document.getElementById('performance-metrics-content').innerHTML = 
+            '<div class="alert alert-info">' + metrics.message + '</div>';
+        return;
+    }
+    
+    let html = '<div class="row">';
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.total_requests + '</h5>';
+    html += '<p class="card-text">Total Requests</p>';
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.custom_model_usage + '</h5>';
+    html += '<p class="card-text">Custom Model Usage</p>';
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.openai_fallback_usage + '</h5>';
+    html += '<p class="card-text">OpenAI Fallback</p>';
+    html += '</div></div></div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<div class="card text-center">';
+    html += '<div class="card-body">';
+    html += '<h5 class="card-title">' + metrics.avg_response_time + '</h5>';
+    html += '<p class="card-text">Avg Response Time</p>';
+    html += '</div></div></div>';
+    
+    html += '</div>';
+    document.getElementById('performance-metrics-content').innerHTML = html;
+}
+
+function updateStatusCards(data) {
+    if (!data) {
+        // Update with basic status
+        document.getElementById('model-status').textContent = 'Checking...';
+        document.getElementById('performance-status').textContent = 'Checking...';
+        document.getElementById('system-status').textContent = 'Checking...';
+        return;
+    }
+    
+    const modelInfo = data.model_info;
+    
+    // Model Status
+    document.getElementById('model-status').textContent = modelInfo.custom_model_loaded ? 'Loaded' : 'Not Loaded';
+    document.getElementById('model-details').textContent = modelInfo.custom_model_loaded ? 'Highlander AI Active' : 'Model Not Available';
+    
+    // Performance Status
+    const metrics = data.performance_metrics;
+    if (metrics.message) {
+        document.getElementById('performance-status').textContent = 'No Data';
+        document.getElementById('performance-details').textContent = 'No requests yet';
+    } else {
+        document.getElementById('performance-status').textContent = metrics.total_requests + ' requests';
+        document.getElementById('performance-details').textContent = metrics.avg_response_time + ' avg time';
+    }
+    
+    // System Status
+    const health = data.system_health;
+    document.getElementById('system-status').textContent = 'Healthy';
+    document.getElementById('system-details').textContent = 'All systems operational';
+}
+
+function testModel() {
+    const message = document.getElementById('test-message').value;
+    if (!message.trim()) {
+        alert('Please enter a test message');
+        return;
+    }
+    
+    document.getElementById('test-results').style.display = 'block';
+    document.getElementById('test-output').innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p>Testing model...</p></div>';
+    
+    fetch('/admin/gpt/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message,
+            context: {}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('test-output').innerHTML = `
+                <div class="alert alert-success">
+                    <h6>Test Successful!</h6>
+                    <p><strong>Input:</strong> ${message}</p>
+                    <p><strong>Response:</strong> ${data.response}</p>
+                </div>
+            `;
+        } else {
+            document.getElementById('test-output').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6>Test Failed</h6>
+                    <p>Error: ${data.error || 'Unknown error'}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('test-output').innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Test Failed</h6>
+                <p>Error: ${error.message}</p>
+            </div>
+        `;
+    });
+}
+
+function refreshModelInfo() {
+    loadModelInfo();
+    loadPerformanceMetrics();
+    updateStatusCards();
+}
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+

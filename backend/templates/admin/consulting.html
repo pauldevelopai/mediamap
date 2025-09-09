@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Consulting - Admin{% endblock %}
+
+{% block main_content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-briefcase"></i> Consulting Management</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="generateConsultingPackage()">
+                <i class="bi bi-magic"></i> Generate Package
+            </button>
+            <button class="btn btn-outline-primary" onclick="getConsultingInsights()">
+                <i class="bi bi-lightbulb"></i> Get Insights
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">AI Consulting Intelligence</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Select Organization</label>
+                            <select class="form-select" id="consulting-org-select">
+                                <option value="">Choose an organization...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Team Size</label>
+                            <input type="number" class="form-control" id="consulting-team-size" value="5" min="1" max="100">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Budget ($)</label>
+                            <input type="number" class="form-control" id="consulting-budget" value="100000" min="1000" step="1000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Consulting Focus</label>
+                            <select class="form-select" id="consulting-focus">
+                                <option value="ai-strategy">AI Strategy</option>
+                                <option value="implementation">Implementation</option>
+                                <option value="optimization">Optimization</option>
+                                <option value="training">Training</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="consulting-results" style="display: none;">
+                        <h5 class="mb-3">Consulting Deliverables</h5>
+                        <div id="consulting-content">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                    <div id="consulting-placeholder">
+                        <div class="text-center py-4">
+                            <i class="bi bi-briefcase text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Consulting Management</h5>
+                            <p class="text-muted">Select an organization and generate consulting packages or insights.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load organizations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadConsultingOrganizations();
+});
+
+function loadConsultingOrganizations() {
+    // This would typically fetch from an API endpoint
+    // For now, showing a placeholder
+    const select = document.getElementById('consulting-org-select');
+    select.innerHTML = '<option value="">Choose an organization...</option>';
+}
+
+function generateConsultingPackage() {
+    const orgId = document.getElementById('consulting-org-select').value;
+    if (!orgId) {
+        alert('Please select an organization first');
+        return;
+    }
+    
+    // Show results section
+    document.getElementById('consulting-results').style.display = 'block';
+    document.getElementById('consulting-placeholder').style.display = 'none';
+    
+    // Populate with sample data
+    document.getElementById('consulting-content').innerHTML = `
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Consulting package generation functionality will be implemented here.
+            This will include strategy recommendations, implementation plans, and ROI projections.
+        </div>
+    `;
+}
+
+function getConsultingInsights() {
+    const orgId = document.getElementById('consulting-org-select').value;
+    if (!orgId) {
+        alert('Please select an organization first');
+        return;
+    }
+    
+    // Show results section
+    document.getElementById('consulting-results').style.display = 'block';
+    document.getElementById('consulting-placeholder').style.display = 'none';
+    
+    // Populate with sample data
+    document.getElementById('consulting-content').innerHTML = `
+        <div class="alert alert-success">
+            <i class="bi bi-lightbulb"></i>
+            Consulting insights functionality will be implemented here.
+            This will provide AI adoption insights, competitive analysis, and strategic recommendations.
+        </div>
+    `;
+}
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+

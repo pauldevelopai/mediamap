@@ -1,0 +1,284 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Chat Management | MediaMap{% endblock %}
+
+{% block header %}Chat Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-chat-dots"></i> Chat Data Overview
+                </h6>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary me-2">
+                        <i class="bi bi-chat"></i> {{ total_chats }} Chats
+                    </span>
+                    <span class="badge bg-info me-2">
+                        <i class="bi bi-message"></i> {{ total_messages }} Messages
+                    </span>
+                    <span class="badge bg-warning me-2">
+                        <i class="bi bi-exclamation-triangle"></i> {{ empty_chats }} Empty
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-chat fa-3x text-primary mb-2"></i>
+                                <h5 class="card-title">Total Chats</h5>
+                                <h3 class="text-primary">{{ total_chats }}</h3>
+                                <p class="text-muted">All conversations</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="bi bi-message fa-3x text-info mb-2"></i>
+                                <h5 class="card-title">Total Messages</h5>
+                                <h3 class="text-info">{{ total_messages }}</h3>
+                                <p class="text-muted">All messages</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-exclamation-triangle fa-3x text-warning mb-2"></i>
+                                <h5 class="card-title">Empty Chats</h5>
+                                <h3 class="text-warning">{{ empty_chats }}</h3>
+                                <p class="text-muted">No messages</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="bi bi-check-circle fa-3x text-success mb-2"></i>
+                                <h5 class="card-title">Active Chats</h5>
+                                <h3 class="text-success">{{ total_chats - empty_chats }}</h3>
+                                <p class="text-muted">With messages</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cleanup Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">
+                    <i class="bi bi-trash"></i> Cleanup Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-danger">
+                            <div class="card-body text-center">
+                                <h6 class="text-danger">Empty Chats</h6>
+                                <p class="text-muted">Remove chats with no messages</p>
+                                <button class="btn btn-outline-danger btn-sm" onclick="cleanupChats('empty')">
+                                    <i class="bi bi-trash"></i> Clean Empty
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="text-warning">Test Chats</h6>
+                                <p class="text-muted">Remove test/short conversations</p>
+                                <button class="btn btn-outline-warning btn-sm" onclick="cleanupChats('test')">
+                                    <i class="bi bi-trash"></i> Clean Test
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h6 class="text-info">Old Chats</h6>
+                                <p class="text-muted">Remove chats older than 30 days</p>
+                                <button class="btn btn-outline-info btn-sm" onclick="cleanupChats('old')">
+                                    <i class="bi bi-trash"></i> Clean Old
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-dark">
+                            <div class="card-body text-center">
+                                <h6 class="text-dark">All Suspicious</h6>
+                                <p class="text-muted">Remove all suspicious chats</p>
+                                <button class="btn btn-outline-dark btn-sm" onclick="cleanupChats('all')">
+                                    <i class="bi bi-trash"></i> Clean All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Warning:</strong> These actions are irreversible. Make sure you want to delete the selected chats before proceeding.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Chats Preview -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-clock-history"></i> Recent Chats Preview
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Messages</th>
+                                <th>Created</th>
+                                <th>Preview</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for chat in recent_chats %}
+                            <tr>
+                                <td>{{ chat.id }}</td>
+                                <td>{{ chat.title }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ chat.message_count }}</span>
+                                </td>
+                                <td>{{ chat.created_at }}</td>
+                                <td>
+                                    <small class="text-muted">{{ chat.preview }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="cleanupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Cleanup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="cleanupMessage">Are you sure you want to proceed with this cleanup?</p>
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>This action cannot be undone!</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmCleanupBtn">
+                    <i class="bi bi-trash"></i> Confirm Cleanup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentCleanupType = null;
+
+function cleanupChats(type) {
+    currentCleanupType = type;
+    
+    let message = '';
+    switch(type) {
+        case 'empty':
+            message = 'Delete all empty chats (chats with no messages)?';
+            break;
+        case 'test':
+            message = 'Delete all test chats (short conversations with test content)?';
+            break;
+        case 'old':
+            message = 'Delete all chats older than 30 days?';
+            break;
+        case 'all':
+            message = 'Delete all suspicious chats (empty, test, and old chats)?';
+            break;
+        default:
+            message = 'Are you sure you want to proceed with this cleanup?';
+    }
+    
+    document.getElementById('cleanupMessage').textContent = message;
+    
+    const modal = new bootstrap.Modal(document.getElementById('cleanupModal'));
+    modal.show();
+}
+
+document.getElementById('confirmCleanupBtn').addEventListener('click', function() {
+    if (!currentCleanupType) return;
+    
+    // Disable button and show loading
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-hourglass-split"></i> Cleaning...';
+    
+    fetch('/admin/chat-management/cleanup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: currentCleanupType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ ${data.message}`);
+            // Reload the page to show updated statistics
+            location.reload();
+        } else {
+            alert('❌ Error: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('❌ Error: ' + error.message);
+    })
+    .finally(() => {
+        // Re-enable button
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-trash"></i> Confirm Cleanup';
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cleanupModal'));
+        modal.hide();
+    });
+});
+</script>
+{% endblock %}
+
+
+
+
+

@@ -660,22 +660,7 @@
                     <i class="bi bi-lightbulb"></i>
                     AI Strategies
                 </a>
-                <a href="#" onclick="showOrganisationsSection()" class="btn-secondary" id="orgs-nav-btn">
-                    <i class="bi bi-building-gear"></i>
-                    Organizations
-                </a>
-                <a href="#" onclick="showConsultingSection()" class="btn-secondary" id="consulting-nav-btn">
-                    <i class="bi bi-briefcase"></i>
-                    Consulting
-                </a>
-                <a href="#" onclick="showPredictionsSection()" class="btn-secondary" id="predictions-nav-btn">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    Predictions
-                </a>
-                <a href="#" onclick="showReportsSection()" class="btn-secondary" id="reports-nav-btn">
-                    <i class="bi bi-file-earmark-bar-graph"></i>
-                    Reports
-                </a>
+                <!-- Admin-only sections moved to admin panel -->
                 <a href="{{ url_for('logout') }}" class="btn-primary">
                     <i class="bi bi-box-arrow-right"></i>
                     Logout
@@ -731,102 +716,7 @@
             </div>
         </section>
         
-        <!-- Organisations Section -->
-        <section class="organisations-section" id="organisations-section" style="display: none;">
-            <div class="chat-body">
-                <div class="chat-status">
-                    <div class="status-indicator">
-                        <i class="bi bi-building-gear text-primary me-1"></i>
-                        <span>AI Adoption Intelligence</span>
-                    </div>
-                </div>
-                
-                <!-- Filters -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Organisations</h5>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary btn-sm" onclick="addOrganisation()">
-                                <i class="bi bi-plus"></i> Add Organisation
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="runIngestion()">
-                                <i class="bi bi-cloud-download"></i> Run Ingestion
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-2">
-                                <label class="form-label">Sector</label>
-                                <select class="form-select" id="sector-filter" onchange="filterOrganisations()">
-                                    <option value="">All Sectors</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Communications">Communications</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Region</label>
-                                <select class="form-select" id="region-filter" onchange="filterOrganisations()">
-                                    <option value="">All Regions</option>
-                                    <option value="North America">North America</option>
-                                    <option value="Europe">Europe</option>
-                                    <option value="Asia Pacific">Asia Pacific</option>
-                                    <option value="Latin America">Latin America</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Size</label>
-                                <select class="form-select" id="size-filter" onchange="filterOrganisations()">
-                                    <option value="">All Sizes</option>
-                                    <option value="startup">Startup</option>
-                                    <option value="small">Small</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="large">Large</option>
-                                    <option value="enterprise">Enterprise</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Client</label>
-                                <select class="form-select" id="client-filter" onchange="filterOrganisations()">
-                                    <option value="">All</option>
-                                    <option value="tier1">Tier 1</option>
-                                    <option value="tier2">Tier 2</option>
-                                    <option value="prospect">Prospect</option>
-                                    <option value="lead">Lead</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Search</label>
-                                <input type="text" class="form-control" id="search-filter" placeholder="Search organisations..." oninput="filterOrganisations()">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Organisations Table -->
-                <div class="card">
-                    <div class="card-body">
-                        <div id="organisations-loading" class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2">Loading organisations...</p>
-                        </div>
-                        <div id="organisations-table" style="display: none;">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Sector</th>
-                                            <th>Region</th>
-                                            <th>Size</th>
-                                            <th>AI Score</th>
-                                            <th>Maturity</th>
-                                            <th>Tools</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
+        <!-- Organizations section moved to admin panel -->
                                     <tbody id="organisations-tbody">
                                     </tbody>
                                 </table>
@@ -841,9 +731,7 @@
             </div>
         </section>
 
-        <!-- Consulting Section -->
-        <section class="consulting-section" id="consulting-section" style="display: none;">
-            <div class="chat-body">
+        <!-- Consulting section moved to admin panel -->
                 <div class="chat-status">
                     <div class="status-indicator">
                         <i class="bi bi-briefcase text-primary me-1"></i>

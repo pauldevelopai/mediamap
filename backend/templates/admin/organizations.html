@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Organizations - Admin{% endblock %}
+
+{% block main_content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-building-gear"></i> Organization Management</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="addOrganization()">
+                <i class="bi bi-plus"></i> Add Organization
+            </button>
+            <button class="btn btn-outline-primary" onclick="runIngestion()">
+                <i class="bi bi-cloud-download"></i> Run Ingestion
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Organizations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Sector</label>
+                            <select class="form-select" id="sector-filter">
+                                <option value="">All Sectors</option>
+                                <option value="Media">Media</option>
+                                <option value="Communications">Communications</option>
+                                <option value="Technology">Technology</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Size</label>
+                            <select class="form-select" id="size-filter">
+                                <option value="">All Sizes</option>
+                                <option value="small">Small</option>
+                                <option value="medium">Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Region</label>
+                            <select class="form-select" id="region-filter">
+                                <option value="">All Regions</option>
+                                <option value="North America">North America</option>
+                                <option value="Europe">Europe</option>
+                                <option value="Asia">Asia</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search-org" placeholder="Search organizations...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div id="organizations-list">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading organizations...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load organizations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadOrganizations();
+});
+
+function loadOrganizations() {
+    // This would typically fetch from an API endpoint
+    // For now, showing a placeholder
+    document.getElementById('organizations-list').innerHTML = `
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Organization management interface. This section will display all organizations 
+            with their AI adoption scores, sector information, and management options.
+        </div>
+    `;
+}
+
+function addOrganization() {
+    alert('Add organization functionality will be implemented here');
+}
+
+function runIngestion() {
+    alert('Data ingestion functionality will be implemented here');
+}
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+

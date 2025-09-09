@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Intelligence Reports - Admin{% endblock %}
+
+{% block main_content %}
+<div class="content-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-file-earmark-bar-graph"></i> Intelligence Reports</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="generateReport()">
+                <i class="bi bi-file-earmark-plus"></i> Generate Report
+            </button>
+            <button class="btn btn-outline-primary" onclick="exportReports()">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Generate Reports</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Select Organization</label>
+                            <select class="form-select" id="reports-org-select">
+                                <option value="">Choose an organization...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-select" id="report-type">
+                                <option value="ai-adoption">AI Adoption Report</option>
+                                <option value="competitive-analysis">Competitive Analysis</option>
+                                <option value="market-intelligence">Market Intelligence</option>
+                                <option value="strategy-assessment">Strategy Assessment</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Format</label>
+                            <select class="form-select" id="report-format">
+                                <option value="pdf">PDF</option>
+                                <option value="docx">Word Document</option>
+                                <option value="html">Web Report</option>
+                                <option value="json">JSON Data</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Include Charts</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-charts" checked>
+                                <label class="form-check-label" for="include-charts">
+                                    Yes
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Reports</h5>
+                </div>
+                <div class="card-body">
+                    <div id="reports-list">
+                        <div class="text-center py-4">
+                            <i class="bi bi-file-earmark-bar-graph text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Intelligence Reports</h5>
+                            <p class="text-muted">Generate comprehensive reports on AI adoption, competitive analysis, and market intelligence.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load organizations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadReportOrganizations();
+});
+
+function loadReportOrganizations() {
+    // This would typically fetch from an API endpoint
+    // For now, showing a placeholder
+    const select = document.getElementById('reports-org-select');
+    select.innerHTML = '<option value="">Choose an organization...</option>';
+}
+
+function generateReport() {
+    const orgId = document.getElementById('reports-org-select').value;
+    const reportType = document.getElementById('report-type').value;
+    const format = document.getElementById('report-format').value;
+    
+    if (!orgId) {
+        alert('Please select an organization first');
+        return;
+    }
+    
+    // Show loading state
+    document.getElementById('reports-list').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Generating...</span>
+            </div>
+            <p class="mt-2">Generating ${reportType} report...</p>
+        </div>
+    `;
+    
+    // Simulate report generation
+    setTimeout(() => {
+        document.getElementById('reports-list').innerHTML = `
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i>
+                <strong>Report Generated Successfully!</strong><br>
+                ${reportType.replace('-', ' ').toUpperCase()} report for the selected organization has been generated in ${format.toUpperCase()} format.
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary btn-sm" onclick="downloadReport()">
+                    <i class="bi bi-download"></i> Download Report
+                </button>
+                <button class="btn btn-outline-primary btn-sm ms-2" onclick="viewReport()">
+                    <i class="bi bi-eye"></i> View Report
+                </button>
+            </div>
+        `;
+    }, 2000);
+}
+
+function exportReports() {
+    alert('Export functionality will be implemented here');
+}
+
+function downloadReport() {
+    alert('Download functionality will be implemented here');
+}
+
+function viewReport() {
+    alert('View report functionality will be implemented here');
+}
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+

@@ -10,7 +10,7 @@ import feedparser
 import time
 import logging
 from typing import List, Dict, Optional, Tuple
-import openai
+from openai import OpenAI
 import os
 
 # Configure logging
@@ -22,8 +22,9 @@ class ContentCrawler:
     
     def __init__(self, openai_api_key: str = None):
         self.openai_api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
+        self.openai_client = None
         if self.openai_api_key:
-            openai.api_key = self.openai_api_key
+            self.openai_client = OpenAI(api_key=self.openai_api_key)
         
         self.session = requests.Session()
         self.session.headers.update({
@@ -301,7 +302,10 @@ class CrawlManager:
     
     def create_crawl_job(self, source_id: int) -> int:
         """Create a new crawl job"""
-        from backend.models import CrawlJob
+        try:
+            from backend.models import CrawlJob
+        except ImportError:
+            from models import CrawlJob
         
         job = CrawlJob(
             source_id=source_id,
@@ -314,7 +318,10 @@ class CrawlManager:
     
     def run_crawl_job(self, job_id: int) -> bool:
         """Run a specific crawl job"""
-        from backend.models import CrawlJob, CrawlSource, CrawledContent
+        try:
+            from backend.models import CrawlJob, CrawlSource, CrawledContent
+        except ImportError:
+            from models import CrawlJob, CrawlSource, CrawledContent
         
         try:
             job = CrawlJob.query.get(job_id)
@@ -393,7 +400,10 @@ class CrawlManager:
     
     def get_crawl_stats(self) -> Dict:
         """Get crawling statistics"""
-        from backend.models import CrawlSource, CrawledContent, CrawlJob
+        try:
+            from backend.models import CrawlSource, CrawledContent, CrawlJob
+        except ImportError:
+            from models import CrawlSource, CrawledContent, CrawlJob
         
         total_sources = CrawlSource.query.count()
         active_sources = CrawlSource.query.filter_by(is_active=True).count()
