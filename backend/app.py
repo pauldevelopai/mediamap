@@ -34,7 +34,11 @@ from sqlalchemy.orm import joinedload
 from bs4 import BeautifulSoup
 import html2text
 from notion_client import Client as NotionClient
-from backend.strategies_crawler import StrategiesCrawler, StrategyEntry
+try:
+    from backend.strategies_crawler import StrategiesCrawler, StrategyEntry
+except ImportError:
+    StrategiesCrawler = None
+    StrategyEntry = None
 
 # Import AIMAP modules
 try:

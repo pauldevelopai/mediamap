@@ -12,16 +12,22 @@ from pathlib import Path
 # Add the backend directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'backend'))
 
-from aimap.models import (
-    Organisation, Person, Lead, ResearchReport, CustomData, 
-    ConsultingProject, Metrics
-)
-from aimap.db import db, init_db
+try:
+    from backend.aimap.models import (
+        Organisation, Person, Lead, ResearchReport, CustomData, 
+        ConsultingProject, Metrics
+    )
+    from backend.app import app, db
+except ImportError as e:
+    print(f"❌ AIMAP modules not found: {e}")
+    print("Please ensure the backend is properly set up.")
+    sys.exit(1)
 
 def init_database():
     """Initialize the database"""
-    init_db()
-    print("✅ Database initialized")
+    with app.app_context():
+        db.create_all()
+        print("✅ Database initialized")
 
 def add_organisation():
     """Add a new organization"""

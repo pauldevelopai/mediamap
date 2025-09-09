@@ -421,7 +421,7 @@ class CheatSheet(db.Model):
 class UserSession(db.Model):
     """Track admin user sessions and memory access"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     session_token = db.Column(db.String(255), unique=True, nullable=False)
     login_time = db.Column(db.DateTime, default=datetime.utcnow)
     last_activity = db.Column(db.DateTime, default=datetime.utcnow)
