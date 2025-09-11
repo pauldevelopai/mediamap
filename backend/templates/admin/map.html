@@ -598,9 +598,6 @@
                                 <button class="btn btn-success me-2" onclick="startDiscoveryScan()">
                                     <i class="bi bi-play-circle"></i> Start Discovery Scan
                                 </button>
-                                <button class="btn btn-info me-2" onclick="showDiscoverySettings()">
-                                    <i class="bi bi-gear"></i> Settings
-                                </button>
                             </div>
                         </div>
 
@@ -6486,12 +6483,26 @@ function startDiscoveryScan() {
             max_results: 100
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Discovery response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        console.log('Discovery response:', data); // Debug log
+        console.log('Discovery response data:', data); // Debug log
         progressBar.style.width = '100%';
         status.textContent = 'Discovery complete!';
-        log.innerHTML += '<div><small>✅ Found ' + data.total_found + ' organizations</small></div>';
+        
+        // Check if we got an error response
+        if (data.status === 'error') {
+            log.innerHTML += '<div><small>❌ Error: ' + data.error + '</small></div>';
+            console.error('Discovery API error:', data.error);
+            return;
+        }
+        
+        log.innerHTML += '<div><small>✅ Found ' + (data.total_found || 0) + ' organizations</small></div>';
         
         if (data.status === 'completed' && data.organizations && data.organizations.length > 0) {
             // Store results globally
@@ -6505,12 +6516,15 @@ function startDiscoveryScan() {
                 modal.hide();
             }, 1500);
         } else {
-            log.innerHTML += '<div><small>⚠️ No organizations found. Try different keywords.</small></div>';
-            // Show sample data as fallback for demo purposes
-            if (data.total_found === 0) {
-                log.innerHTML += '<div><small>💡 Showing sample organizations for demonstration...</small></div>';
-                // You can add sample data display here if needed
+            log.innerHTML += '<div><small>⚠️ No organizations found with current search terms.</small></div>';
+            log.innerHTML += '<div><small>🔍 Debug: Response status=' + data.status + ', org count=' + (data.organizations ? data.organizations.length : 0) + '</small></div>';
+            
+            // Clear the results table
+            const tbody = document.getElementById('discoveryResultsBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No organizations found. Try different keywords or check the browser console for details.</td></tr>';
             }
+            document.getElementById('discoveryCount').textContent = '0';
         }
     })
     .catch(error => {
@@ -6633,15 +6647,137 @@ function showSampleDiscoveryResults() {
 }
 
 function addToAIMAP(orgName) {
-    alert(`Add ${orgName} to AIMAP functionality will be implemented in Week 2.`);
+    // Find the organization from current results
+    const org = window.currentDiscoveryResults?.find(o => o.name === orgName);
+    if (!org) {
+        alert('Organization not found in current results.');
+        return;
+    }
+    
+    // Show confirmation with AI analysis
+    const analysisText = org.ai_analysis || 'No analysis available';
+    const confirmation = confirm(`Add "${orgName}" to AIMAP Organizations?\n\nAI Analysis: ${analysisText}\n\nThis will create a new organization entry with:\n- Source: ${org.source}\n- AI Signals: ${org.ai_signals || org.signals || 'N/A'}\n- Sector: ${org.sector || 'N/A'}`);
+    
+    if (confirmation) {
+        // Make API call to add organization to AIMAP
+        fetch('/admin/map/organizations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: org.name,
+                website_url: org.website || '',
+                sector: org.sector || '',
+                subsector: 'AI Discovery',
+                region: 'Unknown',
+                country: 'Unknown', 
+                size_band: org.size || 'Unknown',
+                client_tag: 'Discovery',
+                contact: '',
+                ai_tools: org.ai_signals || org.signals || '',
+                notes: `AI Analysis: ${org.ai_analysis || 'No analysis available'}\n\nDiscovery Source: ${org.source}\nDescription: ${org.description || 'No description'}`,
+                tags: ['AI Candidate', 'Discovery Import', org.source]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success || data.id) {
+                // Remove from discovery results
+                window.currentDiscoveryResults = window.currentDiscoveryResults.filter(o => o.name !== orgName);
+                
+                // Update the discovery results display
+                displayDiscoveryResults(window.currentDiscoveryResults);
+                document.getElementById('discoveryCount').textContent = window.currentDiscoveryResults.length;
+                
+                // Show success message
+                alert(`✅ "${orgName}" has been successfully added to AIMAP Organizations!\n\nThe organization has been moved from discovery results to your main organization list.`);
+                
+                // Refresh the AIMAP organizations if we're on that tab
+                if (document.querySelector('#aimap.active')) {
+                    loadAIMAPData();
+                }
+            } else {
+                alert(`❌ Failed to add "${orgName}" to AIMAP: ${data.error || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding organization:', error);
+            alert(`❌ Error adding "${orgName}" to AIMAP: ${error.message}`);
+        });
+    }
 }
 
 function viewDetails(orgName) {
-    alert(`View details for ${orgName} will be implemented in Week 2.`);
+    // Find the organization from current results
+    const org = window.currentDiscoveryResults?.find(o => o.name === orgName);
+    if (!org) {
+        alert('Organization not found in current results.');
+        return;
+    }
+    
+    // Create a detailed view with AI analysis
+    let details = `Organization Details: ${orgName}\n\n`;
+    details += `🔍 Source: ${org.source || 'N/A'}\n`;
+    details += `📊 Relevance Score: ${org.score || 'N/A'}\n`;
+    details += `🏢 Sector: ${org.sector || 'N/A'}\n`;
+    details += `📏 Estimated Size: ${org.size || org.estimatedSize || 'N/A'}\n`;
+    details += `🤖 AI Signals: ${org.ai_signals || org.signals || 'N/A'}\n`;
+    if (org.website) details += `🌐 Website: ${org.website}\n`;
+    if (org.description) details += `\n📝 Description: ${org.description}\n`;
+    
+    if (org.ai_analysis) {
+        details += `\n🧠 AI ANALYSIS:\n${org.ai_analysis}\n`;
+    }
+    
+    if (org.candidate_reasons && org.candidate_reasons.length > 0) {
+        details += `\n✅ KEY STRENGTHS:\n`;
+        org.candidate_reasons.forEach(reason => {
+            details += `• ${reason}\n`;
+        });
+    }
+    
+    alert(details);
+    
+    // Also open website if available
+    if (org.website) {
+        const openWebsite = confirm(`\nWould you like to visit their website?\n${org.website}`);
+        if (openWebsite) {
+            window.open(org.website, '_blank');
+        }
+    }
 }
 
 function exportDiscoveryResults() {
-    alert('Export functionality will be implemented in Week 2.');
+    if (!window.currentDiscoveryResults || window.currentDiscoveryResults.length === 0) {
+        alert('No discovery results to export. Please run a discovery scan first.');
+        return;
+    }
+    
+    // Create CSV content
+    const headers = ['Name', 'Source', 'Relevance Score', 'AI Signals', 'Estimated Size', 'Sector'];
+    const csvContent = [
+        headers.join(','),
+        ...window.currentDiscoveryResults.map(org => [
+            `"${org.name || ''}"`,
+            `"${org.source || ''}"`,
+            `"${org.score || ''}"`,
+            `"${(org.ai_signals || org.signals || '').replace(/"/g, '""')}"`,
+            `"${org.size || org.estimatedSize || ''}"`,
+            `"${org.sector || ''}"`,
+        ].join(','))
+    ].join('\n');
+    
+    // Download the file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `discovery_results_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
 
 
@@ -6649,10 +6785,15 @@ function exportDiscoveryResults() {
 function refreshDiscoveryResults() {
     // Reload the current discovery results
     if (window.currentDiscoveryResults && window.currentDiscoveryResults.length > 0) {
-        showSampleDiscoveryResults();
+        displayDiscoveryResults(window.currentDiscoveryResults);
+        document.getElementById('discoveryCount').textContent = window.currentDiscoveryResults.length;
     } else {
-        alert('No discovery results to refresh. Start a new discovery first.');
+        alert('No discovery results to refresh. Please run a new discovery scan.');
     }
+}
+
+function showDiscoverySettings() {
+    alert('Discovery settings will be available in a future update. Current settings:\n\n• Sample data mode (no external APIs configured)\n• Maximum results: 100\n• Default sources: News, Crunchbase\n• AI keyword matching enabled');
 }
 
 function applyDiscoveryFilters() {
@@ -6714,11 +6855,91 @@ function updateBulkActions() {
 function bulkAddToAIMAP() {
     const checkboxes = document.querySelectorAll('input[name="orgCheckbox"]:checked');
     if (checkboxes.length === 0) {
-        alert('Please select organizations to add.');
+        alert('Please select organizations to add to AIMAP.');
         return;
     }
     
-    alert(`Adding ${checkboxes.length} organizations to AIMAP. This will be implemented in Week 2.`);
+    const selectedOrgs = Array.from(checkboxes).map(cb => {
+        const index = parseInt(cb.value);
+        return window.currentDiscoveryResults[index];
+    }).filter(org => org); // Filter out any undefined
+    
+    if (selectedOrgs.length === 0) {
+        alert('No valid organizations selected.');
+        return;
+    }
+    
+    const confirmation = confirm(`Add ${selectedOrgs.length} organizations to AIMAP?\n\nSelected organizations:\n${selectedOrgs.map(org => `• ${org.name}`).join('\n')}`);
+    
+    if (confirmation) {
+        let addedCount = 0;
+        let failedCount = 0;
+        
+        // Process each organization
+        const promises = selectedOrgs.map(org => {
+            return fetch('/admin/map/organizations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: org.name,
+                    website_url: org.website || '',
+                    sector: org.sector || '',
+                    subsector: 'AI Discovery',
+                    region: 'Unknown',
+                    country: 'Unknown', 
+                    size_band: org.size || 'Unknown',
+                    client_tag: 'Discovery',
+                    contact: '',
+                    ai_tools: org.ai_signals || org.signals || '',
+                    notes: `AI Analysis: ${org.ai_analysis || 'No analysis available'}\n\nDiscovery Source: ${org.source}\nDescription: ${org.description || 'No description'}`,
+                    tags: ['AI Candidate', 'Discovery Import', org.source]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success || data.id) {
+                    addedCount++;
+                    return org.name;
+                } else {
+                    failedCount++;
+                    return null;
+                }
+            })
+            .catch(error => {
+                console.error('Error adding organization:', error);
+                failedCount++;
+                return null;
+            });
+        });
+        
+        Promise.all(promises).then(results => {
+            // Remove successfully added organizations from discovery results
+            const addedNames = results.filter(name => name !== null);
+            window.currentDiscoveryResults = window.currentDiscoveryResults.filter(org => 
+                !addedNames.includes(org.name)
+            );
+            
+            // Update display
+            displayDiscoveryResults(window.currentDiscoveryResults);
+            document.getElementById('discoveryCount').textContent = window.currentDiscoveryResults.length;
+            
+            // Show results
+            let message = `✅ Bulk Add Complete!\n\n`;
+            message += `Successfully added: ${addedCount} organizations\n`;
+            if (failedCount > 0) {
+                message += `Failed to add: ${failedCount} organizations\n`;
+            }
+            message += `\nRemaining in discovery: ${window.currentDiscoveryResults.length}`;
+            
+            alert(message);
+            
+            // Clear selections
+            document.querySelectorAll('input[name="orgCheckbox"]').forEach(cb => cb.checked = false);
+            updateBulkActions();
+        });
+    }
 }
 
 function bulkExport() {
@@ -6728,7 +6949,44 @@ function bulkExport() {
         return;
     }
     
-    alert(`Exporting ${checkboxes.length} organizations. This will be implemented in Week 2.`);
+    const selectedOrgs = Array.from(checkboxes).map(cb => {
+        const index = parseInt(cb.value);
+        return window.currentDiscoveryResults[index];
+    }).filter(org => org);
+    
+    if (selectedOrgs.length === 0) {
+        alert('No valid organizations selected.');
+        return;
+    }
+    
+    // Create CSV content for selected organizations
+    const headers = ['Name', 'Source', 'Relevance Score', 'AI Signals', 'Estimated Size', 'Sector', 'Website', 'AI Analysis'];
+    const csvContent = [
+        headers.join(','),
+        ...selectedOrgs.map(org => [
+            `"${org.name || ''}"`,
+            `"${org.source || ''}"`,
+            `"${org.score || ''}"`,
+            `"${(org.ai_signals || org.signals || '').replace(/"/g, '""')}"`,
+            `"${org.size || org.estimatedSize || ''}"`,
+            `"${org.sector || ''}"`,
+            `"${org.website || ''}"`,
+            `"${(org.ai_analysis || '').replace(/"/g, '""')}"`,
+        ].join(','))
+    ].join('\n');
+    
+    // Download the file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `selected_discovery_results_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    alert(`✅ Exported ${selectedOrgs.length} organizations to CSV file!`);
 }
 
 function bulkAnalyze() {
@@ -6738,7 +6996,59 @@ function bulkAnalyze() {
         return;
     }
     
-    alert(`Analyzing ${checkboxes.length} organizations. This will be implemented in Week 2.`);
+    const selectedOrgs = Array.from(checkboxes).map(cb => {
+        const index = parseInt(cb.value);
+        return window.currentDiscoveryResults[index];
+    }).filter(org => org);
+    
+    if (selectedOrgs.length === 0) {
+        alert('No valid organizations selected.');
+        return;
+    }
+    
+    // Generate comparative analysis
+    let analysis = `📊 BULK ANALYSIS REPORT\n`;
+    analysis += `Organizations Analyzed: ${selectedOrgs.length}\n\n`;
+    
+    // Categorize by scores
+    const excellent = selectedOrgs.filter(org => parseInt(org.score) >= 90);
+    const good = selectedOrgs.filter(org => parseInt(org.score) >= 80 && parseInt(org.score) < 90);
+    const moderate = selectedOrgs.filter(org => parseInt(org.score) < 80);
+    
+    analysis += `🏆 EXCELLENT CANDIDATES (90%+): ${excellent.length}\n`;
+    excellent.forEach(org => analysis += `  • ${org.name} (${org.score})\n`);
+    
+    analysis += `\n✅ GOOD CANDIDATES (80-89%): ${good.length}\n`;
+    good.forEach(org => analysis += `  • ${org.name} (${org.score})\n`);
+    
+    analysis += `\n⚠️ MODERATE CANDIDATES (<80%): ${moderate.length}\n`;
+    moderate.forEach(org => analysis += `  • ${org.name} (${org.score})\n`);
+    
+    // Sector analysis
+    const sectors = {};
+    selectedOrgs.forEach(org => {
+        const sector = org.sector || 'Unknown';
+        sectors[sector] = (sectors[sector] || 0) + 1;
+    });
+    
+    analysis += `\n📈 SECTOR BREAKDOWN:\n`;
+    Object.entries(sectors).forEach(([sector, count]) => {
+        analysis += `  • ${sector}: ${count} organizations\n`;
+    });
+    
+    // Recommendations
+    analysis += `\n💡 RECOMMENDATIONS:\n`;
+    if (excellent.length > 0) {
+        analysis += `  • Prioritize ${excellent.length} excellent candidates for immediate contact\n`;
+    }
+    if (good.length > 0) {
+        analysis += `  • Schedule follow-up analysis for ${good.length} good candidates\n`;
+    }
+    if (moderate.length > 0) {
+        analysis += `  • Consider long-term cultivation for ${moderate.length} moderate candidates\n`;
+    }
+    
+    alert(analysis);
 }
 
 function viewDetails(orgName) {
@@ -6779,9 +7089,139 @@ function viewDetails(orgName) {
 }
 
 function addToAIMAPFromModal() {
-    alert('Adding organization to AIMAP. This will be implemented in Week 2.');
-    bootstrap.Modal.getInstance(document.getElementById('organizationDetailsModal')).hide();
+    const modal = bootstrap.Modal.getInstance(document.getElementById('organizationDetailsModal'));
+    if (modal) {
+        modal.hide();
+    }
+    
+    // Get the organization name from the modal
+    const orgName = document.getElementById('organizationDetailsContent')?.dataset?.orgName;
+    if (orgName) {
+        // Use the existing addToAIMAP function
+        addToAIMAP(orgName);
+    } else {
+        alert('Unable to identify organization to add.');
+    }
 }
+
+function loadAIMAPData() {
+    console.log('Loading AIMAP organizations...');
+    
+    fetch('/admin/map/organizations')
+    .then(response => response.json())
+    .then(data => {
+        console.log('AIMAP data received:', data);
+        
+        if (data.organizations) {
+            displayAIMAPOrganizations(data.organizations);
+            updateAIMAPStats(data.organizations);
+        } else {
+            console.error('No organizations data received:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Error loading AIMAP data:', error);
+    });
+}
+
+function displayAIMAPOrganizations(organizations) {
+    const tableBody = document.querySelector('#aimap .table tbody');
+    
+    if (!tableBody) {
+        console.error('AIMAP table body not found');
+        return;
+    }
+    
+    if (organizations.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4">
+                    <i class="bi bi-inbox"></i>
+                    <p class="mt-2">No organizations found. Start by adding your first AIMAP organization.</p>
+                    <button class="btn btn-primary btn-sm" onclick="addNewOrganisation()">
+                        <i class="bi bi-plus-circle"></i> Add Your First Organization
+                    </button>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    organizations.forEach(org => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <strong>${org.name}</strong>
+                <br><small class="text-muted">${org.notes ? org.notes.substring(0, 50) + '...' : 'No description'}</small>
+            </td>
+            <td><span class="badge bg-primary">${org.sector || 'Unknown'}</span></td>
+            <td><span class="badge bg-info">${org.subsector || 'Unknown'}</span></td>
+            <td>${org.region || 'Unknown'}</td>
+            <td>${org.country || 'Unknown'}</td>
+            <td><span class="badge bg-success">${org.size_band || 'Unknown'}</span></td>
+            <td>
+                ${org.tags ? org.tags.split(',').map(tag => `<span class="badge bg-secondary me-1 mb-1">${tag.trim()}</span>`).join('') : ''}
+            </td>
+            <td>
+                ${org.website_url ? `<a href="${org.website_url}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-globe"></i></a>` : ''}
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="viewOrganisation('${org.id}')">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="editOrganisation('${org.id}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteOrganisation('${org.id}', '${org.name}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+    
+    console.log(`Displayed ${organizations.length} organizations in AIMAP table`);
+}
+
+function updateAIMAPStats(organizations) {
+    // Update the stat cards
+    const mediaSector = organizations.filter(org => org.sector === 'Media').length;
+    const communications = organizations.filter(org => org.sector === 'Communications').length;
+    const aiScores = 0; // This would need proper calculation
+    const benchmarks = 0; // This would need proper calculation
+    
+    // Update the numbers in the stat cards (safer selectors)
+    const statCards = document.querySelectorAll('#aimap .row .col-md-3 .h2');
+    if (statCards.length >= 4) {
+        statCards[0].textContent = mediaSector;
+        statCards[1].textContent = communications;
+        statCards[2].textContent = aiScores;
+        statCards[3].textContent = benchmarks;
+    }
+    
+    console.log('Updated AIMAP stats:', { mediaSector, communications, aiScores, benchmarks });
+}
+
+// Initialize AIMAP data when the tab is shown
+document.addEventListener('DOMContentLoaded', function() {
+    // Load AIMAP data when the tab is first shown
+    const aimapTab = document.getElementById('aimap-tab');
+    if (aimapTab) {
+        aimapTab.addEventListener('shown.bs.tab', function() {
+            console.log('AIMAP tab shown, loading data...');
+            loadAIMAPData();
+        });
+        
+        // Also load data if the tab is already active on page load
+        if (aimapTab.classList.contains('active')) {
+            loadAIMAPData();
+        }
+    }
+});
 
 function displayDiscoveryResults(results) {
     const tbody = document.getElementById('discoveryResultsBody');
@@ -6808,7 +7248,9 @@ function displayDiscoveryResults(results) {
                 </td>
                 <td>
                     <strong>${result.name}</strong>
+                    ${result.website ? `<a href="${result.website}" target="_blank" class="btn btn-sm btn-outline-info ms-2"><i class="bi bi-globe"></i></a>` : ''}
                     <br><small class="text-muted">Potential AIMAP candidate</small>
+                    ${result.ai_analysis ? `<br><small class="text-success"><strong>AI Analysis:</strong> ${result.ai_analysis}</small>` : ''}
                 </td>
                 <td><span class="badge bg-info">${result.source}</span></td>
                 <td><span class="badge bg-success">${result.score}</span></td>

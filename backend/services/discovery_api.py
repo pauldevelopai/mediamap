@@ -547,6 +547,7 @@ class DiscoveryAPIService:
                 sample_orgs = self._get_sample_organizations(keywords, sector)
                 all_organizations.extend(sample_orgs)
                 scan_results['sources_scanned'].append('Sample Data')
+                logger.info(f"Added {len(sample_orgs)} sample organizations")
             else:
                 # Scan News API
                 if 'news' in sources:
@@ -664,7 +665,10 @@ class DiscoveryAPIService:
             }
         ]
         
-        # Filter by keywords if provided
+        # For demo purposes, always return sample organizations regardless of keywords
+        logger.info(f"Returning {len(sample_orgs)} sample organizations for demo")
+        
+        # Filter by keywords if provided, but be very liberal
         if keywords:
             keywords_lower = keywords.lower()
             # Split keywords into individual words for more flexible matching
@@ -673,27 +677,30 @@ class DiscoveryAPIService:
             
             for org in sample_orgs:
                 # Check if any keyword word matches in any field
-                org_text = f"{org['name']} {org['description']} {org['ai_signals']}".lower()
+                org_text = f"{org['name']} {org['description']} {org['ai_signals']} {org['sector']}".lower()
                 
-                # If any keyword word is found in the organization text, include it
-                if any(word in org_text for word in keyword_words if len(word) > 2):
+                # Very liberal matching - if any keyword word is found, include it
+                if any(word in org_text for word in keyword_words if len(word) > 1):
                     filtered_orgs.append(org)
                 # Also include if the full keyword phrase is found
                 elif keywords_lower in org_text:
                     filtered_orgs.append(org)
-                # For AI-related searches, also check for AI synonyms
-                elif any(ai_word in keywords_lower for ai_word in ['ai', 'artificial intelligence', 'machine learning', 'automation']):
-                    if any(ai_synonym in org_text for ai_synonym in ['ai', 'artificial intelligence', 'machine learning', 'automation', 'digital transformation']):
+                # For AI, tech, media related searches, include relevant orgs
+                elif any(term in keywords_lower for term in ['ai', 'tech', 'media', 'news', 'digital', 'innovation']):
+                    if any(term in org_text for term in ['ai', 'tech', 'media', 'news', 'digital', 'innovation']):
                         filtered_orgs.append(org)
             
-            # If no matches found with keywords, return all sample orgs (for demo purposes)
-            if not filtered_orgs:
-                # For demo purposes, always return some organizations
-                return sample_orgs[:5]
-            
-            return filtered_orgs[:10]  # Return up to 10 matches
+            # If we found matches, return them
+            if filtered_orgs:
+                logger.info(f"Filtered to {len(filtered_orgs)} organizations based on keywords")
+                return filtered_orgs
+            else:
+                # For demo purposes, if no matches, return all sample orgs anyway
+                logger.info("No keyword matches, returning all sample orgs for demo")
+                return sample_orgs
         
-        return sample_orgs[:10]
+        # If no keywords provided, return all sample orgs
+        return sample_orgs
     
     def _remove_duplicates(self, organizations: List[Dict]) -> List[Dict]:
         """Remove duplicate organizations based on name similarity"""
