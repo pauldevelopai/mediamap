@@ -43,9 +43,10 @@
 }
 
 .chat-sidebar {
-    flex: 1;
+    flex: 0 0 300px; /* Fixed width instead of flex: 1 */
     background: #f8f9fa;
     padding: 20px;
+    min-width: 300px; /* Ensure minimum width */
 }
 
 .chat-messages {
@@ -264,6 +265,13 @@
                     </button>
                 </div>
                 
+                <!-- Process Data Button -->
+                <div class="mb-3">
+                    <button class="btn btn-success w-100" onclick="processChatData()" title="Extract insights from chat data and populate database">
+                        <i class="bi bi-gear me-2"></i>Process & Extract Data
+                    </button>
+                </div>
+                
                 <!-- Input Form -->
                 <form id="chatForm" onsubmit="sendMessage(event)">
                     <div class="chat-input-group">
@@ -312,15 +320,59 @@
             
             <!-- Actions -->
             <div class="mt-4">
+                <h6><i class="bi bi-tools me-2"></i>Actions</h6>
                 <button class="btn btn-outline-primary btn-sm w-100 mb-2" onclick="exportChats()">
                     <i class="bi bi-download me-2"></i>Export Chats
-                </button>
-                <button class="btn btn-outline-success btn-sm w-100 mb-2" onclick="processChatData()">
-                    <i class="bi bi-gear me-2"></i>Process Data
                 </button>
                 <button class="btn btn-outline-info btn-sm w-100" onclick="clearChat()">
                     <i class="bi bi-trash me-2"></i>Clear Chat
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Changes Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approvalModalLabel">
+                    <i class="bi bi-check-circle me-2"></i>Review Database Changes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Analysis Complete!</strong> Review the proposed database changes below and select which ones to apply.
+                </div>
+                
+                <div id="changesSummary" class="mb-3">
+                    <!-- Summary will be populated here -->
+                </div>
+                
+                <div id="changesList">
+                    <!-- Changes will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary" onclick="selectAllChanges()">
+                            <i class="bi bi-check-all me-1"></i>Select All
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="deselectAllChanges()">
+                            <i class="bi bi-x-square me-1"></i>Deselect All
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" onclick="applyApprovedChanges()">
+                            <i class="bi bi-check-circle me-2"></i>Apply Selected Changes
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -513,6 +565,12 @@ function exportChats() {
 
 // Process chat data
 function processChatData() {
+    // Show processing indicator
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
+    button.disabled = true;
+    
     fetch('/admin/map/highlander/process', {
         method: 'POST',
         headers: {
@@ -526,12 +584,193 @@ function processChatData() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`Processed ${data.processed_chats} chats successfully!`);
+            // Show the approval modal with proposed changes
+            showApprovalModal(data);
         } else {
-            alert('Error processing chat data: ' + (data.error || 'Unknown error'));
+            alert('❌ Error processing chat data: ' + (data.error || 'Unknown error'));
         }
     })
-    .catch(error => console.error('Error processing chat data:', error));
+    .catch(error => {
+        console.error('Error processing chat data:', error);
+        alert('❌ Error processing chat data: ' + error.message);
+    })
+    .finally(() => {
+        // Restore button
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// Show approval modal with proposed changes
+function showApprovalModal(data) {
+    const summary = data.summary;
+    const changes = data.proposed_changes;
+    
+    // Update summary
+    document.getElementById('changesSummary').innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">${summary.total_proposed}</h5>
+                        <p class="card-text">Total Changes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">${summary.clients}</h5>
+                        <p class="card-text">New Clients</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">${summary.organizations}</h5>
+                        <p class="card-text">New Organizations</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">${summary.insights}</h5>
+                        <p class="card-text">New Insights</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update changes list
+    let changesHtml = '';
+    if (changes.length === 0) {
+        changesHtml = `
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                No new database changes were identified from the chat data.
+            </div>
+        `;
+    } else {
+        changes.forEach((change, index) => {
+            const badgeClass = change.confidence === 'High' ? 'bg-success' : 
+                              change.confidence === 'Medium' ? 'bg-warning' : 'bg-secondary';
+            
+            changesHtml += `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="${change.id}" id="change_${index}" checked>
+                            <label class="form-check-label w-100" for="change_${index}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">${change.description}</h6>
+                                        <p class="text-muted mb-1">${change.source}</p>
+                                        <small class="text-muted">Table: ${change.table} | Action: ${change.action}</small>
+                                    </div>
+                                    <span class="badge ${badgeClass}">${change.confidence}</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    document.getElementById('changesList').innerHTML = changesHtml;
+    
+    // Store the changes data globally for later use
+    window.currentProposedChanges = changes;
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+    modal.show();
+}
+
+// Select all changes
+function selectAllChanges() {
+    const checkboxes = document.querySelectorAll('#changesList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+// Deselect all changes
+function deselectAllChanges() {
+    const checkboxes = document.querySelectorAll('#changesList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+}
+
+// Apply approved changes
+function applyApprovedChanges() {
+    const checkboxes = document.querySelectorAll('#changesList input[type="checkbox"]:checked');
+    const approvedChanges = [];
+    
+    checkboxes.forEach(checkbox => {
+        const changeId = checkbox.value;
+        const change = window.currentProposedChanges.find(c => c.id === changeId);
+        if (change) {
+            approvedChanges.push(change);
+        }
+    });
+    
+    if (approvedChanges.length === 0) {
+        alert('Please select at least one change to apply.');
+        return;
+    }
+    
+    // Show processing indicator
+    const applyButton = event.target;
+    const originalText = applyButton.innerHTML;
+    applyButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Applying...';
+    applyButton.disabled = true;
+    
+    fetch('/admin/map/highlander/apply_changes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            approved_changes: approvedChanges
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            let message = `✅ Changes Applied Successfully!\n\n`;
+            message += `📊 Applied: ${data.total_applied} changes\n`;
+            if (data.applied_changes.length > 0) {
+                message += `\nApplied Changes:\n`;
+                data.applied_changes.forEach(change => {
+                    message += `• ${change}\n`;
+                });
+            }
+            if (data.errors.length > 0) {
+                message += `\n⚠️ Errors: ${data.total_errors}\n`;
+                data.errors.forEach(error => {
+                    message += `• ${error}\n`;
+                });
+            }
+            alert(message);
+            
+            // Close modal and refresh stats
+            bootstrap.Modal.getInstance(document.getElementById('approvalModal')).hide();
+            loadChatStats();
+        } else {
+            alert('❌ Error applying changes: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error applying changes:', error);
+        alert('❌ Error applying changes: ' + error.message);
+    })
+    .finally(() => {
+        // Restore button
+        applyButton.innerHTML = originalText;
+        applyButton.disabled = false;
+    });
 }
 
 // Clear current chat

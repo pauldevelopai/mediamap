@@ -681,6 +681,10 @@ class DiscoveryAPIService:
                 # Also include if the full keyword phrase is found
                 elif keywords_lower in org_text:
                     filtered_orgs.append(org)
+                # For AI-related searches, also check for AI synonyms
+                elif any(ai_word in keywords_lower for ai_word in ['ai', 'artificial intelligence', 'machine learning', 'automation']):
+                    if any(ai_synonym in org_text for ai_synonym in ['ai', 'artificial intelligence', 'machine learning', 'automation', 'digital transformation']):
+                        filtered_orgs.append(org)
             
             # If no matches found with keywords, return all sample orgs (for demo purposes)
             if not filtered_orgs:
