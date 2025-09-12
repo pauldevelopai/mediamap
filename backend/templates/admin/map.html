@@ -7108,19 +7108,29 @@ function loadAIMAPData() {
     console.log('Loading AIMAP organizations...');
     
     fetch('/admin/map/organizations')
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
         console.log('AIMAP data received:', data);
+        console.log('Organizations array:', data.organizations);
+        console.log('Organizations count:', data.organizations ? data.organizations.length : 0);
         
-        if (data.organizations) {
+        if (data.organizations && Array.isArray(data.organizations)) {
             displayAIMAPOrganizations(data.organizations);
             updateAIMAPStats(data.organizations);
+        } else if (data.error) {
+            console.error('API error:', data.error);
+            alert('Error loading organizations: ' + data.error);
         } else {
             console.error('No organizations data received:', data);
+            displayAIMAPOrganizations([]); // Show empty state
         }
     })
     .catch(error => {
         console.error('Error loading AIMAP data:', error);
+        alert('Network error loading organizations: ' + error.message);
     });
 }
 

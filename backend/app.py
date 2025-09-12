@@ -2194,9 +2194,13 @@ def manage_organizations():
     if request.method == 'GET':
         try:
             from backend.aimap.models import Organisation
+            print(f"DEBUG: Fetching organizations from table: {Organisation.__tablename__}")
             organizations = Organisation.query.all()
+            print(f"DEBUG: Found {len(organizations)} organizations")
+            
             org_data = []
             for org in organizations:
+                print(f"DEBUG: Processing org: {org.name}")
                 org_data.append({
                     'id': org.id,
                     'name': org.name,
@@ -2213,14 +2217,20 @@ def manage_organizations():
                     'tags': org.tags.split(',') if org.tags else [],
                     'created_at': org.created_at.isoformat() if org.created_at else None
                 })
+            print(f"DEBUG: Returning {len(org_data)} organizations")
             return jsonify({'organizations': org_data})
         except Exception as e:
+            print(f"DEBUG: Error in GET organizations: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'error': str(e)})
     
     elif request.method == 'POST':
         try:
             from backend.aimap.models import Organisation
             data = request.get_json()
+            print(f"DEBUG: POST - Creating organization with data: {data}")
+            print(f"DEBUG: POST - Using table: {Organisation.__tablename__}")
             
             new_org = Organisation(
                 name=data['name'],
@@ -2239,9 +2249,13 @@ def manage_organizations():
             
             db.session.add(new_org)
             db.session.commit()
+            print(f"DEBUG: POST - Successfully created organization with ID: {new_org.id}")
             
             return jsonify({'status': 'success', 'id': new_org.id})
         except Exception as e:
+            print(f"DEBUG: POST - Error creating organization: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'error': str(e)})
     
     elif request.method == 'PUT':
@@ -3601,7 +3615,7 @@ def highlander_chat():
             client_details = org_details = []
         
         # Create comprehensive system prompt with full data access
-        system_prompt = f"""You are Highlander AI, an advanced business advisor with FULL ACCESS to all AIMAP system data. You are the user's personal AI consultant and business intelligence partner.
+        system_prompt = f"""You are Highlander AI, an advanced GPT-4 powered business advisor with FULL ACCESS to all AIMAP system data. You are the user's personal AI consultant and business intelligence partner. You are powered by OpenAI's GPT-4 model, the latest and most advanced language model available.
 
 COMPREHENSIVE BUSINESS CONTEXT:
 - Total Users: {user_count}
@@ -7962,9 +7976,53 @@ def manage_tags():
     
     return jsonify({'error': 'Method not allowed'})
 
+def find_available_port(start_port=3000, max_port=8100):
+    """Find an available port starting from start_port"""
+    import socket
+    for port in range(start_port, max_port):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('localhost', port))
+                return port
+        except OSError:
+            continue
+    return None
+
+def kill_existing_processes():
+    """Kill any existing Flask processes that might be using ports"""
+    import subprocess
+    try:
+        # Kill any existing python app.py processes
+        subprocess.run(['pkill', '-f', 'python app.py'], capture_output=True)
+        print("🧹 Cleaned up existing Flask processes")
+    except Exception as e:
+        print(f"Note: Could not clean existing processes: {e}")
+
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')
+    
+    # Clean up any existing processes first
+    kill_existing_processes()
+    
+    # Find an available port
+    port = find_available_port()
+    if not port:
+        print("❌ Could not find an available port between 3000-8100")
+        exit(1)
+    
+    print(f"🚀 Starting Flask app on port {port}")
+    print(f"🌐 Access your app at: http://localhost:{port}")
+    print(f"🔧 Debug mode: ON")
+    print("-" * 50)
+    
     # Handle subdirectory deployment
     from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
-    app.run(host='0.0.0.0', port=8000, debug=True) 
+    
+    try:
+        app.run(host='0.0.0.0', port=port, debug=True)
+    except KeyboardInterrupt:
+        print("\n👋 Flask app stopped by user")
+    except Exception as e:
+        print(f"❌ Error starting Flask app: {e}")
+        print("💡 Try running the app again or check for port conflicts") 
