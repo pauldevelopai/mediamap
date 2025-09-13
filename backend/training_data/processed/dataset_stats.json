@@ -1,10 +1,10 @@
 {
-  "total_examples": 73,
-  "total_tokens": 28262,
+  "total_examples": 54,
+  "total_tokens": 27134,
   "sources": {
     "user_conversations": 0,
     "pdf_documents": 54,
-    "datasafe_threats": 19
+    "datasafe_threats": 0
   },
-  "created_at": "2025-08-15T16:35:02.625256"
+  "created_at": "2025-09-13T13:20:06.047688"
 }

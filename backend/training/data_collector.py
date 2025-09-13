@@ -29,7 +29,7 @@ class DataCollector:
     """Comprehensive data collection system for AI model training"""
     
     def __init__(self, 
-                 db_path: str = "../instance/media_analysis.db",
+                 db_path: str = "instance/media_analysis.db",
                  data_dir: str = "../data",
                  output_dir: str = "./training_data"):
         self.db_path = db_path
@@ -86,10 +86,93 @@ class DataCollector:
             
             # Check if tables exist first
             inspector = inspect(engine)
-            if 'chats' not in inspector.get_table_names():
-                logger.info("No chats table found - no conversations to collect")
+            table_names = inspector.get_table_names()
+            
+            # Collect from both regular chats and Highlander chats
+            conversations_collected = 0
+            
+            # Collect Highlander chats (current active data)
+            if 'highlander_chat' in table_names:
+                conversations_collected += self._collect_highlander_chats(engine)
+            
+            # Collect regular chats (if any)
+            if 'chats' in table_names:
+                conversations_collected += self._collect_regular_chats(engine)
+            
+            if conversations_collected == 0:
+                logger.info("No chat tables found - no conversations to collect")
+                
+            return conversations_collected
+            
+        except Exception as e:
+            logger.error(f"Error collecting conversations: {e}")
+            return 0
+    
+    def _collect_highlander_chats(self, engine) -> int:
+        """Collect Highlander AI chat conversations"""
+        logger.info("Collecting Highlander chats...")
+        
+        try:
+            query = """
+            SELECT 
+                h.id,
+                h.user_id,
+                h.session_id,
+                h.message as user_message,
+                h.response as ai_response,
+                h.context,
+                h.category,
+                h.created_at,
+                u.username
+            FROM highlander_chat h
+            LEFT JOIN users u ON h.user_id = u.id
+            ORDER BY h.created_at
+            """
+            
+            df = pd.read_sql_query(query, engine)
+            
+            if df.empty:
+                logger.info("No Highlander chats found")
                 return 0
             
+            conversations = []
+            for _, row in df.iterrows():
+                # Create training examples from Highlander conversations
+                conversation = {
+                    'conversation_id': f"highlander_{row['id']}",
+                    'user_id': row['user_id'],
+                    'username': row['username'] or 'anonymous',
+                    'created_at': row['created_at'],
+                    'category': row['category'] or 'AI Consultation',
+                    'messages': [
+                        {'role': 'user', 'content': row['user_message']},
+                        {'role': 'assistant', 'content': row['ai_response']}
+                    ]
+                }
+                
+                # Add context if available
+                if row['context']:
+                    conversation['context'] = row['context']
+                
+                conversations.append(conversation)
+            
+            # Save to conversations directory
+            output_file = self.output_dir / "conversations" / "highlander_conversations.json"
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(conversations, f, indent=2, default=str)
+            
+            logger.info(f"Collected {len(conversations)} Highlander conversations")
+            return len(conversations)
+            
+        except Exception as e:
+            logger.error(f"Error collecting Highlander chats: {e}")
+            return 0
+    
+    def _collect_regular_chats(self, engine) -> int:
+        """Collect regular chat conversations"""
+        logger.info("Collecting regular chats...")
+        
+        try:
             # Get all chats with messages
             query = """
             SELECT 

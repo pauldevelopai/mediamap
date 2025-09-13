@@ -36,3 +36,10 @@ echo "📍 Or restart your terminal"
 
 
 
+
+
+
+
+
+
+

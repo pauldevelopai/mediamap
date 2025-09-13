@@ -1,1 +1,1 @@
-# Training module for custom AI model development 
+# Training module for MediaMap AI
