@@ -1,0 +1,20 @@
+{
+  "id": "http://arxiv.org/abs/2509.09619v1",
+  "title": "Functional Groups are All you Need for Chemically Interpretable\n  Molecular Property Prediction",
+  "summary": "Molecular property prediction using deep learning (DL) models has accelerated\ndrug and materials discovery, but the resulting DL models often lack\ninterpretability, hindering their adoption by chemists. This work proposes\ndeveloping molecule representations using the concept of Functional Groups (FG)\nin chemistry. We introduce the Functional Group Representation (FGR) framework,\na novel approach to encoding molecules based on their fundamental chemical\nsubstructures. Our method integrates two types of functional groups: those\ncurated from established chemical knowledge (FG), and those mined from a large\nmolecular corpus using sequential pattern mining (MFG). The resulting FGR\nframework encodes molecules into a lower-dimensional latent space by leveraging\npre-training on a large dataset of unlabeled molecules. Furthermore, the\nproposed framework allows the inclusion of 2D structure-based descriptors of\nmolecules. We demonstrate that the FGR framework achieves state-of-the-art\nperformance on a diverse range of 33 benchmark datasets spanning physical\nchemistry, biophysics, quantum mechanics, biological activity, and\npharmacokinetics while enabling chemical interpretability. Crucially, the\nmodel's representations are intrinsically aligned with established chemical\nprinciples, allowing chemists to directly link predicted properties to specific\nfunctional groups and facilitating novel insights into structure-property\nrelationships. Our work presents a significant step toward developing\nhigh-performing, chemically interpretable DL models for molecular discovery.",
+  "authors": [
+    "Roshan Balaji",
+    "Joe Bobby",
+    "Nirav Pravinbhai Bhatt"
+  ],
+  "published": "2025-09-11T17:01:31Z",
+  "updated": "2025-09-11T17:01:31Z",
+  "categories": [
+    "cs.LG"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09619v1",
+    "http://arxiv.org/pdf/2509.09619v1"
+  ],
+  "source": "arxiv"
+}

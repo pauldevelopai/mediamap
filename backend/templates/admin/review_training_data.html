@@ -1,0 +1,634 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Review Training Data - MediaMap Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1"><i class="bi bi-search me-2"></i>Review Scraped Data</h1>
+        <p class="text-muted mb-0">Review and approve internet-sourced data for AI model training</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if data.total_items == 0 %}
+        <button id="collect-data-btn" class="btn btn-primary">
+            <i class="bi bi-collection me-1"></i>Collect Data
+        </button>
+        {% else %}
+        <button id="force-recollect-btn" class="btn btn-outline-warning">
+            <i class="bi bi-arrow-clockwise me-1"></i>Force Re-collect
+        </button>
+        {% endif %}
+        <div class="badge bg-info fs-6">{{ data.total_items }} Items Found</div>
+    </div>
+</div>
+
+<!-- Collection Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Collection Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <div class="text-center p-3 bg-primary text-white rounded">
+                            <h4 class="mb-1">{{ data.arxiv_papers|length }}</h4>
+                            <small>arXiv Papers</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center p-3 bg-success text-white rounded">
+                            <h4 class="mb-1">{{ data.industry_content|length }}</h4>
+                            <small>Industry Content</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center p-3 bg-warning text-dark rounded">
+                            <h4 class="mb-1">{{ data.public_datasets|length }}</h4>
+                            <small>Public Datasets</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center p-3 bg-info text-white rounded">
+                            <h4 class="mb-1">{{ data.news_articles|length }}</h4>
+                            <small>News Articles</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center p-3 bg-secondary text-white rounded">
+                            <h4 class="mb-1">{{ data.technical_docs|length }}</h4>
+                            <small>Tech Docs</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center p-3 bg-dark text-white rounded">
+                            <h4 class="mb-1" id="approved-count">0</h4>
+                            <small>Approved</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- No Data Message -->
+{% if data.total_items == 0 %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">No Data Found</h4>
+                <p class="text-muted mb-4">Click "Collect Data" to scrape internet sources and gather training data for review.</p>
+                <button id="collect-data-btn-main" class="btn btn-primary btn-lg">
+                    <i class="bi bi-collection me-2"></i>Collect Data from Internet Sources
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Data Review Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="dataTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="arxiv-tab" data-bs-toggle="tab" data-bs-target="#arxiv" type="button" role="tab">
+                            <i class="bi bi-file-earmark-text me-1"></i>arXiv Papers ({{ data.arxiv_papers|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="industry-tab" data-bs-toggle="tab" data-bs-target="#industry" type="button" role="tab">
+                            <i class="bi bi-newspaper me-1"></i>Industry Content ({{ data.industry_content|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="datasets-tab" data-bs-toggle="tab" data-bs-target="#datasets" type="button" role="tab">
+                            <i class="bi bi-collection me-1"></i>Datasets ({{ data.public_datasets|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">
+                            <i class="bi bi-rss me-1"></i>News ({{ data.news_articles|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs" type="button" role="tab">
+                            <i class="bi bi-book me-1"></i>Tech Docs ({{ data.technical_docs|length }})
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="dataTabsContent">
+                    <!-- arXiv Papers Tab -->
+                    <div class="tab-pane fade show active" id="arxiv" role="tabpanel">
+                        <div class="row g-3">
+                            {% for paper in data.arxiv_papers %}
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-{% if paper.approved %}success{% else %}light{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ paper.title[:80] }}{% if paper.title|length > 80 %}...{% endif %}</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input approval-switch" type="checkbox" 
+                                                   data-item-id="{{ paper.id or paper.title }}" 
+                                                   data-item-type="arxiv_papers"
+                                                   {% if paper.approved %}checked{% endif %}>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-2">
+                                            <strong>Authors:</strong> {{ paper.authors|join(', ')[:100] }}{% if paper.authors|join(', ')|length > 100 %}...{% endif %}
+                                        </p>
+                                        <p class="small mb-2">{{ paper.summary[:200] }}{% if paper.summary|length > 200 %}...{% endif %}</p>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar me-1"></i>{{ paper.published[:10] if paper.published else 'N/A' }}
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-tags me-1"></i>{{ paper.categories|join(', ')[:30] }}{% if paper.categories|join(', ')|length > 30 %}...{% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if paper.pdf_url %}
+                                        <div class="mt-2">
+                                            <a href="{{ paper.pdf_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-file-pdf me-1"></i>View PDF
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <textarea class="form-control form-control-sm review-notes" 
+                                                      placeholder="Add review notes..." 
+                                                      data-item-id="{{ paper.id or paper.title }}"
+                                                      data-item-type="arxiv_papers">{{ paper.review_notes }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Industry Content Tab -->
+                    <div class="tab-pane fade" id="industry" role="tabpanel">
+                        <div class="row g-3">
+                            {% for item in data.industry_content %}
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-{% if item.approved %}success{% else %}light{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ item.title[:80] }}{% if item.title|length > 80 %}...{% endif %}</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input approval-switch" type="checkbox" 
+                                                   data-item-id="{{ item.title }}" 
+                                                   data-item-type="industry_content"
+                                                   {% if item.approved %}checked{% endif %}>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-2">
+                                            <strong>Source:</strong> {{ item.source }}
+                                        </p>
+                                        <p class="small mb-2">{{ item.summary[:200] }}{% if item.summary|length > 200 %}...{% endif %}</p>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar me-1"></i>{{ item.published[:10] if item.published else 'N/A' }}
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-tag me-1"></i>{{ item.type }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if item.url %}
+                                        <div class="mt-2">
+                                            <a href="{{ item.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>View Article
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <textarea class="form-control form-control-sm review-notes" 
+                                                      placeholder="Add review notes..." 
+                                                      data-item-id="{{ item.title }}"
+                                                      data-item-type="industry_content">{{ item.review_notes }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Public Datasets Tab -->
+                    <div class="tab-pane fade" id="datasets" role="tabpanel">
+                        <div class="row g-3">
+                            {% for dataset in data.public_datasets %}
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-{% if dataset.approved %}success{% else %}light{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ dataset.name }}</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input approval-switch" type="checkbox" 
+                                                   data-item-id="{{ dataset.name }}" 
+                                                   data-item-type="public_datasets"
+                                                   {% if dataset.approved %}checked{% endif %}>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-2">
+                                            <strong>Source:</strong> {{ dataset.source }}
+                                        </p>
+                                        <p class="small mb-2">{{ dataset.description }}</p>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-hdd me-1"></i>{{ dataset.size }}
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-tag me-1"></i>{{ dataset.type }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if dataset.url %}
+                                        <div class="mt-2">
+                                            <a href="{{ dataset.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>View Dataset
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <textarea class="form-control form-control-sm review-notes" 
+                                                      placeholder="Add review notes..." 
+                                                      data-item-id="{{ dataset.name }}"
+                                                      data-item-type="public_datasets">{{ dataset.review_notes }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- News Articles Tab -->
+                    <div class="tab-pane fade" id="news" role="tabpanel">
+                        <div class="row g-3">
+                            {% for article in data.news_articles %}
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-{% if article.approved %}success{% else %}light{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ article.title[:80] }}{% if article.title|length > 80 %}...{% endif %}</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input approval-switch" type="checkbox" 
+                                                   data-item-id="{{ article.title }}" 
+                                                   data-item-type="news_articles"
+                                                   {% if article.approved %}checked{% endif %}>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-2">
+                                            <strong>Source:</strong> {{ article.source }}
+                                        </p>
+                                        <p class="small mb-2">{{ article.summary[:200] }}{% if article.summary|length > 200 %}...{% endif %}</p>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar me-1"></i>{{ article.published[:10] if article.published else 'N/A' }}
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-tag me-1"></i>{{ article.type }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if article.url %}
+                                        <div class="mt-2">
+                                            <a href="{{ article.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>Read Article
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <textarea class="form-control form-control-sm review-notes" 
+                                                      placeholder="Add review notes..." 
+                                                      data-item-id="{{ article.title }}"
+                                                      data-item-type="news_articles">{{ article.review_notes }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Technical Docs Tab -->
+                    <div class="tab-pane fade" id="docs" role="tabpanel">
+                        <div class="row g-3">
+                            {% for doc in data.technical_docs %}
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-{% if doc.approved %}success{% else %}light{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ doc.name }}</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input approval-switch" type="checkbox" 
+                                                   data-item-id="{{ doc.name }}" 
+                                                   data-item-type="technical_docs"
+                                                   {% if doc.approved %}checked{% endif %}>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-2">
+                                            <strong>Source:</strong> {{ doc.source }}
+                                        </p>
+                                        <p class="small mb-2">{{ doc.description }}</p>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-tag me-1"></i>{{ doc.type }}
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-folder me-1"></i>{{ doc.category }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% if doc.url %}
+                                        <div class="mt-2">
+                                            <a href="{{ doc.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>View Docs
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <textarea class="form-control form-control-sm review-notes" 
+                                                      placeholder="Add review notes..." 
+                                                      data-item-id="{{ doc.name }}"
+                                                      data-item-type="technical_docs">{{ doc.review_notes }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="mb-3">Review Complete</h5>
+                <p class="text-muted mb-3">Once you've reviewed all items, you can proceed with training using only the approved data.</p>
+                <div class="btn-group" role="group">
+                    <button id="save-approvals-btn" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Save Approvals
+                    </button>
+                    <button id="export-approved-btn" class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i>Export Approved Data
+                    </button>
+                    <a href="{{ url_for('admin_training') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Training
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Collect Data Button
+    const collectDataBtn = document.getElementById('collect-data-btn') || document.getElementById('collect-data-btn-main');
+    if (collectDataBtn) {
+        collectDataBtn.addEventListener('click', async function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Collecting Data...';
+            
+            try {
+                const response = await fetch('/admin/training/collect-detailed-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.from_cache) {
+                        alert('Using existing data: ' + result.message);
+                    } else {
+                        alert('New data collected: ' + result.message);
+                    }
+                    // Reload the page to show the data
+                    window.location.reload();
+                } else {
+                    alert('Error collecting data: ' + result.error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (error) {
+                alert('Error collecting data: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+    }
+    
+    // Force Re-collect Button
+    const forceRecollectBtn = document.getElementById('force-recollect-btn');
+    if (forceRecollectBtn) {
+        forceRecollectBtn.addEventListener('click', async function() {
+            if (!confirm('This will delete existing data and collect fresh data. Continue?')) {
+                return;
+            }
+            
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>Re-collecting...';
+            
+            try {
+                // First delete existing data file
+                const response = await fetch('/admin/training/force-recollect-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Fresh data collected: ' + result.message);
+                    window.location.reload();
+                } else {
+                    alert('Error re-collecting data: ' + result.error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (error) {
+                alert('Error re-collecting data: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+    }
+    
+    // Update approved count
+    function updateApprovedCount() {
+        const approvedItems = document.querySelectorAll('.approval-switch:checked').length;
+        const approvedCountEl = document.getElementById('approved-count');
+        if (approvedCountEl) {
+            approvedCountEl.textContent = approvedItems;
+        }
+    }
+    
+    // Handle approval switches
+    document.querySelectorAll('.approval-switch').forEach(switchEl => {
+        switchEl.addEventListener('change', function() {
+            const itemId = this.dataset.itemId;
+            const itemType = this.dataset.itemType;
+            const approved = this.checked;
+            
+            // Update card border
+            const card = this.closest('.card');
+            if (approved) {
+                card.classList.remove('border-light');
+                card.classList.add('border-success');
+            } else {
+                card.classList.remove('border-success');
+                card.classList.add('border-light');
+            }
+            
+            updateApprovedCount();
+        });
+    });
+    
+    // Handle review notes
+    document.querySelectorAll('.review-notes').forEach(textarea => {
+        textarea.addEventListener('blur', function() {
+            const itemId = this.dataset.itemId;
+            const itemType = this.dataset.itemType;
+            const notes = this.value;
+            
+            // Save notes (could be done via AJAX if needed)
+            console.log(`Notes for ${itemId} (${itemType}): ${notes}`);
+        });
+    });
+    
+    // Save approvals
+    document.getElementById('save-approvals-btn').addEventListener('click', async function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Saving...';
+        
+        try {
+            // Collect all approvals
+            const approvals = [];
+            document.querySelectorAll('.approval-switch').forEach(switchEl => {
+                const itemId = switchEl.dataset.itemId;
+                const itemType = switchEl.dataset.itemType;
+                const approved = switchEl.checked;
+                
+                // Get review notes
+                const notesEl = document.querySelector(`.review-notes[data-item-id="${itemId}"][data-item-type="${itemType}"]`);
+                const notes = notesEl ? notesEl.value : '';
+                
+                approvals.push({
+                    item_id: itemId,
+                    item_type: itemType,
+                    approved: approved,
+                    review_notes: notes
+                });
+            });
+            
+            // Save approvals
+            for (const approval of approvals) {
+                await fetch('/admin/training/approve-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(approval)
+                });
+            }
+            
+            // Show success message
+            const approvedCount = approvals.filter(a => a.approved).length;
+            alert(`Successfully saved ${approvedCount} approved items!`);
+            
+        } catch (error) {
+            alert('Error saving approvals: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+    
+    // Export approved data
+    document.getElementById('export-approved-btn').addEventListener('click', function() {
+        const approvedItems = [];
+        
+        document.querySelectorAll('.approval-switch:checked').forEach(switchEl => {
+            const itemId = switchEl.dataset.itemId;
+            const itemType = switchEl.dataset.itemType;
+            
+            // Get review notes
+            const notesEl = document.querySelector(`.review-notes[data-item-id="${itemId}"][data-item-type="${itemType}"]`);
+            const notes = notesEl ? notesEl.value : '';
+            
+            approvedItems.push({
+                item_id: itemId,
+                item_type: itemType,
+                review_notes: notes
+            });
+        });
+        
+        if (approvedItems.length === 0) {
+            alert('No items have been approved yet!');
+            return;
+        }
+        
+        // Create and download JSON file
+        const dataStr = JSON.stringify(approvedItems, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'approved_training_data.json';
+        link.click();
+        URL.revokeObjectURL(url);
+    });
+    
+    // Initial count update
+    updateApprovedCount();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,31 @@
+{
+  "id": "http://arxiv.org/abs/2509.09666v1",
+  "title": "Can Understanding and Generation Truly Benefit Together -- or Just\n  Coexist?",
+  "summary": "In this paper, we introduce an insightful paradigm through the Auto-Encoder\nlens-understanding as the encoder (I2T) that compresses images into text, and\ngeneration as the decoder (T2I) that reconstructs images from that text. Using\nreconstruction fidelity as the unified training objective, we enforce the\ncoherent bidirectional information flow between the understanding and\ngeneration processes, bringing mutual gains. To implement this, we propose UAE,\na novel framework for unified multimodal learning. We begin by pre-training the\ndecoder with large-scale long-context image captions to capture fine-grained\nsemantic and complex spatial relationships. We then propose Unified-GRPO via\nreinforcement learning (RL), which covers three stages: (1) A cold-start phase\nto gently initialize both encoder and decoder with a semantic reconstruction\nloss; (2) Generation for Understanding, where the encoder is trained to\ngenerate informative captions that maximize the decoder's reconstruction\nquality, enhancing its visual understanding; (3) Understanding for Generation,\nwhere the decoder is refined to reconstruct from these captions, forcing it to\nleverage every detail and improving its long-context instruction following and\ngeneration fidelity. For evaluation, we introduce Unified-Bench, the first\nbenchmark tailored to assess the degree of unification of the UMMs. A\nsurprising \"aha moment\" arises within the multimodal learning domain: as RL\nprogresses, the encoder autonomously produces more descriptive captions, while\nthe decoder simultaneously demonstrates a profound ability to understand these\nintricate descriptions, resulting in reconstructions of striking fidelity.",
+  "authors": [
+    "Zhiyuan Yan",
+    "Kaiqing Lin",
+    "Zongjian Li",
+    "Junyan Ye",
+    "Hui Han",
+    "Zhendong Wang",
+    "Hao Liu",
+    "Bin Lin",
+    "Hao Li",
+    "Xue Xu",
+    "Xinyan Xiao",
+    "Jingdong Wang",
+    "Haifeng Wang",
+    "Li Yuan"
+  ],
+  "published": "2025-09-11T17:57:59Z",
+  "updated": "2025-09-11T17:57:59Z",
+  "categories": [
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09666v1",
+    "http://arxiv.org/pdf/2509.09666v1"
+  ],
+  "source": "arxiv"
+}

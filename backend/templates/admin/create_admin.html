@@ -1,40 +1,123 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Create Admin User | DataSafe Admin{% endblock %}
+{% block title %}Create Users | DataSafe Admin{% endblock %}
 
-{% block header %}Create Admin User{% endblock %}
+{% block header %}Create Users{% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-6 mx-auto">
+    <!-- Admin User Creation -->
+    <div class="col-lg-6">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold">Create New Admin User</h6>
+            <div class="card-header py-3 bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-shield-check me-2"></i>Create Admin User
+                </h6>
             </div>
             <div class="card-body">
+                <p class="text-muted mb-3">Admin users have full system access and can manage all features.</p>
                 <form method="post" action="{{ url_for('create_admin') }}">
+                    <input type="hidden" name="user_type" value="admin">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label for="admin_username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="admin_username" name="username" required>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <label for="admin_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="admin_email" name="email" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <label for="admin_password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="admin_password" name="password" required>
                         <div class="form-text">Password should be at least 8 characters long.</div>
                     </div>
-                    <div class="d-grid gap-2">
+                    <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-person-plus"></i> Create Admin User
+                            <i class="bi bi-shield-check"></i> Create Admin User
                         </button>
-                        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Back to Users
-                        </a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Regular User Creation -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-success text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-person me-2"></i>Create Regular User
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Regular users have standard access to the application features.</p>
+                <form method="post" action="{{ url_for('create_admin') }}">
+                    <input type="hidden" name="user_type" value="regular">
+                    <div class="mb-3">
+                        <label for="regular_username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="regular_username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="regular_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="regular_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="regular_password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="regular_password" name="password" required>
+                        <div class="form-text">Password should be at least 8 characters long.</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-person"></i> Create Regular User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="row">
+    <div class="col-12">
+        <div class="text-center">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Users
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- User Type Comparison -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">User Type Comparison</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="bi bi-shield-check me-2"></i>Admin Users</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Full admin dashboard access</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>User management</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>AI training data collection</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Business map and analytics</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>System configuration</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success"><i class="bi bi-person me-2"></i>Regular Users</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i>User dashboard access</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>AI chat features</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Company info and strategies</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i>Personal data access</li>
+                            <li><i class="bi bi-x-circle text-muted me-2"></i>No admin privileges</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

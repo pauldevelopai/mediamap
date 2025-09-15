@@ -1,0 +1,10 @@
+{
+  "name": "Wikipedia",
+  "description": "Complete Wikipedia dump for training and fine-tuning",
+  "url": "https://dumps.wikimedia.org/",
+  "size": "20GB+",
+  "type": "encyclopedia",
+  "use_case": "knowledge_training",
+  "collected_at": "2025-09-13T18:02:26.264217",
+  "source": "public_datasets"
+}

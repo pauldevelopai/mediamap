@@ -1,0 +1,20 @@
+{
+  "id": "http://arxiv.org/abs/2509.09613v1",
+  "title": "MOFU: Development of a MOrphing Fluffy Unit with Expansion and\n  Contraction Capabilities and Evaluation of the Animacy of Its Movements",
+  "summary": "Robots for therapy and social interaction are often intended to evoke\n\"animacy\" in humans. While many robots imitate appearance and joint movements,\nlittle attention has been given to whole-body expansion-contraction,\nvolume-changing movements observed in living organisms, and their effect on\nanimacy perception. We developed a mobile robot called \"MOFU (Morphing Fluffy\nUnit),\" capable of whole-body expansion-contraction with a single motor and\ncovered with a fluffy exterior. MOFU employs a \"Jitterbug\" structure, a\ngeometric transformation mechanism that enables smooth volume change in\ndiameter from 210 to 280 mm using one actuator. It is also equipped with a\ndifferential two-wheel drive mechanism for locomotion. To evaluate the effect\nof expansion-contraction movements, we conducted an online survey using videos\nof MOFU's behavior. Participants rated impressions with the Godspeed\nQuestionnaire Series. First, we compared videos of MOFU in a stationary state\nwith and without expansion-contraction and turning, finding that\nexpansion-contraction significantly increased perceived animacy. Second, we\nhypothesized that presenting two MOFUs would increase animacy compared with a\nsingle robot; however, this was not supported, as no significant difference\nemerged. Exploratory analyses further compared four dual-robot motion\nconditions. Third, when expansion-contraction was combined with locomotion,\nanimacy ratings were higher than locomotion alone. These results suggest that\nvolume-changing movements such as expansion and contraction enhance perceived\nanimacy in robots and should be considered an important design element in\nfuture robot development aimed at shaping human impressions.",
+  "authors": [
+    "Taisei Mogi",
+    "Mari Saito",
+    "Yoshihiro Nakata"
+  ],
+  "published": "2025-09-11T16:55:00Z",
+  "updated": "2025-09-11T16:55:00Z",
+  "categories": [
+    "cs.RO"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09613v1",
+    "http://arxiv.org/pdf/2509.09613v1"
+  ],
+  "source": "arxiv"
+}

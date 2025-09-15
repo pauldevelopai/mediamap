@@ -1,0 +1,28 @@
+{
+  "id": "http://arxiv.org/abs/2509.09680v1",
+  "title": "FLUX-Reason-6M & PRISM-Bench: A Million-Scale Text-to-Image Reasoning\n  Dataset and Comprehensive Benchmark",
+  "summary": "The advancement of open-source text-to-image (T2I) models has been hindered\nby the absence of large-scale, reasoning-focused datasets and comprehensive\nevaluation benchmarks, resulting in a performance gap compared to leading\nclosed-source systems. To address this challenge, We introduce FLUX-Reason-6M\nand PRISM-Bench (Precise and Robust Image Synthesis Measurement Benchmark).\nFLUX-Reason-6M is a massive dataset consisting of 6 million high-quality\nFLUX-generated images and 20 million bilingual (English and Chinese)\ndescriptions specifically designed to teach complex reasoning. The image are\norganized according to six key characteristics: Imagination, Entity, Text\nrendering, Style, Affection, and Composition, and design explicit Generation\nChain-of-Thought (GCoT) to provide detailed breakdowns of image generation\nsteps. The whole data curation takes 15,000 A100 GPU days, providing the\ncommunity with a resource previously unattainable outside of large industrial\nlabs. PRISM-Bench offers a novel evaluation standard with seven distinct\ntracks, including a formidable Long Text challenge using GCoT. Through\ncarefully designed prompts, it utilizes advanced vision-language models for\nnuanced human-aligned assessment of prompt-image alignment and image\naesthetics. Our extensive evaluation of 19 leading models on PRISM-Bench\nreveals critical performance gaps and highlights specific areas requiring\nimprovement. Our dataset, benchmark, and evaluation code are released to\ncatalyze the next wave of reasoning-oriented T2I generation. Project page:\nhttps://flux-reason-6m.github.io/ .",
+  "authors": [
+    "Rongyao Fang",
+    "Aldrich Yu",
+    "Chengqi Duan",
+    "Linjiang Huang",
+    "Shuai Bai",
+    "Yuxuan Cai",
+    "Kun Wang",
+    "Si Liu",
+    "Xihui Liu",
+    "Hongsheng Li"
+  ],
+  "published": "2025-09-11T17:59:59Z",
+  "updated": "2025-09-11T17:59:59Z",
+  "categories": [
+    "cs.CV",
+    "cs.CL"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09680v1",
+    "http://arxiv.org/pdf/2509.09680v1"
+  ],
+  "source": "arxiv"
+}

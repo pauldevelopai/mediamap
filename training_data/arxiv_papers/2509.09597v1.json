@@ -1,0 +1,22 @@
+{
+  "id": "http://arxiv.org/abs/2509.09597v1",
+  "title": "Graph Alignment via Dual-Pass Spectral Encoding and Latent Space\n  Communication",
+  "summary": "Graph alignment-the problem of identifying corresponding nodes across\nmultiple graphs-is fundamental to numerous applications. Most existing\nunsupervised methods embed node features into latent representations to enable\ncross-graph comparison without ground-truth correspondences. However, these\nmethods suffer from two critical limitations: the degradation of node\ndistinctiveness due to oversmoothing in GNN-based embeddings, and the\nmisalignment of latent spaces across graphs caused by structural noise, feature\nheterogeneity, and training instability, ultimately leading to unreliable node\ncorrespondences. We propose a novel graph alignment framework that\nsimultaneously enhances node distinctiveness and enforces geometric consistency\nacross latent spaces. Our approach introduces a dual-pass encoder that combines\nlow-pass and high-pass spectral filters to generate embeddings that are both\nstructure-aware and highly discriminative. To address latent space\nmisalignment, we incorporate a geometry-aware functional map module that learns\nbijective and isometric transformations between graph embeddings, ensuring\nconsistent geometric relationships across different representations. Extensive\nexperiments on graph benchmarks demonstrate that our method consistently\noutperforms existing unsupervised alignment baselines, exhibiting superior\nrobustness to structural inconsistencies and challenging alignment scenarios.\nAdditionally, comprehensive evaluation on vision-language benchmarks using\ndiverse pretrained models shows that our framework effectively generalizes\nbeyond graph domains, enabling unsupervised alignment of vision and language\nrepresentations.",
+  "authors": [
+    "Maysam Behmanesh",
+    "Erkan Turan",
+    "Maks Ovsjanikov"
+  ],
+  "published": "2025-09-11T16:36:16Z",
+  "updated": "2025-09-11T16:36:16Z",
+  "categories": [
+    "cs.LG",
+    "cs.AI",
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09597v1",
+    "http://arxiv.org/pdf/2509.09597v1"
+  ],
+  "source": "arxiv"
+}

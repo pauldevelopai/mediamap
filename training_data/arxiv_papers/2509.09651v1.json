@@ -1,0 +1,24 @@
+{
+  "id": "http://arxiv.org/abs/2509.09651v1",
+  "title": "Retrieval-Augmented Generation for Reliable Interpretation of Radio\n  Regulations",
+  "summary": "We study question answering in the domain of radio regulations, a legally\nsensitive and high-stakes area. We propose a telecom-specific\nRetrieval-Augmented Generation (RAG) pipeline and introduce, to our knowledge,\nthe first multiple-choice evaluation set for this domain, constructed from\nauthoritative sources using automated filtering and human validation. To assess\nretrieval quality, we define a domain-specific retrieval metric, under which\nour retriever achieves approximately 97% accuracy. Beyond retrieval, our\napproach consistently improves generation accuracy across all tested models. In\nparticular, while naively inserting documents without structured retrieval\nyields only marginal gains for GPT-4o (less than 1%), applying our pipeline\nresults in nearly a 12% relative improvement. These findings demonstrate that\ncarefully targeted grounding provides a simple yet strong baseline and an\neffective domain-specific solution for regulatory question answering. All code\nand evaluation scripts, along with our derived question-answer dataset, are\navailable at https://github.com/Zakaria010/Radio-RAG.",
+  "authors": [
+    "Zakaria El Kassimi",
+    "Fares Fourati",
+    "Mohamed-Slim Alouini"
+  ],
+  "published": "2025-09-11T17:43:42Z",
+  "updated": "2025-09-11T17:43:42Z",
+  "categories": [
+    "cs.IR",
+    "cs.AI",
+    "cs.CL",
+    "cs.LG",
+    "eess.SP"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09651v1",
+    "http://arxiv.org/pdf/2509.09651v1"
+  ],
+  "source": "arxiv"
+}

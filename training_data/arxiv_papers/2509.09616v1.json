@@ -1,0 +1,20 @@
+{
+  "id": "http://arxiv.org/abs/2509.09616v1",
+  "title": "Explaining Concept Drift through the Evolution of Group Counterfactuals",
+  "summary": "Machine learning models in dynamic environments often suffer from concept\ndrift, where changes in the data distribution degrade performance. While\ndetecting this drift is a well-studied topic, explaining how and why the\nmodel's decision-making logic changes still remains a significant challenge. In\nthis paper, we introduce a novel methodology to explain concept drift by\nanalyzing the temporal evolution of group-based counterfactual explanations\n(GCEs). Our approach tracks shifts in the GCEs' cluster centroids and their\nassociated counterfactual action vectors before and after a drift. These\nevolving GCEs act as an interpretable proxy, revealing structural changes in\nthe model's decision boundary and its underlying rationale. We operationalize\nthis analysis within a three-layer framework that synergistically combines\ninsights from the data layer (distributional shifts), the model layer\n(prediction disagreement), and our proposed explanation layer. We show that\nsuch holistic view allows for a more comprehensive diagnosis of drift, making\nit possible to distinguish between different root causes, such as a spatial\ndata shift versus a re-labeling of concepts.",
+  "authors": [
+    "Ignacy Stępka",
+    "Jerzy Stefanowski"
+  ],
+  "published": "2025-09-11T16:58:34Z",
+  "updated": "2025-09-11T16:58:34Z",
+  "categories": [
+    "cs.LG",
+    "cs.AI"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09616v1",
+    "http://arxiv.org/pdf/2509.09616v1"
+  ],
+  "source": "arxiv"
+}

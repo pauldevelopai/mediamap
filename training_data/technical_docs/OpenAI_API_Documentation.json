@@ -1,0 +1,13 @@
+{
+  "name": "OpenAI API Documentation",
+  "url": "https://platform.openai.com/docs",
+  "type": "documentation",
+  "topics": [
+    "api",
+    "gpt",
+    "openai"
+  ],
+  "collected_at": "2025-09-13T18:02:34.271947",
+  "source": "technical_docs",
+  "note": "Documentation metadata collected - full content extraction would require web scraping"
+}

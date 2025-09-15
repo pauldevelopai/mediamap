@@ -1,0 +1,25 @@
+{
+  "id": "http://arxiv.org/abs/2509.09610v1",
+  "title": "Mechanistic Learning with Guided Diffusion Models to Predict\n  Spatio-Temporal Brain Tumor Growth",
+  "summary": "Predicting the spatio-temporal progression of brain tumors is essential for\nguiding clinical decisions in neuro-oncology. We propose a hybrid mechanistic\nlearning framework that combines a mathematical tumor growth model with a\nguided denoising diffusion implicit model (DDIM) to synthesize anatomically\nfeasible future MRIs from preceding scans. The mechanistic model, formulated as\na system of ordinary differential equations, captures temporal tumor dynamics\nincluding radiotherapy effects and estimates future tumor burden. These\nestimates condition a gradient-guided DDIM, enabling image synthesis that\naligns with both predicted growth and patient anatomy. We train our model on\nthe BraTS adult and pediatric glioma datasets and evaluate on 60 axial slices\nof in-house longitudinal pediatric diffuse midline glioma (DMG) cases. Our\nframework generates realistic follow-up scans based on spatial similarity\nmetrics. It also introduces tumor growth probability maps, which capture both\nclinically relevant extent and directionality of tumor growth as shown by 95th\npercentile Hausdorff Distance. The method enables biologically informed image\ngeneration in data-limited scenarios, offering generative-space-time\npredictions that account for mechanistic priors.",
+  "authors": [
+    "Daria Laslo",
+    "Efthymios Georgiou",
+    "Marius George Linguraru",
+    "Andreas Rauschecker",
+    "Sabine Muller",
+    "Catherine R. Jutzeler",
+    "Sarah Bruningk"
+  ],
+  "published": "2025-09-11T16:52:09Z",
+  "updated": "2025-09-11T16:52:09Z",
+  "categories": [
+    "cs.CV",
+    "cs.AI"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09610v1",
+    "http://arxiv.org/pdf/2509.09610v1"
+  ],
+  "source": "arxiv"
+}

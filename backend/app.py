@@ -5114,6 +5114,7 @@ def create_admin():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
+        user_type = request.form.get('user_type', 'admin')  # Default to admin for backward compatibility
         
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
@@ -5121,21 +5122,24 @@ def create_admin():
             flash('Username already exists', 'danger')
             return redirect(url_for('create_admin'))
         
-        # Create new admin user
-        new_admin = User(
+        # Create new user (admin or regular)
+        is_admin = (user_type == 'admin')
+        new_user = User(
             username=username,
             email=email,
             password_hash=generate_password_hash(password),
-            is_admin=True
+            is_admin=is_admin
         )
         
-        db.session.add(new_admin)
+        db.session.add(new_user)
         db.session.commit()
         
-        flash(f'Admin user {username} created successfully', 'success')
+        user_type_label = 'Admin' if is_admin else 'Regular'
+        flash(f'{user_type_label} user {username} created successfully', 'success')
         return redirect(url_for('admin_users'))
     
     return render_template('admin/create_admin.html')
+
 
 @app.route('/admin/toggle_admin/<int:user_id>', methods=['POST'])
 @login_required
@@ -6676,15 +6680,20 @@ def real_collect_training_data():
         db_path = os.path.join(basedir, "instance", "media_analysis.db")
         collector = DataCollector(db_path=db_path)
         
-        # Collect all data using the updated collector
-        stats = collector.collect_all_data()
-        
+        # Get request parameters
         include_datasafe = False
+        include_internet_sources = False
         try:
             payload = request.get_json(silent=True)
-            include_datasafe = bool(payload.get('include_datasafe')) if payload else False
+            if payload:
+                include_datasafe = bool(payload.get('include_datasafe'))
+                include_internet_sources = bool(payload.get('include_internet_sources'))
         except Exception:
             include_datasafe = False
+            include_internet_sources = False
+        
+        # Collect all data using the updated collector
+        stats = collector.collect_all_data(include_internet_sources=include_internet_sources)
 
         # Calculate total examples from stats
         total_examples = stats.get('conversations', 0) + stats.get('pdfs', 0) + stats.get('research_papers', 0) + stats.get('feedback_entries', 0)
@@ -6698,6 +6707,225 @@ def real_collect_training_data():
         })
         
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/collect-detailed-data', methods=['POST'])
+@login_required
+@admin_required
+def collect_detailed_training_data():
+    """Collect detailed training data for review and approval"""
+    try:
+        # Initialize enhanced data collector
+        from training.enhanced_data_collector import EnhancedDataCollector
+        collector = EnhancedDataCollector(output_dir=str(Path(__file__).parent / "training_data"))
+        
+        # Check if data already exists
+        if collector.has_existing_data():
+            existing_data = collector.load_existing_review_data()
+            if existing_data:
+                return jsonify({
+                    'success': True,
+                    'message': f'Using existing data: {existing_data["total_items"]} items already collected.',
+                    'data': existing_data,
+                    'from_cache': True
+                })
+        
+        # Collect new detailed data
+        detailed_data = collector.collect_detailed_internet_sources()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully collected {detailed_data["total_items"]} items for review.',
+            'data': detailed_data,
+            'from_cache': False
+        })
+        
+    except Exception as e:
+        print(f"Error collecting detailed training data: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/force-recollect-data', methods=['POST'])
+@login_required
+@admin_required
+def force_recollect_training_data():
+    """Force re-collect training data by deleting existing data first"""
+    try:
+        # Initialize enhanced data collector
+        from training.enhanced_data_collector import EnhancedDataCollector
+        collector = EnhancedDataCollector(output_dir=str(Path(__file__).parent / "training_data"))
+        
+        # Delete existing data file if it exists
+        if collector.review_data_file.exists():
+            collector.review_data_file.unlink()
+            print(f"Deleted existing data file: {collector.review_data_file}")
+        
+        # Collect new detailed data
+        detailed_data = collector.collect_detailed_internet_sources()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully re-collected {detailed_data["total_items"]} fresh items for review.',
+            'data': detailed_data,
+            'from_cache': False
+        })
+        
+    except Exception as e:
+        print(f"Error force re-collecting training data: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/review-data', methods=['GET'])
+@login_required
+@admin_required
+def review_training_data():
+    """Display detailed training data for review"""
+    try:
+        print("Starting review_training_data route...")
+        
+        # Initialize enhanced data collector with error handling
+        try:
+            from training.enhanced_data_collector import EnhancedDataCollector
+            print("EnhancedDataCollector imported successfully")
+            
+            collector = EnhancedDataCollector(output_dir=str(Path(__file__).parent / "training_data"))
+            print(f"Collector initialized with path: {collector.review_data_file}")
+            
+            # Try to load existing data first
+            detailed_data = collector.load_existing_review_data()
+            print(f"Loaded data: {detailed_data is not None}")
+            
+        except Exception as collector_error:
+            print(f"Error with enhanced data collector: {collector_error}")
+            detailed_data = None
+        
+        if detailed_data is None:
+            # If no data exists or collector failed, return empty data structure
+            detailed_data = {
+                'arxiv_papers': [],
+                'industry_content': [],
+                'public_datasets': [],
+                'news_articles': [],
+                'technical_docs': [],
+                'total_items': 0,
+                'collection_timestamp': None
+            }
+            print("Using empty data structure")
+        
+        print("Rendering template...")
+        return render_template('admin/review_training_data.html', data=detailed_data)
+        
+    except Exception as e:
+        print(f"Error loading review data: {e}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading review data', 'danger')
+        return redirect(url_for('admin_training'))
+
+@app.route('/admin/training/approve-data', methods=['POST'])
+@login_required
+@admin_required
+def approve_training_data():
+    """Approve or reject training data items"""
+    try:
+        data = request.get_json()
+        item_id = data.get('item_id')
+        item_type = data.get('item_type')
+        approved = data.get('approved', False)
+        review_notes = data.get('review_notes', '')
+        
+        # Initialize enhanced data collector
+        from training.enhanced_data_collector import EnhancedDataCollector
+        collector = EnhancedDataCollector(output_dir=str(Path(__file__).parent / "training_data"))
+        
+        # Load current review data
+        detailed_data = collector.load_existing_review_data()
+        
+        if detailed_data:
+            # Update the specific item
+            if item_type in detailed_data and isinstance(detailed_data[item_type], list):
+                for item in detailed_data[item_type]:
+                    if item.get('id') == item_id or item.get('title') == item_id:
+                        item['approved'] = approved
+                        item['review_notes'] = review_notes
+                        break
+            
+            # Save updated data
+            try:
+                with open(collector.review_data_file, 'w', encoding='utf-8') as f:
+                    json.dump(detailed_data, f, indent=2, ensure_ascii=False)
+            except Exception as save_error:
+                print(f"Error saving updated data: {save_error}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Failed to save updated data: {save_error}'
+                }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': f'Item {"approved" if approved else "rejected"} successfully'
+        })
+        
+    except Exception as e:
+        print(f"Error approving training data: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/get-approved-data', methods=['GET'])
+@login_required
+@admin_required
+def get_approved_training_data():
+    """Get approved training data for model training"""
+    try:
+        # Initialize enhanced data collector
+        from training.enhanced_data_collector import EnhancedDataCollector
+        collector = EnhancedDataCollector(output_dir=str(Path(__file__).parent / "training_data"))
+        
+        # Load review data
+        detailed_data = collector.load_existing_review_data()
+        
+        if not detailed_data:
+            return jsonify({
+                'success': False,
+                'error': 'No review data found. Please collect and review data first.'
+            }), 404
+        
+        # Filter approved items
+        approved_data = {
+            'arxiv_papers': [item for item in detailed_data.get('arxiv_papers', []) if item.get('approved', False)],
+            'industry_content': [item for item in detailed_data.get('industry_content', []) if item.get('approved', False)],
+            'public_datasets': [item for item in detailed_data.get('public_datasets', []) if item.get('approved', False)],
+            'news_articles': [item for item in detailed_data.get('news_articles', []) if item.get('approved', False)],
+            'technical_docs': [item for item in detailed_data.get('technical_docs', []) if item.get('approved', False)]
+        }
+        
+        # Calculate totals
+        total_approved = sum(len(items) for items in approved_data.values())
+        
+        return jsonify({
+            'success': True,
+            'approved_data': approved_data,
+            'total_approved': total_approved,
+            'summary': {
+                'arxiv_papers': len(approved_data['arxiv_papers']),
+                'industry_content': len(approved_data['industry_content']),
+                'public_datasets': len(approved_data['public_datasets']),
+                'news_articles': len(approved_data['news_articles']),
+                'technical_docs': len(approved_data['technical_docs'])
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting approved training data: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

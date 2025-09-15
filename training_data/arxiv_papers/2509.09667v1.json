@@ -1,0 +1,24 @@
+{
+  "id": "http://arxiv.org/abs/2509.09667v1",
+  "title": "Geometric Neural Distance Fields for Learning Human Motion Priors",
+  "summary": "We introduce Neural Riemannian Motion Fields (NRMF), a novel 3D generative\nhuman motion prior that enables robust, temporally consistent, and physically\nplausible 3D motion recovery. Unlike existing VAE or diffusion-based methods,\nour higher-order motion prior explicitly models the human motion in the zero\nlevel set of a collection of neural distance fields (NDFs) corresponding to\npose, transition (velocity), and acceleration dynamics. Our framework is\nrigorous in the sense that our NDFs are constructed on the product space of\njoint rotations, their angular velocities, and angular accelerations,\nrespecting the geometry of the underlying articulations. We further introduce:\n(i) a novel adaptive-step hybrid algorithm for projecting onto the set of\nplausible motions, and (ii) a novel geometric integrator to \"roll out\"\nrealistic motion trajectories during test-time-optimization and generation. Our\nexperiments show significant and consistent gains: trained on the AMASS\ndataset, NRMF remarkably generalizes across multiple input modalities and to\ndiverse tasks ranging from denoising to motion in-betweening and fitting to\npartial 2D / 3D observations.",
+  "authors": [
+    "Zhengdi Yu",
+    "Simone Foti",
+    "Linguang Zhang",
+    "Amy Zhao",
+    "Cem Keskin",
+    "Stefanos Zafeiriou",
+    "Tolga Birdal"
+  ],
+  "published": "2025-09-11T17:58:18Z",
+  "updated": "2025-09-11T17:58:18Z",
+  "categories": [
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09667v1",
+    "http://arxiv.org/pdf/2509.09667v1"
+  ],
+  "source": "arxiv"
+}

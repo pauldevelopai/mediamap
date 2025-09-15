@@ -1,0 +1,32 @@
+{
+  "id": "http://arxiv.org/abs/2509.09676v1",
+  "title": "SpatialVID: A Large-Scale Video Dataset with Spatial Annotations",
+  "summary": "Significant progress has been made in spatial intelligence, spanning both\nspatial reconstruction and world exploration. However, the scalability and\nreal-world fidelity of current models remain severely constrained by the\nscarcity of large-scale, high-quality training data. While several datasets\nprovide camera pose information, they are typically limited in scale,\ndiversity, and annotation richness, particularly for real-world dynamic scenes\nwith ground-truth camera motion. To this end, we collect \\textbf{SpatialVID}, a\ndataset consists of a large corpus of in-the-wild videos with diverse scenes,\ncamera movements and dense 3D annotations such as per-frame camera poses,\ndepth, and motion instructions. Specifically, we collect more than 21,000 hours\nof raw video, and process them into 2.7 million clips through a hierarchical\nfiltering pipeline, totaling 7,089 hours of dynamic content. A subsequent\nannotation pipeline enriches these clips with detailed spatial and semantic\ninformation, including camera poses, depth maps, dynamic masks, structured\ncaptions, and serialized motion instructions. Analysis of SpatialVID's data\nstatistics reveals a richness and diversity that directly foster improved model\ngeneralization and performance, establishing it as a key asset for the video\nand 3D vision research community.",
+  "authors": [
+    "Jiahao Wang",
+    "Yufeng Yuan",
+    "Rujie Zheng",
+    "Youtian Lin",
+    "Jian Gao",
+    "Lin-Zhuo Chen",
+    "Yajie Bao",
+    "Yi Zhang",
+    "Chang Zeng",
+    "Yanxi Zhou",
+    "Xiaoxiao Long",
+    "Hao Zhu",
+    "Zhaoxiang Zhang",
+    "Xun Cao",
+    "Yao Yao"
+  ],
+  "published": "2025-09-11T17:59:31Z",
+  "updated": "2025-09-11T17:59:31Z",
+  "categories": [
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09676v1",
+    "http://arxiv.org/pdf/2509.09676v1"
+  ],
+  "source": "arxiv"
+}

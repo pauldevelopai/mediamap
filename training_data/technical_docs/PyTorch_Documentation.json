@@ -1,0 +1,13 @@
+{
+  "name": "PyTorch Documentation",
+  "url": "https://pytorch.org/docs/stable/",
+  "type": "documentation",
+  "topics": [
+    "deep_learning",
+    "neural_networks",
+    "pytorch"
+  ],
+  "collected_at": "2025-09-13T18:02:34.270222",
+  "source": "technical_docs",
+  "note": "Documentation metadata collected - full content extraction would require web scraping"
+}

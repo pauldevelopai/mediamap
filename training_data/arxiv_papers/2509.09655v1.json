@@ -1,0 +1,27 @@
+{
+  "id": "http://arxiv.org/abs/2509.09655v1",
+  "title": "Feasibility-Guided Fair Adaptive Offline Reinforcement Learning for\n  Medicaid Care Management",
+  "summary": "We introduce Feasibility-Guided Fair Adaptive Reinforcement Learning\n(FG-FARL), an offline RL procedure that calibrates per-group safety thresholds\nto reduce harm while equalizing a chosen fairness target (coverage or harm)\nacross protected subgroups. Using de-identified longitudinal trajectories from\na Medicaid population health management program, we evaluate FG-FARL against\nbehavior cloning (BC) and HACO (Hybrid Adaptive Conformal Offline RL; a global\nconformal safety baseline). We report off-policy value estimates with bootstrap\n95% confidence intervals and subgroup disparity analyses with p-values. FG-FARL\nachieves comparable value to baselines while improving fairness metrics,\ndemonstrating a practical path to safer and more equitable decision support.",
+  "authors": [
+    "Sanjay Basu",
+    "Sadiq Y. Patel",
+    "Parth Sheth",
+    "Bhairavi Muralidharan",
+    "Namrata Elamaran",
+    "Aakriti Kinra",
+    "Rajaie Batniji"
+  ],
+  "published": "2025-09-11T17:50:06Z",
+  "updated": "2025-09-11T17:50:06Z",
+  "categories": [
+    "cs.LG",
+    "cs.AI",
+    "cs.LO",
+    "stat.AP"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09655v1",
+    "http://arxiv.org/pdf/2509.09655v1"
+  ],
+  "source": "arxiv"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Reddit Comments",
+  "description": "Large collection of Reddit comments for conversational AI",
+  "url": "https://files.pushshift.io/reddit/comments/",
+  "size": "1TB+",
+  "type": "conversational",
+  "use_case": "dialogue_training",
+  "collected_at": "2025-09-13T18:02:26.264766",
+  "source": "public_datasets"
+}

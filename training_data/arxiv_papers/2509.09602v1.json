@@ -1,0 +1,22 @@
+{
+  "id": "http://arxiv.org/abs/2509.09602v1",
+  "title": "LAVA: Language Model Assisted Verbal Autopsy for Cause-of-Death\n  Determination",
+  "summary": "Verbal autopsy (VA) is a critical tool for estimating causes of death in\nresource-limited settings where medical certification is unavailable. This\nstudy presents LA-VA, a proof-of-concept pipeline that combines Large Language\nModels (LLMs) with traditional algorithmic approaches and embedding-based\nclassification for improved cause-of-death prediction. Using the Population\nHealth Metrics Research Consortium (PHMRC) dataset across three age categories\n(Adult: 7,580; Child: 1,960; Neonate: 2,438), we evaluate multiple approaches:\nGPT-5 predictions, LCVA baseline, text embeddings, and meta-learner ensembles.\nOur results demonstrate that GPT-5 achieves the highest individual performance\nwith average test site accuracies of 48.6% (Adult), 50.5% (Child), and 53.5%\n(Neonate), outperforming traditional statistical machine learning baselines by\n5-10%. Our findings suggest that simple off-the-shelf LLM-assisted approaches\ncould substantially improve verbal autopsy accuracy, with important\nimplications for global health surveillance in low-resource settings.",
+  "authors": [
+    "Yiqun T. Chen",
+    "Tyler H. McCormick",
+    "Li Liu",
+    "Abhirup Datta"
+  ],
+  "published": "2025-09-11T16:42:22Z",
+  "updated": "2025-09-11T16:42:22Z",
+  "categories": [
+    "cs.CL",
+    "stat.AP"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09602v1",
+    "http://arxiv.org/pdf/2509.09602v1"
+  ],
+  "source": "arxiv"
+}

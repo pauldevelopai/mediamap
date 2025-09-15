@@ -1,0 +1,24 @@
+{
+  "id": "http://arxiv.org/abs/2509.09631v1",
+  "title": "DiFlow-TTS: Discrete Flow Matching with Factorized Speech Tokens for\n  Low-Latency Zero-Shot Text-To-Speech",
+  "summary": "Zero-shot Text-to-Speech (TTS) aims to synthesize high-quality speech that\nmimics the voice of an unseen speaker using only a short reference sample,\nrequiring not only speaker adaptation but also accurate modeling of prosodic\nattributes. Recent approaches based on language models, diffusion, and flow\nmatching have shown promising results in zero-shot TTS, but still suffer from\nslow inference and repetition artifacts. Discrete codec representations have\nbeen widely adopted for speech synthesis, and recent works have begun to\nexplore diffusion models in purely discrete settings, suggesting the potential\nof discrete generative modeling for speech synthesis. However, existing\nflow-matching methods typically embed these discrete tokens into a continuous\nspace and apply continuous flow matching, which may not fully leverage the\nadvantages of discrete representations. To address these challenges, we\nintroduce DiFlow-TTS, which, to the best of our knowledge, is the first model\nto explore purely Discrete Flow Matching for speech synthesis. DiFlow-TTS\nexplicitly models factorized speech attributes within a compact and unified\narchitecture. It leverages in-context learning by conditioning on textual\ncontent, along with prosodic and acoustic attributes extracted from a reference\nspeech, enabling effective attribute cloning in a zero-shot setting. In\naddition, the model employs a factorized flow prediction mechanism with\ndistinct heads for prosody and acoustic details, allowing it to learn\naspect-specific distributions. Experimental results demonstrate that DiFlow-TTS\nachieves promising performance in several key metrics, including naturalness,\nprosody, preservation of speaker style, and energy control. It also maintains a\ncompact model size and achieves low-latency inference, generating speech up to\n25.8 times faster than the latest existing baselines.",
+  "authors": [
+    "Ngoc-Son Nguyen",
+    "Hieu-Nghia Huynh-Nguyen",
+    "Thanh V. T. Tran",
+    "Truong-Son Hy",
+    "Van Nguyen"
+  ],
+  "published": "2025-09-11T17:16:52Z",
+  "updated": "2025-09-11T17:16:52Z",
+  "categories": [
+    "cs.SD",
+    "cs.CL",
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09631v1",
+    "http://arxiv.org/pdf/2509.09631v1"
+  ],
+  "source": "arxiv"
+}

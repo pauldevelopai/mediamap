@@ -1,0 +1,10 @@
+{
+  "name": "Common Crawl",
+  "description": "Large-scale web crawl data for training language models",
+  "url": "https://commoncrawl.org/",
+  "size": "Petabytes",
+  "type": "web_crawl",
+  "use_case": "language_model_training",
+  "collected_at": "2025-09-13T18:02:26.260475",
+  "source": "public_datasets"
+}

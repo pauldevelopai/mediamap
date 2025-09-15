@@ -1,0 +1,21 @@
+{
+  "id": "http://arxiv.org/abs/2509.09658v1",
+  "title": "Measuring Epistemic Humility in Multimodal Large Language Models",
+  "summary": "Hallucinations in multimodal large language models (MLLMs) -- where the model\ngenerates content inconsistent with the input image -- pose significant risks\nin real-world applications, from misinformation in visual question answering to\nunsafe errors in decision-making. Existing benchmarks primarily test\nrecognition accuracy, i.e., evaluating whether models can select the correct\nanswer among distractors. This overlooks an equally critical capability for\ntrustworthy AI: recognizing when none of the provided options are correct, a\nbehavior reflecting epistemic humility. We present HumbleBench, a new\nhallucination benchmark designed to evaluate MLLMs' ability to reject plausible\nbut incorrect answers across three hallucination types: object, relation, and\nattribute. Built from a panoptic scene graph dataset, we leverage fine-grained\nscene graph annotations to extract ground-truth entities and relations, and\nprompt GPT-4-Turbo to generate multiple-choice questions, followed by a\nrigorous manual filtering process. Each question includes a \"None of the above\"\noption, requiring models not only to recognize correct visual information but\nalso to identify when no provided answer is valid. We evaluate a variety of\nstate-of-the-art MLLMs -- including both general-purpose and specialized\nreasoning models -- on HumbleBench and share valuable findings and insights\nwith the community. By incorporating explicit false-option rejection,\nHumbleBench fills a key gap in current evaluation suites, providing a more\nrealistic measure of MLLM reliability in safety-critical settings. Our code and\ndataset are released publicly and can be accessed at\nhttps://github.com/maifoundations/HumbleBench.",
+  "authors": [
+    "Bingkui Tong",
+    "Jiaer Xia",
+    "Sifeng Shang",
+    "Kaiyang Zhou"
+  ],
+  "published": "2025-09-11T17:54:00Z",
+  "updated": "2025-09-11T17:54:00Z",
+  "categories": [
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09658v1",
+    "http://arxiv.org/pdf/2509.09658v1"
+  ],
+  "source": "arxiv"
+}

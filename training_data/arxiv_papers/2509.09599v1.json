@@ -1,0 +1,23 @@
+{
+  "id": "http://arxiv.org/abs/2509.09599v1",
+  "title": "Conditioning on PDE Parameters to Generalise Deep Learning Emulation of\n  Stochastic and Chaotic Dynamics",
+  "summary": "We present a deep learning emulator for stochastic and chaotic\nspatio-temporal systems, explicitly conditioned on the parameter values of the\nunderlying partial differential equations (PDEs). Our approach involves\npre-training the model on a single parameter domain, followed by fine-tuning on\na smaller, yet diverse dataset, enabling generalisation across a broad range of\nparameter values. By incorporating local attention mechanisms, the network is\ncapable of handling varying domain sizes and resolutions. This enables\ncomputationally efficient pre-training on smaller domains while requiring only\na small additional dataset to learn how to generalise to larger domain sizes.\nWe demonstrate the model's capabilities on the chaotic Kuramoto-Sivashinsky\nequation and stochastically-forced beta-plane turbulence, showcasing its\nability to capture phenomena at interpolated parameter values. The emulator\nprovides significant computational speed-ups over conventional numerical\nintegration, facilitating efficient exploration of parameter space, while a\nprobabilistic variant of the emulator provides uncertainty quantification,\nallowing for the statistical study of rare events.",
+  "authors": [
+    "Ira J. S. Shokar",
+    "Rich R. Kerswell",
+    "Peter H. Haynes"
+  ],
+  "published": "2025-09-11T16:37:45Z",
+  "updated": "2025-09-11T16:37:45Z",
+  "categories": [
+    "cs.LG",
+    "math.DS",
+    "nlin.CD",
+    "physics.ao-ph"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09599v1",
+    "http://arxiv.org/pdf/2509.09599v1"
+  ],
+  "source": "arxiv"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "http://arxiv.org/abs/2509.09611v1",
+  "title": "ReBaNO: Reduced Basis Neural Operator Mitigating Generalization Gaps and\n  Achieving Discretization Invariance",
+  "summary": "We propose a novel data-lean operator learning algorithm, the Reduced Basis\nNeural Operator (ReBaNO), to solve a group of PDEs with multiple distinct\ninputs. Inspired by the Reduced Basis Method and the recently introduced\nGenerative Pre-Trained Physics-Informed Neural Networks, ReBaNO relies on a\nmathematically rigorous greedy algorithm to build its network structure offline\nadaptively from the ground up. Knowledge distillation via task-specific\nactivation function allows ReBaNO to have a compact architecture requiring\nminimal computational cost online while embedding physics. In comparison to\nstate-of-the-art operator learning algorithms such as PCA-Net, DeepONet, FNO,\nand CNO, numerical results demonstrate that ReBaNO significantly outperforms\nthem in terms of eliminating/shrinking the generalization gap for both in- and\nout-of-distribution tests and being the only operator learning algorithm\nachieving strict discretization invariance.",
+  "authors": [
+    "Haolan Zheng",
+    "Yanlai Chen",
+    "Jiequn Han",
+    "Yue Yu"
+  ],
+  "published": "2025-09-11T16:52:54Z",
+  "updated": "2025-09-11T16:52:54Z",
+  "categories": [
+    "cs.LG",
+    "cs.NA",
+    "math.NA"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09611v1",
+    "http://arxiv.org/pdf/2509.09611v1"
+  ],
+  "source": "arxiv"
+}

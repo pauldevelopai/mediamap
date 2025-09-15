@@ -1,0 +1,22 @@
+{
+  "id": "http://arxiv.org/abs/2509.09650v1",
+  "title": "All for One: LLMs Solve Mental Math at the Last Token With Information\n  Transferred From Other Tokens",
+  "summary": "Large language models (LLMs) demonstrate proficiency across numerous\ncomputational tasks, yet their inner workings remain unclear. In theory, the\ncombination of causal self-attention and multilayer perceptron layers allows\nevery token to access and compute information based on all preceding tokens. In\npractice, to what extent are such operations present? In this paper, on mental\nmath tasks (i.e., direct math calculation via next-token prediction without\nexplicit reasoning), we investigate this question in three steps: inhibiting\ninput-specific token computations in the initial layers, restricting the routes\nof information transfer across token positions in the next few layers, and\nforcing all computation to happen at the last token in the remaining layers.\nWith two proposed techniques, Context-Aware Mean Ablation (CAMA) and\nAttention-Based Peeking (ABP), we identify an All-for-One subgraph (AF1) with\nhigh accuracy on a wide variety of mental math tasks, where meaningful\ncomputation occurs very late (in terms of layer depth) and only at the last\ntoken, which receives information of other tokens in few specific middle\nlayers. Experiments on a variety of models and arithmetic expressions show that\nthis subgraph is sufficient and necessary for high model performance, transfers\nacross different models, and works on a variety of input styles. Ablations on\ndifferent CAMA and ABP alternatives reveal their unique advantages over other\nmethods, which may be of independent interest.",
+  "authors": [
+    "Siddarth Mamidanna",
+    "Daking Rai",
+    "Ziyu Yao",
+    "Yilun Zhou"
+  ],
+  "published": "2025-09-11T17:41:29Z",
+  "updated": "2025-09-11T17:41:29Z",
+  "categories": [
+    "cs.CL",
+    "I.2.7"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09650v1",
+    "http://arxiv.org/pdf/2509.09650v1"
+  ],
+  "source": "arxiv"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Hugging Face Documentation",
+  "url": "https://huggingface.co/docs",
+  "type": "documentation",
+  "topics": [
+    "transformers",
+    "nlp",
+    "huggingface"
+  ],
+  "collected_at": "2025-09-13T18:02:34.271525",
+  "source": "technical_docs",
+  "note": "Documentation metadata collected - full content extraction would require web scraping"
+}

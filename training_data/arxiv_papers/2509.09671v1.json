@@ -1,0 +1,25 @@
+{
+  "id": "http://arxiv.org/abs/2509.09671v1",
+  "title": "Dexplore: Scalable Neural Control for Dexterous Manipulation from\n  Reference-Scoped Exploration",
+  "summary": "Hand-object motion-capture (MoCap) repositories offer large-scale,\ncontact-rich demonstrations and hold promise for scaling dexterous robotic\nmanipulation. Yet demonstration inaccuracies and embodiment gaps between human\nand robot hands limit the straightforward use of these data. Existing methods\nadopt a three-stage workflow, including retargeting, tracking, and residual\ncorrection, which often leaves demonstrations underused and compound errors\nacross stages. We introduce Dexplore, a unified single-loop optimization that\njointly performs retargeting and tracking to learn robot control policies\ndirectly from MoCap at scale. Rather than treating demonstrations as ground\ntruth, we use them as soft guidance. From raw trajectories, we derive adaptive\nspatial scopes, and train with reinforcement learning to keep the policy\nin-scope while minimizing control effort and accomplishing the task. This\nunified formulation preserves demonstration intent, enables robot-specific\nstrategies to emerge, improves robustness to noise, and scales to large\ndemonstration corpora. We distill the scaled tracking policy into a\nvision-based, skill-conditioned generative controller that encodes diverse\nmanipulation skills in a rich latent representation, supporting generalization\nacross objects and real-world deployment. Taken together, these contributions\nposition Dexplore as a principled bridge that transforms imperfect\ndemonstrations into effective training signals for dexterous manipulation.",
+  "authors": [
+    "Sirui Xu",
+    "Yu-Wei Chao",
+    "Liuyu Bian",
+    "Arsalan Mousavian",
+    "Yu-Xiong Wang",
+    "Liang-Yan Gui",
+    "Wei Yang"
+  ],
+  "published": "2025-09-11T17:59:07Z",
+  "updated": "2025-09-11T17:59:07Z",
+  "categories": [
+    "cs.RO",
+    "cs.CV"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09671v1",
+    "http://arxiv.org/pdf/2509.09671v1"
+  ],
+  "source": "arxiv"
+}

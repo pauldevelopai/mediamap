@@ -1,0 +1,26 @@
+{
+  "id": "http://arxiv.org/abs/2509.09660v1",
+  "title": "Steering MoE LLMs via Expert (De)Activation",
+  "summary": "Mixture-of-Experts (MoE) in Large Language Models (LLMs) routes each token\nthrough a subset of specialized Feed-Forward Networks (FFN), known as experts.\nWe present SteerMoE, a framework for steering MoE models by detecting and\ncontrolling behavior-linked experts. Our detection method identifies experts\nwith distinct activation patterns across paired inputs exhibiting contrasting\nbehaviors. By selectively (de)activating such experts during inference, we\ncontrol behaviors like faithfulness and safety without retraining or modifying\nweights. Across 11 benchmarks and 6 LLMs, our steering raises safety by up to\n+20% and faithfulness by +27%. In adversarial attack mode, it drops safety by\n-41% alone, and -100% when combined with existing jailbreak methods, bypassing\nall safety guardrails and exposing a new dimension of alignment faking hidden\nwithin experts.",
+  "authors": [
+    "Mohsen Fayyaz",
+    "Ali Modarressi",
+    "Hanieh Deilamsalehy",
+    "Franck Dernoncourt",
+    "Ryan Rossi",
+    "Trung Bui",
+    "Hinrich Schütze",
+    "Nanyun Peng"
+  ],
+  "published": "2025-09-11T17:55:09Z",
+  "updated": "2025-09-11T17:55:09Z",
+  "categories": [
+    "cs.CL",
+    "cs.LG"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09660v1",
+    "http://arxiv.org/pdf/2509.09660v1"
+  ],
+  "source": "arxiv"
+}

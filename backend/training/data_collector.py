@@ -47,7 +47,7 @@ class DataCollector:
         
         logger.info("DataCollector initialized")
     
-    def collect_all_data(self) -> Dict[str, int]:
+    def collect_all_data(self, include_internet_sources: bool = False) -> Dict[str, int]:
         """Main method to collect all training data"""
         logger.info("Starting comprehensive data collection...")
         
@@ -70,6 +70,18 @@ class DataCollector:
         
         # Collect user feedback
         stats['feedback_entries'] = self.collect_user_feedback()
+        
+        # Collect internet sources if requested
+        if include_internet_sources:
+            try:
+                from .enhanced_data_collector import EnhancedDataCollector
+                enhanced_collector = EnhancedDataCollector(output_dir=str(self.output_dir))
+                internet_stats = enhanced_collector.collect_all_internet_sources()
+                stats.update(internet_stats)
+                logger.info(f"Internet data collection complete: {internet_stats}")
+            except Exception as e:
+                logger.error(f"Error collecting internet sources: {e}")
+                stats['internet_sources_error'] = str(e)
         
         # Process and consolidate data
         stats['total_tokens'] = self.process_and_consolidate()

@@ -1,0 +1,13 @@
+{
+  "name": "TensorFlow Documentation",
+  "url": "https://www.tensorflow.org/api_docs",
+  "type": "documentation",
+  "topics": [
+    "deep_learning",
+    "neural_networks",
+    "tensorflow"
+  ],
+  "collected_at": "2025-09-13T18:02:34.271008",
+  "source": "technical_docs",
+  "note": "Documentation metadata collected - full content extraction would require web scraping"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "http://arxiv.org/abs/2509.09614v1",
+  "title": "LoCoBench: A Benchmark for Long-Context Large Language Models in Complex\n  Software Engineering",
+  "summary": "The emergence of long-context language models with context windows extending\nto millions of tokens has created new opportunities for sophisticated code\nunderstanding and software development evaluation. We propose LoCoBench, a\ncomprehensive benchmark specifically designed to evaluate long-context LLMs in\nrealistic, complex software development scenarios. Unlike existing code\nevaluation benchmarks that focus on single-function completion or short-context\ntasks, LoCoBench addresses the critical evaluation gap for long-context\ncapabilities that require understanding entire codebases, reasoning across\nmultiple files, and maintaining architectural consistency across large-scale\nsoftware systems. Our benchmark provides 8,000 evaluation scenarios\nsystematically generated across 10 programming languages, with context lengths\nspanning 10K to 1M tokens, a 100x variation that enables precise assessment of\nlong-context performance degradation in realistic software development\nsettings. LoCoBench introduces 8 task categories that capture essential\nlong-context capabilities: architectural understanding, cross-file refactoring,\nmulti-session development, bug investigation, feature implementation, code\ncomprehension, integration testing, and security analysis. Through a 5-phase\npipeline, we create diverse, high-quality scenarios that challenge LLMs to\nreason about complex codebases at unprecedented scale. We introduce a\ncomprehensive evaluation framework with 17 metrics across 4 dimensions,\nincluding 8 new evaluation metrics, combined in a LoCoBench Score (LCBS). Our\nevaluation of state-of-the-art long-context models reveals substantial\nperformance gaps, demonstrating that long-context understanding in complex\nsoftware development represents a significant unsolved challenge that demands\nmore attention. LoCoBench is released at:\nhttps://github.com/SalesforceAIResearch/LoCoBench.",
+  "authors": [
+    "Jielin Qiu",
+    "Zuxin Liu",
+    "Zhiwei Liu",
+    "Rithesh Murthy",
+    "Jianguo Zhang",
+    "Haolin Chen",
+    "Shiyu Wang",
+    "Ming Zhu",
+    "Liangwei Yang",
+    "Juntao Tan",
+    "Zhepeng Cen",
+    "Cheng Qian",
+    "Shelby Heinecke",
+    "Weiran Yao",
+    "Silvio Savarese",
+    "Caiming Xiong",
+    "Huan Wang"
+  ],
+  "published": "2025-09-11T16:55:04Z",
+  "updated": "2025-09-11T16:55:04Z",
+  "categories": [
+    "cs.SE",
+    "cs.AI"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09614v1",
+    "http://arxiv.org/pdf/2509.09614v1"
+  ],
+  "source": "arxiv"
+}
