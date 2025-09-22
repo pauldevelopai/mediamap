@@ -35,7 +35,7 @@
               <h6 class="mb-1">{{ i.title }}</h6>
               <small>{{ i.created_at.strftime('%Y-%m-%d') if i.created_at else '' }}</small>
             </div>
-            <pre style="white-space: pre-wrap; font-size: .85rem; margin-bottom: 0;">{{ i.content[:800] }}{% if i.content and i.content|length > 800 %}...{% endif %}</pre>
+            <pre style="white-space: pre-wrap; font-size: .85rem; margin-bottom: 0;">{% set content_str = i.content or '' %}{{ content_str[:800] }}{% if content_str|length > 800 %}...{% endif %}</pre>
           </div>
           {% endfor %}
         </div>

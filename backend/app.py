@@ -59,7 +59,7 @@ try:
     from aimap.api.ml_routes import ml_api
     from aimap.api.consulting_routes import consulting_api
     from aimap.api.data_management_routes import data_api
-    from aimap.models import Organisation, Metrics
+    from backend.aimap.models import Organisation  # Metrics temporarily disabled
 except ImportError:
     aimap_api = None
     ml_api = None
@@ -161,7 +161,8 @@ def admin_required(f):
         # Check if user has admin attribute and it's True
         if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
             flash('You need admin privileges to access this page.', 'danger')
-            return redirect(url_for('landing_page1'))
+            # Redirect to user dashboard instead of landing page for better UX
+            return redirect(url_for('user_dashboard'))
         
         return f(*args, **kwargs)
     return decorated_function
@@ -180,7 +181,10 @@ if openai_api_key:
 # User loader for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except (ValueError, TypeError):
+        return None
 
 SYSTEM_PROMPT_ANALYSIS = """You are an expert media analyst with deep knowledge of content analysis, 
 cultural context, and media trends. When analyzing media:
@@ -372,6 +376,16 @@ def periodic_save_chats():
 save_thread = threading.Thread(target=periodic_save_chats, daemon=True)
 save_thread.start()
 
+# Ensure proper cleanup on exit
+import atexit
+def cleanup_save_thread():
+    try:
+        save_thread.join(timeout=1)
+    except:
+        pass
+
+atexit.register(cleanup_save_thread)
+
 def save_chat_to_db(chat_id, chat_data):
     """Save or update a chat in the database"""
     try:
@@ -492,7 +506,16 @@ def get_or_create_active_chat(chat_id):
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    message = request.json.get('message', '')
+    if not request.is_json:
+        return jsonify({'error': 'Request must be JSON'}), 400
+    
+    message = request.json.get('message', '').strip()
+    if not message:
+        return jsonify({'error': 'Message cannot be empty'}), 400
+    
+    if len(message) > 10000:  # Reasonable limit
+        return jsonify({'error': 'Message too long'}), 400
+    
     chat_id, chat_data = get_or_create_active_chat(request.json.get('chat_id', None))
 
     # Add user message
@@ -1644,7 +1667,7 @@ def admin_map():
     """Business Map page - comprehensive overview of consulting business with AIMAP integration"""
     # Get REAL statistics from AIMAP database
     try:
-        from backend.aimap.models import Organisation, Metrics
+        from backend.aimap.models import Organisation  # Metrics temporarily disabled
         from backend.models import Client, Newsroom, ResearchProject, DailyInsight
         
         # AIMAP Organization statistics (REAL DATA)
@@ -1669,7 +1692,7 @@ def admin_map():
                 'ai_tools': org.ai_tools,
                 'notes': org.notes,
                 'website_url': org.website_url,
-                'tags': org.tags.split(',') if org.tags else [],
+                'tags': org.tags.split(',') if org.tags and isinstance(org.tags, str) else [],
                 'created_at': org.created_at
             }
             aimap_organisations.append(org_dict)
@@ -2233,7 +2256,7 @@ def manage_organizations():
                     'ai_tools': org.ai_tools,
                     'notes': org.notes,
                     'website_url': org.website_url,
-                    'tags': org.tags.split(',') if org.tags else [],
+                    'tags': org.tags.split(',') if org.tags and isinstance(org.tags, str) else [],
                     'created_at': org.created_at.isoformat() if org.created_at else None
                 })
             print(f"DEBUG: Returning {len(org_data)} organizations")
@@ -2459,17 +2482,26 @@ def manage_clients():
             from backend.models import Client
             data = request.get_json()
             
+            # Validate required fields
+            if not data or not data.get('name', '').strip():
+                return jsonify({'status': 'error', 'message': 'Client name is required'}), 400
+            
+            # Validate email format if provided
+            email = data.get('email', '').strip()
+            if email and '@' not in email:
+                return jsonify({'status': 'error', 'message': 'Invalid email format'}), 400
+            
             new_client = Client(
-                name=data['name'],
-                website=data.get('website', ''),
-                industry=data.get('industry', ''),
+                name=data['name'].strip(),
+                website=data.get('website', '').strip(),
+                industry=data.get('industry', '').strip(),
                 status=data.get('status', 'Active'),
-                engagement_type=data.get('engagement', ''),
-                notes=data.get('notes', ''),
-                contact_person=data.get('contact_person', ''),
-                email=data.get('email', ''),
-                phone=data.get('phone', ''),
-                tags=','.join(data.get('tags', []))
+                engagement_type=data.get('engagement', '').strip(),
+                notes=data.get('notes', '').strip(),
+                contact_person=data.get('contact_person', '').strip(),
+                email=email,
+                phone=data.get('phone', '').strip(),
+                tags=','.join(data.get('tags', [])) if data.get('tags') else ''
             )
             
             db.session.add(new_client)
@@ -3601,7 +3633,7 @@ def highlander_chat():
         # Get comprehensive business context for Highlander AI
         try:
             from backend.models import Client, Newsroom, ResearchProject, User, HighlanderChat
-            from backend.aimap.models import Organisation, Metrics
+            from backend.aimap.models import Organisation  # Metrics temporarily disabled
             
             # Core business data
             client_count = Client.query.count()
@@ -5111,15 +5143,38 @@ def admin_lessons():
 def create_admin():
     """Admin page to create a new admin user"""
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
         user_type = request.form.get('user_type', 'admin')  # Default to admin for backward compatibility
+        
+        # Validate input
+        if not username or not email or not password:
+            flash('All fields are required', 'danger')
+            return redirect(url_for('create_admin'))
+        
+        if len(username) < 3:
+            flash('Username must be at least 3 characters long', 'danger')
+            return redirect(url_for('create_admin'))
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long', 'danger')
+            return redirect(url_for('create_admin'))
+        
+        if '@' not in email:
+            flash('Please enter a valid email address', 'danger')
+            return redirect(url_for('create_admin'))
         
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('Username already exists', 'danger')
+            return redirect(url_for('create_admin'))
+        
+        # Check if email already exists
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            flash('Email already exists', 'danger')
             return redirect(url_for('create_admin'))
         
         # Create new user (admin or regular)
@@ -5393,6 +5448,12 @@ def collect_training_data():
 def start_training():
     """Start model training"""
     try:
+        # Validate request
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Request must be JSON'
+            }), 400
         from training.model_trainer import HighlanderModelTrainer
         from training.training_history import get_training_history
         
@@ -5445,9 +5506,18 @@ def start_training():
             
             print(f"Training completed: {model_path}")
         
-        training_thread = threading.Thread(target=train_model)
-        training_thread.daemon = True
+        training_thread = threading.Thread(target=train_model, daemon=True)
         training_thread.start()
+        
+        # Ensure thread cleanup
+        def cleanup_thread():
+            try:
+                training_thread.join(timeout=1)
+            except:
+                pass
+        
+        import atexit
+        atexit.register(cleanup_thread)
         
         return jsonify({
             'success': True,
@@ -5818,34 +5888,15 @@ def reset_db():
 
 # Create database tables
 with app.app_context():
-    # First, create all tables that are defined in models
-    # db.create_all()  # Temporarily commented out
-    
-    # Check if User model has all required columns
-    from sqlalchemy import inspect, text
-    inspector = inspect(db.engine)
-    
-    # Use 'users' table name instead of 'user' to match the model definition
-    existing_columns = [col['name'] for col in inspector.get_columns('users')]
-    
-    # Define all expected columns based on your User model
-    expected_columns = {
-        'is_admin': 'BOOLEAN DEFAULT 0',
-        'last_login': 'DATETIME',
-        'latitude': 'FLOAT',
-        'longitude': 'FLOAT',
-        'location_name': 'VARCHAR(200)'
-    }
-    
-    # Add any missing columns
-    with db.engine.connect() as conn:
-        for column_name, column_type in expected_columns.items():
-            if column_name not in existing_columns:
-                print(f"Adding {column_name} column to User model")
-                # Use text() for raw SQL execution
-                conn.execute(text(f"ALTER TABLE users ADD COLUMN {column_name} {column_type}"))
-                conn.commit()
-                print(f"{column_name} column added successfully")
+    # Create all tables that are defined in models
+    # This will create tables if they don't exist, but won't modify existing ones
+    try:
+        db.create_all()
+        print("✅ Database tables created/verified successfully!")
+    except Exception as e:
+        print(f"⚠️ Database initialization warning: {e}")
+        # If there are schema conflicts, we'll handle them gracefully
+        pass
     
     # Check if any admin user exists
     admin_exists = False

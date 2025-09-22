@@ -11,7 +11,7 @@ backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
 from aimap.scoring.engine import ScoringEngine
-from aimap.models import Organisation, Metrics
+from backend.aimap.models import Organisation, Metrics
 from models import db
 
 class TestScoringEngine:

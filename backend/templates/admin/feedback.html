@@ -50,7 +50,7 @@
                                 </td>
                                 <td>
                                     <div class="fw-bold">{{ feedback.subject }}</div>
-                                    <small class="text-muted">{{ feedback.message[:100] }}{% if feedback.message|length > 100 %}...{% endif %}</small>
+                                    <small class="text-muted">{% set msg_str = feedback.message or '' %}{{ msg_str[:100] }}{% if msg_str|length > 100 %}...{% endif %}</small>
                                 </td>
                                 <td>
                                     {% if feedback.status == 'new' %}

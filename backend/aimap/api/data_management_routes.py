@@ -7,7 +7,7 @@ from flask_login import login_required
 from typing import Dict, List, Optional
 import logging
 from datetime import datetime, date
-from ..models import (
+from backend.aimap.models import (
     Organisation, Person, Lead, LeadActivity, Interaction, 
     ResearchReport, CustomData, ConsultingProject, ProjectMilestone
 )

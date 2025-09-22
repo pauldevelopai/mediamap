@@ -133,7 +133,7 @@
                             <div class="col-lg-6">
                                 <div class="card h-100 border-{% if paper.approved %}success{% else %}light{% endif %}">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">{{ paper.title[:80] }}{% if paper.title|length > 80 %}...{% endif %}</h6>
+                                        <h6 class="mb-0">{% set title_str = paper.title %}{{ title_str[:80] }}{% if title_str|length > 80 %}...{% endif %}</h6>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input approval-switch" type="checkbox" 
                                                    data-item-id="{{ paper.id or paper.title }}" 
@@ -143,18 +143,18 @@
                                     </div>
                                     <div class="card-body">
                                         <p class="text-muted small mb-2">
-                                            <strong>Authors:</strong> {{ paper.authors|join(', ')[:100] }}{% if paper.authors|join(', ')|length > 100 %}...{% endif %}
+                                            <strong>Authors:</strong> {% set authors_str = paper.authors|join(', ') %}{{ authors_str[:100] }}{% if authors_str|length > 100 %}...{% endif %}
                                         </p>
-                                        <p class="small mb-2">{{ paper.summary[:200] }}{% if paper.summary|length > 200 %}...{% endif %}</p>
+                                        <p class="small mb-2">{% set summary_str = paper.summary %}{{ summary_str[:200] }}{% if summary_str|length > 200 %}...{% endif %}</p>
                                         <div class="row g-2">
                                             <div class="col-6">
                                                 <small class="text-muted">
-                                                    <i class="bi bi-calendar me-1"></i>{{ paper.published[:10] if paper.published else 'N/A' }}
+                                                    <i class="bi bi-calendar me-1"></i>{% if paper.published %}{{ paper.published[:10] }}{% else %}N/A{% endif %}
                                                 </small>
                                             </div>
                                             <div class="col-6">
                                                 <small class="text-muted">
-                                                    <i class="bi bi-tags me-1"></i>{{ paper.categories|join(', ')[:30] }}{% if paper.categories|join(', ')|length > 30 %}...{% endif %}
+                                                    <i class="bi bi-tags me-1"></i>{% set categories_str = paper.categories|join(', ') %}{{ categories_str[:30] }}{% if categories_str|length > 30 %}...{% endif %}
                                                 </small>
                                             </div>
                                         </div>
@@ -185,7 +185,7 @@
                             <div class="col-lg-6">
                                 <div class="card h-100 border-{% if item.approved %}success{% else %}light{% endif %}">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">{{ item.title[:80] }}{% if item.title|length > 80 %}...{% endif %}</h6>
+                                        <h6 class="mb-0">{% set title_str = item.title %}{{ title_str[:80] }}{% if title_str|length > 80 %}...{% endif %}</h6>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input approval-switch" type="checkbox" 
                                                    data-item-id="{{ item.title }}" 
@@ -197,11 +197,11 @@
                                         <p class="text-muted small mb-2">
                                             <strong>Source:</strong> {{ item.source }}
                                         </p>
-                                        <p class="small mb-2">{{ item.summary[:200] }}{% if item.summary|length > 200 %}...{% endif %}</p>
+                                        <p class="small mb-2">{% set summary_str = item.summary %}{{ summary_str[:200] }}{% if summary_str|length > 200 %}...{% endif %}</p>
                                         <div class="row g-2">
                                             <div class="col-6">
                                                 <small class="text-muted">
-                                                    <i class="bi bi-calendar me-1"></i>{{ item.published[:10] if item.published else 'N/A' }}
+                                                    <i class="bi bi-calendar me-1"></i>{% if item.published %}{{ item.published[:10] }}{% else %}N/A{% endif %}
                                                 </small>
                                             </div>
                                             <div class="col-6">
@@ -289,7 +289,7 @@
                             <div class="col-lg-6">
                                 <div class="card h-100 border-{% if article.approved %}success{% else %}light{% endif %}">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">{{ article.title[:80] }}{% if article.title|length > 80 %}...{% endif %}</h6>
+                                        <h6 class="mb-0">{% set title_str = article.title %}{{ title_str[:80] }}{% if title_str|length > 80 %}...{% endif %}</h6>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input approval-switch" type="checkbox" 
                                                    data-item-id="{{ article.title }}" 
@@ -301,11 +301,11 @@
                                         <p class="text-muted small mb-2">
                                             <strong>Source:</strong> {{ article.source }}
                                         </p>
-                                        <p class="small mb-2">{{ article.summary[:200] }}{% if article.summary|length > 200 %}...{% endif %}</p>
+                                        <p class="small mb-2">{% set summary_str = article.summary %}{{ summary_str[:200] }}{% if summary_str|length > 200 %}...{% endif %}</p>
                                         <div class="row g-2">
                                             <div class="col-6">
                                                 <small class="text-muted">
-                                                    <i class="bi bi-calendar me-1"></i>{{ article.published[:10] if article.published else 'N/A' }}
+                                                    <i class="bi bi-calendar me-1"></i>{% if article.published %}{{ article.published[:10] }}{% else %}N/A{% endif %}
                                                 </small>
                                             </div>
                                             <div class="col-6">
@@ -432,7 +432,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    credentials: 'same-origin'
                 });
                 
                 const result = await response.json();
@@ -478,7 +479,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    credentials: 'same-origin'
                 });
                 
                 const result = await response.json();
@@ -576,6 +578,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(approval)
                 });
             }

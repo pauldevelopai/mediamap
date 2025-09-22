@@ -1441,7 +1441,7 @@ class PersonManagement(db.Model):
             'hourly_rate': self.hourly_rate,
             'status': self.status,
             'notes': self.notes,
-            'tags': self.tags.split(',') if self.tags else [],
+            'tags': self.tags.split(',') if self.tags and isinstance(self.tags, str) else [],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -1517,7 +1517,7 @@ class Project(db.Model):
             'budget': self.budget,
             'actual_cost': self.actual_cost,
             'billing_type': self.billing_type,
-            'tags': self.tags.split(',') if self.tags else [],
+            'tags': self.tags.split(',') if self.tags and isinstance(self.tags, str) else [],
             'priority': self.priority,
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
@@ -1621,7 +1621,7 @@ class ProjectTemplate(db.Model):
             'risk_factors': self.risk_factors,
             'usage_count': self.usage_count,
             'rating': self.rating,
-            'tags': self.tags.split(',') if self.tags else [],
+            'tags': self.tags.split(',') if self.tags and isinstance(self.tags, str) else [],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

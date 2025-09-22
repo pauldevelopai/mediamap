@@ -20,7 +20,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/..')
 from models import db
-from aimap.models import Organisation, Metrics
+from backend.aimap.models import Organisation, Metrics
 target_metadata = db.metadata
 
 # other values from the config, defined by the needs of env.py,

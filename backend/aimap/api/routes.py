@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify, send_file
 from flask_login import login_required
 from typing import Dict, List, Optional
 import os
-from ..models import Organisation, Metrics, db
+from backend.aimap.models import Organisation, Metrics, db
 from ..ingest.pipeline import IngestionPipeline
 from ..scoring.engine import ScoringEngine
 from ..reports.pptx_export import PPTXReportGenerator

@@ -7,7 +7,7 @@ from flask_login import login_required
 from typing import Dict, List, Optional
 import logging
 from ..ml.service import MLService
-from ..models import Organisation
+from backend.aimap.models import Organisation
 
 logger = logging.getLogger(__name__)
 

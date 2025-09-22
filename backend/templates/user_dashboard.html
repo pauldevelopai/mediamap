@@ -1524,8 +1524,14 @@
             const client = document.getElementById('client-filter').value;
             const search = document.getElementById('search-filter').value.toLowerCase();
 
-            // TODO: Implement client-side filtering or reload with filters
-            loadOrganisations();
+            // Filter organisations client-side
+            const orgCards = document.querySelectorAll('.organisation-card');
+            orgCards.forEach(card => {
+                const name = card.querySelector('.card-title').textContent.toLowerCase();
+                const sector = card.querySelector('.badge').textContent.toLowerCase();
+                const matches = name.includes(search) || sector.includes(search);
+                card.style.display = matches ? 'block' : 'none';
+            });
         }
 
         // Add organisation modal functions
@@ -1689,8 +1695,19 @@
         }
 
         function viewOrganisation(orgId) {
-            // TODO: Implement organisation detail view
-            alert(`View organisation ${orgId} - Feature coming soon!`);
+            // Show organisation details in a modal
+            const orgCard = document.querySelector(`[data-org-id="${orgId}"]`);
+            if (orgCard) {
+                const name = orgCard.querySelector('.card-title').textContent;
+                const sector = orgCard.querySelector('.badge').textContent;
+                const description = orgCard.querySelector('.card-text').textContent;
+                
+                const modal = new bootstrap.Modal(document.getElementById('orgDetailModal'));
+                document.getElementById('orgDetailName').textContent = name;
+                document.getElementById('orgDetailSector').textContent = sector;
+                document.getElementById('orgDetailDescription').textContent = description;
+                modal.show();
+            }
         }
 
         // ML Predictions Functions

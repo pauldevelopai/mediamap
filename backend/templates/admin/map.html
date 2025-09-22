@@ -205,7 +205,7 @@
                                             <td>
                                                 <strong>{{ org.name }}</strong>
                                                 {% if org.notes %}
-                                                <br><small class="text-muted">{{ org.notes[:50] }}{% if org.notes|length > 50 %}...{% endif %}</small>
+                                                <br><small class="text-muted">{% set notes_str = org.notes or '' %}{{ notes_str[:50] }}{% if notes_str|length > 50 %}...{% endif %}</small>
                                                 {% endif %}
                                             </td>
                                             <td><span class="badge bg-primary">{{ org.sector }}</span></td>
@@ -531,7 +531,7 @@
                                                 <tr>
                                                     <td>
                                                         <strong>{{ project.name }}</strong>
-                                                        <br><small class="text-muted">{{ project.description[:100] + '...' if project.description|length > 100 else project.description }}</small>
+                                                        <br><small class="text-muted">{% set desc_str = project.description or '' %}{{ desc_str[:100] }}{% if desc_str|length > 100 %}...{% endif %}</small>
                                                     </td>
                                                     <td><span class="badge bg-primary">{{ project.type }}</span></td>
                                                     <td>{{ project.client or 'N/A' }}</td>
@@ -2836,6 +2836,7 @@ function saveClient() {
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'same-origin',
         body: JSON.stringify(formData)
     })
     .then(response => response.json())
@@ -2859,7 +2860,9 @@ function saveClient() {
 }
 
 function loadClientsData() {
-    fetch('/admin/map/clients')
+    fetch('/admin/map/clients', {
+        credentials: 'same-origin'
+    })
         .then(response => response.json())
         .then(data => {
             const clientsTableBody = document.getElementById('clients-table-body');
@@ -2936,6 +2939,7 @@ function deleteClient(clientId) {
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'same-origin',
         body: JSON.stringify({id: clientId})
     })
     .then(response => response.json())
@@ -2975,7 +2979,9 @@ function showGenerateInsightModal() {
 }
 
 function loadNewsrooms() {
-    fetch('/admin/map/newsrooms')
+    fetch('/admin/map/newsrooms', {
+        credentials: 'same-origin'
+    })
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('newsroomSelect');
@@ -7172,7 +7178,7 @@ function displayAIMAPOrganizations(organizations) {
             <td>${org.country || 'Unknown'}</td>
             <td><span class="badge bg-success">${org.size_band || 'Unknown'}</span></td>
             <td>
-                ${org.tags ? org.tags.split(',').map(tag => `<span class="badge bg-secondary me-1 mb-1">${tag.trim()}</span>`).join('') : ''}
+                ${org.tags && Array.isArray(org.tags) ? org.tags.map(tag => `<span class="badge bg-secondary me-1 mb-1">${tag.trim()}</span>`).join('') : ''}
             </td>
             <td>
                 ${org.website_url ? `<a href="${org.website_url}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-globe"></i></a>` : ''}

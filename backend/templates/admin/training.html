@@ -460,11 +460,16 @@ document.getElementById('collect-internet-data-btn').addEventListener('click', a
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({ 
                 include_datasafe: false,
                 include_internet_sources: true
             })
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         
         const result = await response.json();
         
@@ -519,7 +524,9 @@ document.getElementById('preview-data-btn').addEventListener('click', async func
     previewDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading data preview...</div>';
     
     try {
-        const response = await fetch('/admin/training/preview-data');
+        const response = await fetch('/admin/training/preview-data', {
+            credentials: 'same-origin'
+        });
         const result = await response.json();
         
         if (result.success) {
@@ -597,7 +604,8 @@ document.getElementById('start-training-btn').addEventListener('click', async fu
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            credentials: 'same-origin'
         });
         
         const result = await response.json();
@@ -702,7 +710,8 @@ document.getElementById('deploy-model-btn').addEventListener('click', async func
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            credentials: 'same-origin'
         });
         
         const result = await response.json();
@@ -725,7 +734,9 @@ document.getElementById('deploy-model-btn').addEventListener('click', async func
 // Load training status
 async function loadTrainingStatus() {
     try {
-        const response = await fetch('/admin/training/status');
+        const response = await fetch('/admin/training/status', {
+            credentials: 'same-origin'
+        });
         const result = await response.json();
         
         if (result.success) {
@@ -1028,7 +1039,9 @@ function displayPipelineStatus(modelInfo) {
 
 async function loadModelStatus() {
     try {
-        const response = await fetch('/admin/training/model-status');
+        const response = await fetch('/admin/training/model-status', {
+            credentials: 'same-origin'
+        });
         const result = await response.json();
         
         if (result.success) {
@@ -1177,7 +1190,9 @@ function displayNewDataAnalysis(analysis) {
 
 async function loadTrainingHistory() {
     try {
-        const response = await fetch('/admin/training/history');
+        const response = await fetch('/admin/training/history', {
+            credentials: 'same-origin'
+        });
         const result = await response.json();
         
         if (result.success) {

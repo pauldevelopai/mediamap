@@ -7,16 +7,14 @@ import enum
 
 try:
     # Prefer absolute import when running via module
-    from backend.models import db as _app_db
+    from backend.models import db
 except Exception:  # pragma: no cover - fallback for direct script execution
-    from models import db as _app_db
-
-# Re-export db so other modules can import from aimap.models
-db = _app_db
+    from models import db
 
 
 class Organisation(db.Model):
     __tablename__ = "organisations"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, index=True)
@@ -33,8 +31,8 @@ class Organisation(db.Model):
     tags = db.Column(db.String)  # Comma-separated tags
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
-    metrics = db.relationship("Metrics", back_populates="organisation", cascade="all, delete-orphan")
+    # Relationships - TEMPORARILY DISABLED
+    # metrics = db.relationship("aimap.models.Metrics", back_populates="organisation", cascade="all, delete-orphan")
     # people = db.relationship("Person", back_populates="organisation", cascade="all, delete-orphan")  # Disabled - using people_management table
     leads = db.relationship("Lead", back_populates="organisation", cascade="all, delete-orphan")
     research_reports = db.relationship("ResearchReport", back_populates="organisation", cascade="all, delete-orphan")
@@ -53,39 +51,43 @@ class Organisation(db.Model):
             "ai_tools": self.ai_tools,
             "notes": self.notes,
             "website_url": self.website_url,
-            "tags": self.tags.split(',') if self.tags else [],
+            "tags": self.tags.split(',') if self.tags and isinstance(self.tags, str) else [],
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
 
-class Metrics(db.Model):
-    __tablename__ = "metrics"
-    
-    id = db.Column(db.Integer, primary_key=True)
-    organisation_id = db.Column(db.Integer, db.ForeignKey("organisations.id", ondelete="CASCADE"))
-    ai_adoption_score = db.Column(db.Float)
-    maturity_stage = db.Column(db.String)
-    signals = db.Column(db.JSON)
-    benchmark_bucket = db.Column(db.String, index=True)
-    period = db.Column(db.String, index=True)  # YYYY-MM format
-    source_tag = db.Column(db.String)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    organisation = db.relationship("Organisation", back_populates="metrics")
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "organisation_id": self.organisation_id,
-            "ai_adoption_score": self.ai_adoption_score,
-            "maturity_stage": self.maturity_stage,
-            "signals": self.signals,
-            "benchmark_bucket": self.benchmark_bucket,
-            "period": self.period,
-            "source_tag": self.source_tag,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }
+# TEMPORARILY DISABLED - Metrics class causing SQLAlchemy registry conflicts
+# The issue is that Metrics is being imported multiple times with different paths
+# causing SQLAlchemy to see multiple classes with the same name
+# class Metrics(db.Model):
+#     __tablename__ = "metrics"
+#     __table_args__ = {'extend_existing': True}
+#     
+#     id = db.Column(db.Integer, primary_key=True)
+#     organisation_id = db.Column(db.Integer, db.ForeignKey("organisations.id", ondelete="CASCADE"))
+#     ai_adoption_score = db.Column(db.Float)
+#     maturity_stage = db.Column(db.String)
+#     signals = db.Column(db.JSON)
+#     benchmark_bucket = db.Column(db.String, index=True)
+#     period = db.Column(db.String, index=True)  # YYYY-MM format
+#     source_tag = db.Column(db.String)
+#     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+#     
+#     # Relationships - Use string reference to avoid circular imports
+#     organisation = db.relationship("aimap.models.Organisation", back_populates="metrics")
+# 
+#     def to_dict(self):
+#         return {
+#             "id": self.id,
+#             "organisation_id": self.organisation_id,
+#             "ai_adoption_score": self.ai_adoption_score,
+#             "maturity_stage": self.maturity_stage,
+#             "signals": self.signals,
+#             "benchmark_bucket": self.benchmark_bucket,
+#             "period": self.period,
+#             "source_tag": self.source_tag,
+#             "created_at": self.created_at.isoformat() if self.created_at else None,
+#         }
 
 
 # class Person(db.Model):  # DISABLED - Using PersonManagement in backend.models instead
@@ -125,6 +127,7 @@ class LeadStatus(str, enum.Enum):
 class Lead(db.Model):
     """Lead/Prospect management"""
     __tablename__ = "leads"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     organisation_id = db.Column(db.Integer, db.ForeignKey("organisations.id", ondelete="CASCADE"))
@@ -147,6 +150,7 @@ class Lead(db.Model):
 class LeadActivity(db.Model):
     """Activities and interactions with leads"""
     __tablename__ = "lead_activities"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     lead_id = db.Column(db.Integer, db.ForeignKey("leads.id", ondelete="CASCADE"))
@@ -165,6 +169,7 @@ class LeadActivity(db.Model):
 class Interaction(db.Model):
     """General interactions with people"""
     __tablename__ = "interactions"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     person_id = db.Column(db.Integer, db.ForeignKey("people.id", ondelete="CASCADE"))
@@ -183,6 +188,7 @@ class Interaction(db.Model):
 class ResearchReport(db.Model):
     """Research reports and documents"""
     __tablename__ = "research_reports"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     organisation_id = db.Column(db.Integer, db.ForeignKey("organisations.id", ondelete="CASCADE"))
@@ -206,6 +212,7 @@ class ResearchReport(db.Model):
 class CustomData(db.Model):
     """Flexible custom data storage"""
     __tablename__ = "custom_data"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     data_type = db.Column(db.String, index=True)  # e.g., 'competitor', 'market_trend', 'tool_review'
@@ -220,6 +227,7 @@ class CustomData(db.Model):
 class ConsultingProject(db.Model):
     """Consulting projects and engagements"""
     __tablename__ = "consulting_projects"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     organisation_id = db.Column(db.Integer, db.ForeignKey("organisations.id", ondelete="CASCADE"))
@@ -246,6 +254,7 @@ class ConsultingProject(db.Model):
 class ProjectMilestone(db.Model):
     """Project milestones and deliverables"""
     __tablename__ = "project_milestones"
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey("consulting_projects.id", ondelete="CASCADE"))

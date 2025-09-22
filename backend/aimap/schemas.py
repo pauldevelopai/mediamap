@@ -46,13 +46,13 @@ class OrganisationResponse(BaseModel):
     created_at: Optional[str]
     updated_at: Optional[str]
 
-class MetricsCreate(BaseModel):
+class MetricsCreateSchema(BaseModel):
     organisation_id: int
     signals: Dict[str, Any]
     period: str = Field(..., regex=r'^\d{4}-\d{2}$')
     source_tag: Optional[str] = Field(None, max_length=100)
 
-class MetricsResponse(BaseModel):
+class MetricsResponseSchema(BaseModel):
     id: int
     organisation_id: int
     ai_adoption_score: Optional[float]
@@ -65,8 +65,8 @@ class MetricsResponse(BaseModel):
     updated_at: Optional[str]
 
 class OrganisationWithMetrics(OrganisationResponse):
-    latest_metrics: Optional[MetricsResponse]
-    metrics_history: List[MetricsResponse]
+    latest_metrics: Optional[MetricsResponseSchema]
+    metrics_history: List[MetricsResponseSchema]
 
 class IngestRequest(BaseModel):
     sector: Optional[str] = None
