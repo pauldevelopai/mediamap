@@ -4,19 +4,19 @@
 echo "🚀 Starting AIMAP Application..."
 
 # Check if virtual environment exists
-if [ ! -d ".venv" ]; then
+if [ ! -d "backend/venv" ]; then
     echo "❌ Virtual environment not found. Creating one..."
-    python3 -m venv .venv
+    python3 -m venv backend/venv
 fi
 
 # Activate virtual environment
 echo "📦 Activating virtual environment..."
-source .venv/bin/activate
+source backend/venv/bin/activate
 
 # Check if requirements are installed
-if [ ! -f ".venv/pyvenv.cfg" ]; then
+if [ ! -f "backend/venv/pyvenv.cfg" ]; then
     echo "📋 Installing requirements..."
-    pip install -r requirements.txt
+    pip install -r backend/requirements.txt
 fi
 
 # Check if database exists, if not create it

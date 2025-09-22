@@ -1,9 +1,34 @@
+"""
+MediaMap Flask Application
+=========================
+
+A comprehensive media analysis and AI training platform with:
+- User authentication and admin management
+- Media analysis and reporting
+- AI model training and deployment
+- Client and organization management
+- Data collection and processing
+
+Author: MediaMap Team
+Version: 2.0
+"""
+
 import os
 import sys
+# Configuration Constants
+# =======================
+
 # Disable wandb completely before importing anything else
 os.environ["WANDB_DISABLED"] = "true"
 os.environ["WANDB_MODE"] = "disabled"
 os.environ["WANDB_SILENT"] = "true"
+
+# Application Configuration
+MAX_MESSAGE_LENGTH = 10000
+MIN_USERNAME_LENGTH = 3
+MIN_PASSWORD_LENGTH = 6
+SAVE_INTERVAL = 30  # seconds
+MAX_CHAT_HISTORY = 100
 
 # Add the backend directory to Python path for training module imports
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -34,7 +59,6 @@ except ImportError:
     from auth import auth
 import time
 import threading
-import uuid
 import re
 from urllib.parse import urlparse
 import io
@@ -67,6 +91,24 @@ except ImportError:
     data_api = None
     Organisation = None
     Metrics = None
+
+# Import HealthPIN modules
+try:
+    from backend.healthpin import healthpin_bp
+    from backend.healthpin.models import Patient, Doctor, HealthRecord, DoctorMatch, FamilyNotification, Consultation, HealthNews
+    from backend.healthpin.webhooks import webhooks_bp
+    print("✅ HealthPIN modules imported successfully")
+except ImportError as e:
+    print(f"⚠️ HealthPIN import error: {e}")
+    healthpin_bp = None
+    webhooks_bp = None
+    Patient = None
+    Doctor = None
+    HealthRecord = None
+    DoctorMatch = None
+    FamilyNotification = None
+    Consultation = None
+    HealthNews = None
 
 # Import memory management
 try:
@@ -279,6 +321,15 @@ if data_api:
     app.register_blueprint(data_api)
 if memory_api:
     app.register_blueprint(memory_api)
+
+# Register HealthPIN blueprints
+if healthpin_bp:
+    app.register_blueprint(healthpin_bp)
+    print("✅ HealthPIN routes loaded")
+
+if webhooks_bp:
+    app.register_blueprint(webhooks_bp)
+    print("✅ HealthPIN webhooks loaded")
 
 # Create the IMS blueprint (Internal Management Suite)
 ims_bp = Blueprint('ims', __name__, url_prefix='/ims')
@@ -513,8 +564,8 @@ def chat():
     if not message:
         return jsonify({'error': 'Message cannot be empty'}), 400
     
-    if len(message) > 10000:  # Reasonable limit
-        return jsonify({'error': 'Message too long'}), 400
+    if len(message) > MAX_MESSAGE_LENGTH:
+        return jsonify({'error': f'Message too long (max {MAX_MESSAGE_LENGTH} characters)'}), 400
     
     chat_id, chat_data = get_or_create_active_chat(request.json.get('chat_id', None))
 
@@ -1597,6 +1648,8 @@ def admin_predictions():
 def admin_intelligence_reports():
     """Admin page for intelligence reports"""
     return render_template('admin/intelligence_reports.html')
+
+# HealthPIN route removed - consolidated into healthpin dashboard
 
 @app.route('/admin/prototyping')
 @login_required
@@ -5153,12 +5206,12 @@ def create_admin():
             flash('All fields are required', 'danger')
             return redirect(url_for('create_admin'))
         
-        if len(username) < 3:
-            flash('Username must be at least 3 characters long', 'danger')
+        if len(username) < MIN_USERNAME_LENGTH:
+            flash(f'Username must be at least {MIN_USERNAME_LENGTH} characters long', 'danger')
             return redirect(url_for('create_admin'))
         
-        if len(password) < 6:
-            flash('Password must be at least 6 characters long', 'danger')
+        if len(password) < MIN_PASSWORD_LENGTH:
+            flash(f'Password must be at least {MIN_PASSWORD_LENGTH} characters long', 'danger')
             return redirect(url_for('create_admin'))
         
         if '@' not in email:
