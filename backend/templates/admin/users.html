@@ -5,12 +5,106 @@
 {% block header %}User Management{% endblock %}
 
 {% block content %}
+<!-- User Creation Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-person-plus me-2"></i>Create New User
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Admin User Creation -->
+                    <div class="col-lg-6">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="m-0 font-weight-bold">
+                                    <i class="bi bi-shield-check me-2"></i>Create Admin User
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Admin users have full system access and can manage all features.</p>
+                                <form method="post" action="{{ url_for('create_admin') }}">
+                                    <input type="hidden" name="user_type" value="admin">
+                                    <div class="mb-3">
+                                        <label for="admin_username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="admin_username" name="username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="admin_email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="admin_email" name="email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="admin_password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="admin_password" name="password" required>
+                                        <div class="form-text">Password should be at least 8 characters long.</div>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-shield-check"></i> Create Admin User
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regular User Creation -->
+                    <div class="col-lg-6">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="m-0 font-weight-bold">
+                                    <i class="bi bi-person me-2"></i>Create Regular User
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Regular users have standard access to the application features.</p>
+                                <form method="post" action="{{ url_for('create_admin') }}">
+                                    <input type="hidden" name="user_type" value="regular">
+                                    <div class="mb-3">
+                                        <label for="regular_username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="regular_username" name="username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="regular_email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="regular_email" name="email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="regular_password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="regular_password" name="password" required>
+                                        <div class="form-text">Password should be at least 8 characters long.</div>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-person"></i> Create Regular User
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Listing Section -->
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold">All Users</h6>
-        <a href="{{ url_for('create_admin') }}" class="btn btn-sm btn-success">
-            <i class="bi bi-person-plus"></i> Create Admin
-        </a>
+        <h6 class="m-0 font-weight-bold">
+            <i class="bi bi-people me-2"></i>All Users
+        </h6>
+        <div class="btn-group" role="group">
+            <button class="btn btn-sm btn-outline-primary" onclick="refreshUsers()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <button class="btn btn-sm btn-outline-info" onclick="exportUsers()">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -20,9 +114,10 @@
                         <th>ID</th>
                         <th>Username</th>
                         <th>Email</th>
-                        <th>Admin</th>
+                        <th>Type</th>
                         <th>Created</th>
                         <th>Last Login</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -30,32 +125,50 @@
                     {% for user in users %}
                     <tr>
                         <td>{{ user.id }}</td>
-                        <td>{{ user.username }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.id == current_user.id %}
+                            <span class="badge bg-info ms-1">You</span>
+                            {% endif %}
+                        </td>
                         <td>{{ user.email }}</td>
                         <td>
                             {% if user.is_admin %}
-                            <span class="badge bg-success">Yes</span>
+                            <span class="badge bg-danger">
+                                <i class="bi bi-shield-check me-1"></i>Admin
+                            </span>
                             {% else %}
-                            <span class="badge bg-secondary">No</span>
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-person me-1"></i>User
+                            </span>
                             {% endif %}
                         </td>
                         <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</td>
                         <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}</td>
                         <td>
+                            <span class="badge bg-success">Active</span>
+                        </td>
+                        <td>
                             <div class="btn-group" role="group">
-                                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i> View
+                                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-sm btn-info" title="View Details">
+                                    <i class="bi bi-eye"></i>
                                 </a>
                                 {% if user.id != current_user.id %}
                                 <form action="{{ url_for('toggle_admin', user_id=user.id) }}" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-success{% endif %}">
+                                    <button type="submit" class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-success{% endif %}" 
+                                            title="{% if user.is_admin %}Remove Admin{% else %}Make Admin{% endif %}"
+                                            onclick="return confirm('{% if user.is_admin %}Remove admin privileges from {{ user.username }}?{% else %}Grant admin privileges to {{ user.username }}?{% endif %}')">
                                         {% if user.is_admin %}
-                                        <i class="bi bi-person-dash"></i> Remove Admin
+                                        <i class="bi bi-person-dash"></i>
                                         {% else %}
-                                        <i class="bi bi-person-check"></i> Make Admin
+                                        <i class="bi bi-person-check"></i>
                                         {% endif %}
                                     </button>
                                 </form>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete User" 
+                                        onclick="deleteUser({{ user.id }}, '{{ user.username }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -63,6 +176,70 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ users|length }}</h4>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ users|selectattr('is_admin')|list|length }}</h4>
+                        <p class="mb-0">Admin Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-shield-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ users|rejectattr('is_admin')|list|length }}</h4>
+                        <p class="mb-0">Regular Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ users|selectattr('last_login')|list|length }}</h4>
+                        <p class="mb-0">Active Users</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -74,9 +251,116 @@
 <script>
     $(document).ready(function() {
         $('#usersTable').DataTable({
-            order: [[0, 'desc']]
+            order: [[0, 'desc']],
+            pageLength: 25,
+            responsive: true,
+            columnDefs: [
+                { targets: [0], width: "5%" },
+                { targets: [1], width: "15%" },
+                { targets: [2], width: "20%" },
+                { targets: [3], width: "10%" },
+                { targets: [4], width: "15%" },
+                { targets: [5], width: "15%" },
+                { targets: [6], width: "8%" },
+                { targets: [7], width: "12%" }
+            ]
         });
     });
+
+    // Refresh users table
+    function refreshUsers() {
+        location.reload();
+    }
+
+    // Export users data
+    function exportUsers() {
+        // Simple CSV export
+        const table = document.getElementById('usersTable');
+        const rows = table.querySelectorAll('tr');
+        let csv = [];
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = [], cols = rows[i].querySelectorAll('td, th');
+            for (let j = 0; j < cols.length - 1; j++) { // Exclude actions column
+                let cellText = cols[j].innerText.replace(/"/g, '""');
+                row.push('"' + cellText + '"');
+            }
+            csv.push(row.join(','));
+        }
+        
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'users_export_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Delete user function
+    function deleteUser(userId, username) {
+        if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+            // Create a form to submit the delete request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/users/${userId}/delete`;
+            
+            // Add CSRF token if available
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken.getAttribute('content');
+                form.appendChild(csrfInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Form validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const username = form.querySelector('input[name="username"]').value.trim();
+                const email = form.querySelector('input[name="email"]').value.trim();
+                const password = form.querySelector('input[name="password"]').value;
+                
+                if (username.length < 3) {
+                    e.preventDefault();
+                    alert('Username must be at least 3 characters long.');
+                    return false;
+                }
+                
+                if (password.length < 8) {
+                    e.preventDefault();
+                    alert('Password must be at least 8 characters long.');
+                    return false;
+                }
+                
+                if (!email.includes('@')) {
+                    e.preventDefault();
+                    alert('Please enter a valid email address.');
+                    return false;
+                }
+            });
+        });
+    });
+
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        // Only refresh if no modal is open and user is not actively editing
+        if (!document.querySelector('.modal.show') && !document.activeElement.matches('input, textarea, select')) {
+            // You could implement a more sophisticated refresh here
+            // For now, we'll just update the timestamp
+            const now = new Date();
+            console.log('Auto-refresh check at:', now.toLocaleTimeString());
+        }
+    }, 30000);
 </script>
 {% endblock %}
 

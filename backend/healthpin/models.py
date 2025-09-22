@@ -15,6 +15,7 @@ from backend.models import db
 class Patient(db.Model):
     """Patient model for HealthPIN platform"""
     __tablename__ = 'healthpin_patients'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Link to existing user
@@ -48,10 +49,10 @@ class Patient(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    health_records = db.relationship('HealthRecord', back_populates='patient', cascade='all, delete-orphan')
-    doctor_matches = db.relationship('DoctorMatch', back_populates='patient', cascade='all, delete-orphan')
-    family_notifications = db.relationship('FamilyNotification', back_populates='patient', cascade='all, delete-orphan')
+    # Relationships - using string references to avoid circular imports
+    health_records = db.relationship('healthpin.models.HealthRecord', back_populates='patient', cascade='all, delete-orphan')
+    doctor_matches = db.relationship('healthpin.models.DoctorMatch', back_populates='patient', cascade='all, delete-orphan')
+    family_notifications = db.relationship('healthpin.models.FamilyNotification', back_populates='patient', cascade='all, delete-orphan')
     
     def to_dict(self):
         return {
@@ -80,6 +81,7 @@ class Patient(db.Model):
 class Doctor(db.Model):
     """Doctor model for HealthPIN platform"""
     __tablename__ = 'healthpin_doctors'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     
@@ -129,8 +131,8 @@ class Doctor(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    doctor_matches = db.relationship('DoctorMatch', back_populates='doctor', cascade='all, delete-orphan')
-    consultations = db.relationship('Consultation', back_populates='doctor', cascade='all, delete-orphan')
+    doctor_matches = db.relationship('healthpin.models.DoctorMatch', back_populates='doctor', cascade='all, delete-orphan')
+    consultations = db.relationship('healthpin.models.Consultation', back_populates='doctor', cascade='all, delete-orphan')
     
     def to_dict(self):
         return {
@@ -170,6 +172,7 @@ class Doctor(db.Model):
 class HealthRecord(db.Model):
     """Health record model for HealthBank functionality"""
     __tablename__ = 'healthpin_health_records'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('healthpin_patients.id'), nullable=False)
@@ -208,8 +211,8 @@ class HealthRecord(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('Patient', back_populates='health_records')
-    doctor = db.relationship('Doctor')
+    patient = db.relationship('healthpin.models.Patient', back_populates='health_records')
+    doctor = db.relationship('healthpin.models.Doctor')
     
     def to_dict(self):
         return {
@@ -239,6 +242,7 @@ class HealthRecord(db.Model):
 class DoctorMatch(db.Model):
     """AI-powered doctor matching results"""
     __tablename__ = 'healthpin_doctor_matches'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('healthpin_patients.id'), nullable=False)
@@ -271,8 +275,8 @@ class DoctorMatch(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('Patient', back_populates='doctor_matches')
-    doctor = db.relationship('Doctor', back_populates='doctor_matches')
+    patient = db.relationship('healthpin.models.Patient', back_populates='doctor_matches')
+    doctor = db.relationship('healthpin.models.Doctor', back_populates='doctor_matches')
     
     def to_dict(self):
         return {
@@ -300,6 +304,7 @@ class DoctorMatch(db.Model):
 class FamilyNotification(db.Model):
     """Family notification system for FamilyHealth"""
     __tablename__ = 'healthpin_family_notifications'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('healthpin_patients.id'), nullable=False)
@@ -331,8 +336,8 @@ class FamilyNotification(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('Patient', back_populates='family_notifications')
-    health_record = db.relationship('HealthRecord')
+    patient = db.relationship('healthpin.models.Patient', back_populates='family_notifications')
+    health_record = db.relationship('healthpin.models.HealthRecord')
     
     def to_dict(self):
         return {
@@ -357,6 +362,7 @@ class FamilyNotification(db.Model):
 class Consultation(db.Model):
     """Consultation/appointment model"""
     __tablename__ = 'healthpin_consultations'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('healthpin_patients.id'), nullable=False)
@@ -388,9 +394,9 @@ class Consultation(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('Patient')
-    doctor = db.relationship('Doctor', back_populates='consultations')
-    family_notifications = db.relationship('FamilyNotification', backref='consultation')
+    patient = db.relationship('healthpin.models.Patient')
+    doctor = db.relationship('healthpin.models.Doctor', back_populates='consultations')
+    family_notifications = db.relationship('healthpin.models.FamilyNotification', backref='consultation')
     
     def to_dict(self):
         return {
@@ -417,6 +423,7 @@ class Consultation(db.Model):
 class HealthNews(db.Model):
     """HealthNews content for monetization"""
     __tablename__ = 'healthpin_health_news'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     
