@@ -1,0 +1,131 @@
+model:
+  base_model: 'microsoft/DialoGPT-medium'  # Good for conversational AI
+  max_length: 512
+  vocab_size: 50257
+  model_type: 'HealthPIN Medical Assistant'
+
+training:
+  batch_size: 2  # Smaller batch size for medical data
+  learning_rate: 2e-5  # Lower learning rate for medical accuracy
+  num_epochs: 4  # More epochs for medical specialization
+  warmup_steps: 100
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 50
+  gradient_accumulation_steps: 4
+  max_grad_norm: 1.0
+  weight_decay: 0.01
+  patience: 3  # Early stopping patience
+
+data:
+  train_split: 0.8
+  val_split: 0.15
+  test_split: 0.05
+  min_examples: 100  # Higher threshold for medical data quality
+  max_examples: 10000  # Limit for medical data
+
+# HealthPIN-specific data sources
+healthpin_data:
+  medical_conversations:
+    enabled: true
+    min_length: 20
+    max_length: 500
+    categories: ['symptom_assessment', 'chronic_condition', 'emergency', 'preventive_care']
+  
+  doctor_matching:
+    enabled: true
+    min_match_examples: 50
+    specialties: ['general_practice', 'cardiology', 'psychiatry', 'pediatrics', 'gynecology']
+  
+  health_records:
+    enabled: true
+    min_record_length: 50
+    include_family_summaries: true
+  
+  family_notifications:
+    enabled: true
+    languages: ['English', 'isiZulu', 'isiXhosa', 'Shona']
+    urgency_levels: ['low', 'normal', 'high', 'emergency']
+  
+  multilingual:
+    enabled: true
+    target_languages: ['English', 'isiZulu', 'isiXhosa', 'Shona']
+    medical_terminology: true
+  
+  medical_literature:
+    enabled: true
+    sources: ['WHO', 'SA Medical Association', 'Medical Journals']
+    categories: ['guidelines', 'research', 'best_practices']
+
+# Medical-specific training parameters
+medical_training:
+  safety_checks: true
+  medical_accuracy_threshold: 0.85
+  bias_detection: true
+  cultural_sensitivity: true
+  
+  # Medical conversation patterns
+  conversation_types:
+    - 'symptom_assessment'
+    - 'treatment_planning'
+    - 'medication_management'
+    - 'preventive_care'
+    - 'emergency_triage'
+    - 'family_communication'
+  
+  # Doctor matching criteria
+  matching_criteria:
+    - 'specialty_alignment'
+    - 'language_compatibility'
+    - 'cultural_competence'
+    - 'location_proximity'
+    - 'experience_level'
+    - 'patient_preferences'
+
+# Quality assurance
+quality_assurance:
+  medical_review: true
+  cultural_review: true
+  language_validation: true
+  bias_mitigation: true
+  
+  # Review thresholds
+  confidence_threshold: 0.8
+  medical_accuracy_threshold: 0.85
+  cultural_sensitivity_score: 0.8
+
+# Deployment settings
+deployment:
+  model_name: 'healthpin-medical-assistant'
+  version: '1.0.0'
+  environment: 'production'
+  
+  # Fallback settings
+  openai_fallback: true
+  fallback_threshold: 0.7
+  
+  # Monitoring
+  performance_monitoring: true
+  medical_accuracy_tracking: true
+  user_feedback_collection: true
+
+# Monitoring and evaluation
+monitoring:
+  use_wandb: false  # Keep it simple for now
+  project_name: 'healthpin-medical-ai'
+  run_name: 'healthpin_v1'
+  
+  # Medical-specific metrics
+  medical_metrics:
+    - 'diagnostic_accuracy'
+    - 'treatment_recommendation_quality'
+    - 'cultural_sensitivity_score'
+    - 'language_accuracy'
+    - 'family_communication_effectiveness'
+  
+  # Evaluation datasets
+  evaluation_datasets:
+    - 'medical_conversation_test_set'
+    - 'doctor_matching_test_set'
+    - 'health_record_analysis_test_set'
+    - 'multilingual_medical_test_set'

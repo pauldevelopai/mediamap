@@ -20,6 +20,15 @@ from .models import (
 from .twilio_service import twilio_service
 from backend.models import db
 
+# Import HealthPIN training components
+try:
+    from .training import get_healthpin_model_manager
+    healthpin_model_manager = get_healthpin_model_manager()
+    print("✅ HealthPIN model manager loaded")
+except ImportError as e:
+    print(f"⚠️ HealthPIN model manager import error: {e}")
+    healthpin_model_manager = None
+
 # Create Blueprint
 healthpin_bp = Blueprint('healthpin', __name__, url_prefix='/healthpin')
 
@@ -976,6 +985,10 @@ def get_healthpin_stats():
             },
             'twilio': {
                 'configured': twilio_service.is_configured()
+            },
+            'ai_model': {
+                'loaded': healthpin_model_manager.is_model_loaded if healthpin_model_manager else False,
+                'type': 'HealthPIN Medical Assistant' if healthpin_model_manager else 'Not Available'
             }
         }
         
@@ -986,4 +999,124 @@ def get_healthpin_stats():
         
     except Exception as e:
         logger.error(f"Error fetching HealthPIN stats: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============================================================================
+# AI TRAINING ENDPOINTS
+# ============================================================================
+
+@healthpin_bp.route('/training/start', methods=['POST'])
+@login_required
+def start_healthpin_training():
+    """Start HealthPIN model training"""
+    try:
+        data = request.get_json() or {}
+        
+        # Training parameters
+        epochs = data.get('epochs', 3)
+        learning_rate = data.get('learning_rate', 2e-5)
+        base_model = data.get('base_model', 'microsoft/DialoGPT-medium')
+        quick_mode = data.get('quick_mode', False)
+        
+        # Import training function
+        from .training import train_healthpin_model, quick_train
+        
+        # Start training in background thread
+        import threading
+        
+        def train_model():
+            try:
+                if quick_mode:
+                    success = quick_train()
+                else:
+                    success = train_healthpin_model()
+                
+                logger.info(f"HealthPIN training completed: {success}")
+            except Exception as e:
+                logger.error(f"HealthPIN training error: {str(e)}")
+        
+        training_thread = threading.Thread(target=train_model, daemon=True)
+        training_thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'HealthPIN training started successfully',
+            'training_mode': 'quick' if quick_mode else 'full',
+            'parameters': {
+                'epochs': epochs,
+                'learning_rate': learning_rate,
+                'base_model': base_model
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error starting HealthPIN training: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@healthpin_bp.route('/training/status')
+@login_required
+def get_training_status():
+    """Get HealthPIN training status"""
+    try:
+        # Check if model is loaded
+        model_loaded = healthpin_model_manager.is_model_loaded if healthpin_model_manager else False
+        
+        # Get model stats if available
+        model_stats = None
+        if healthpin_model_manager and model_loaded:
+            try:
+                model_stats = healthpin_model_manager.get_healthpin_stats()
+            except Exception as e:
+                logger.error(f"Error getting model stats: {str(e)}")
+        
+        return jsonify({
+            'success': True,
+            'model_loaded': model_loaded,
+            'model_type': 'HealthPIN Medical Assistant' if model_loaded else 'Not Available',
+            'model_stats': model_stats,
+            'training_available': True
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting training status: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@healthpin_bp.route('/ai/generate-response', methods=['POST'])
+@login_required
+def generate_ai_response():
+    """Generate AI response using HealthPIN model"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        message = data.get('message', '').strip()
+        if not message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+        
+        # Get additional context
+        patient_context = data.get('patient_context', {})
+        conversation_history = data.get('conversation_history', [])
+        
+        if healthpin_model_manager and healthpin_model_manager.is_model_loaded:
+            # Use HealthPIN model
+            response, source = healthpin_model_manager.generate_medical_response(
+                patient_message=message,
+                conversation_history=conversation_history,
+                patient_context=patient_context
+            )
+        else:
+            # Fallback to simple response
+            response = "I'm a HealthPIN medical assistant. I can help you with health-related questions, doctor matching, and health record management. However, my AI model is not currently loaded. Please try again later."
+            source = "fallback"
+        
+        return jsonify({
+            'success': True,
+            'response': response,
+            'source': source,
+            'model_loaded': healthpin_model_manager.is_model_loaded if healthpin_model_manager else False
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating AI response: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500

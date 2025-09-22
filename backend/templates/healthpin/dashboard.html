@@ -237,6 +237,32 @@
                             </button>
                         </div>
                     </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-success w-100" onclick="startHealthPINTraining()">
+                                <i class="bi bi-cpu me-2"></i>
+                                Train AI Model
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="checkAIModelStatus()">
+                                <i class="bi bi-robot me-2"></i>
+                                AI Model Status
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-warning w-100" onclick="testAIModel()">
+                                <i class="bi bi-chat-heart me-2"></i>
+                                Test AI Model
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="showAITrainingModal()">
+                                <i class="bi bi-gear me-2"></i>
+                                Training Settings
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -991,6 +1017,209 @@ async function checkTwilioStatusOnLoad() {
             badge.textContent = 'Error';
             badge.className = 'badge bg-danger';
         }
+    }
+}
+
+// HealthPIN AI Training Functions
+async function startHealthPINTraining() {
+    try {
+        const response = await fetch('/healthpin/training/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                epochs: 3,
+                learning_rate: 2e-5,
+                base_model: 'microsoft/DialoGPT-medium',
+                quick_mode: false
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`HealthPIN AI training started successfully!\n\nTraining Mode: ${result.training_mode}\nEpochs: ${result.parameters.epochs}\nLearning Rate: ${result.parameters.learning_rate}\nBase Model: ${result.parameters.base_model}\n\nTraining will run in the background. Check the status periodically.`);
+        } else {
+            alert(`Error starting training: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error starting HealthPIN training:', error);
+        alert('Error starting HealthPIN training. Please try again.');
+    }
+}
+
+async function checkAIModelStatus() {
+    try {
+        const response = await fetch('/healthpin/training/status', {
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            let statusMessage = `AI Model Status:\n\n`;
+            statusMessage += `Model Loaded: ${result.model_loaded ? 'Yes' : 'No'}\n`;
+            statusMessage += `Model Type: ${result.model_type}\n`;
+            statusMessage += `Training Available: ${result.training_available ? 'Yes' : 'No'}\n`;
+            
+            if (result.model_stats) {
+                statusMessage += `\nModel Statistics:\n`;
+                statusMessage += `Total Requests: ${result.model_stats.stats.total_requests || 0}\n`;
+                statusMessage += `Medical Conversations: ${result.model_stats.stats.medical_conversations || 0}\n`;
+                statusMessage += `Doctor Matches: ${result.model_stats.stats.doctor_matches || 0}\n`;
+                statusMessage += `Health Record Analyses: ${result.model_stats.stats.health_record_analyses || 0}\n`;
+                statusMessage += `Family Notifications: ${result.model_stats.stats.family_notifications || 0}\n`;
+            }
+            
+            alert(statusMessage);
+        } else {
+            alert(`Error checking AI model status: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error checking AI model status:', error);
+        alert('Error checking AI model status. Please try again.');
+    }
+}
+
+async function testAIModel() {
+    const testMessage = prompt('Enter a test message for the AI model:');
+    if (!testMessage) return;
+
+    try {
+        const response = await fetch('/healthpin/ai/generate-response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                message: testMessage,
+                patient_context: {
+                    age: 35,
+                    gender: 'male',
+                    medical_history: 'none'
+                }
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            let responseMessage = `AI Model Test Results:\n\n`;
+            responseMessage += `Input: ${testMessage}\n\n`;
+            responseMessage += `Response: ${result.response}\n\n`;
+            responseMessage += `Source: ${result.source}\n`;
+            responseMessage += `Model Loaded: ${result.model_loaded ? 'Yes' : 'No'}`;
+            
+            alert(responseMessage);
+        } else {
+            alert(`Error testing AI model: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error testing AI model:', error);
+        alert('Error testing AI model. Please try again.');
+    }
+}
+
+function showAITrainingModal() {
+    // Create a simple training settings modal
+    const modalHtml = `
+        <div class="modal fade" id="aiTrainingModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-gear me-2"></i>
+                            HealthPIN AI Training Settings
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="trainingEpochs" class="form-label">Training Epochs</label>
+                            <input type="number" class="form-control" id="trainingEpochs" value="3" min="1" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <label for="learningRate" class="form-label">Learning Rate</label>
+                            <input type="number" class="form-control" id="learningRate" value="0.00002" step="0.00001" min="0.00001" max="0.001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="baseModel" class="form-label">Base Model</label>
+                            <select class="form-select" id="baseModel">
+                                <option value="microsoft/DialoGPT-small">DialoGPT Small (Fast)</option>
+                                <option value="microsoft/DialoGPT-medium" selected>DialoGPT Medium (Recommended)</option>
+                                <option value="microsoft/DialoGPT-large">DialoGPT Large (Slow)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="quickMode">
+                                <label class="form-check-label" for="quickMode">
+                                    Quick Training Mode (1 epoch, smaller model)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="startCustomTraining()">Start Training</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('aiTrainingModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiTrainingModal'));
+    modal.show();
+}
+
+async function startCustomTraining() {
+    const epochs = parseInt(document.getElementById('trainingEpochs').value);
+    const learningRate = parseFloat(document.getElementById('learningRate').value);
+    const baseModel = document.getElementById('baseModel').value;
+    const quickMode = document.getElementById('quickMode').checked;
+    
+    try {
+        const response = await fetch('/healthpin/training/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                epochs: epochs,
+                learning_rate: learningRate,
+                base_model: baseModel,
+                quick_mode: quickMode
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('aiTrainingModal'));
+            modal.hide();
+            
+            alert(`HealthPIN AI training started successfully!\n\nTraining Mode: ${result.training_mode}\nEpochs: ${result.parameters.epochs}\nLearning Rate: ${result.parameters.learning_rate}\nBase Model: ${result.parameters.base_model}\n\nTraining will run in the background. Check the status periodically.`);
+        } else {
+            alert(`Error starting training: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error starting custom training:', error);
+        alert('Error starting custom training. Please try again.');
     }
 }
 
