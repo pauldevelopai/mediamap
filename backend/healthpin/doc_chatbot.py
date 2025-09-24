@@ -111,9 +111,8 @@ class DocChatbotManager:
             # Add current message
             messages.append({"role": "user", "content": message})
             
-            # For now, we'll use a simple response generation
-            # In a full implementation, this would call OpenAI API or custom model
-            response = self._generate_simple_response(message, context_type, system_prompt)
+            # Call OpenAI API for real AI responses
+            response = self._call_openai_api(messages)
             
             # Track performance
             response_time_ms = int((time.time() - start_time) * 1000)
@@ -132,6 +131,31 @@ class DocChatbotManager:
                 "context_type": "main",
                 "response_time_ms": int((time.time() - start_time) * 1000)
             }
+    
+    def _call_openai_api(self, messages):
+        """Call OpenAI API to generate AI response"""
+        try:
+            import openai
+            from backend.app import client
+            
+            # Use the same OpenAI client as the main chat
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=messages,
+                max_tokens=1000,
+                temperature=0.7
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            print(f"❌ OpenAI API error in Doc chatbot: {e}")
+            # Fallback to simple response
+            return self._generate_simple_response(
+                messages[-1]["content"] if messages else "Hello",
+                "main",
+                messages[0]["content"] if messages else ""
+            )
     
     def _generate_simple_response(self, message, context_type, system_prompt):
         """Generate a simple response based on context (placeholder for full AI integration)"""
@@ -454,14 +478,10 @@ def doc_chat_message():
         
         # Save message to database
         chat_message = ChatMessage(
-            user_id=current_user.id,
-            message=message,
-            response=result['response'],
-            chatbot_type='doc_healthpin',
-            metadata=json.dumps({
-                'context_type': result['context_type'],
-                'response_time_ms': result['response_time_ms']
-            })
+            sender_id=str(current_user.id),
+            recipient_id='doc_healthpin',
+            message_text=message,
+            is_user_message=True
         )
         
         db.session.add(chat_message)

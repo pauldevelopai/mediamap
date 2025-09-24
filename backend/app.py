@@ -3784,6 +3784,7 @@ def admin_get_news():
                     'title': news.title,
                     'description': news.content,
                     'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'url': news.url or '#',
                     'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
                 })
             elif 'media_news' in source.lower():
@@ -3791,6 +3792,7 @@ def admin_get_news():
                     'title': news.title,
                     'description': news.content,
                     'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'url': news.url or '#',
                     'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
                 })
             elif 'tech_news' in source.lower():
@@ -3798,6 +3800,7 @@ def admin_get_news():
                     'title': news.title,
                     'description': news.content,
                     'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'url': news.url or '#',
                     'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
                 })
             elif 'industry_updates' in source.lower():
@@ -3805,6 +3808,7 @@ def admin_get_news():
                     'title': news.title,
                     'description': news.content,
                     'source': source.split(' - ')[0] if ' - ' in source else source,
+                    'url': news.url or '#',
                     'publishedAt': news.created_at.strftime('%Y-%m-%d %H:%M') if news.created_at else ''
                 })
         

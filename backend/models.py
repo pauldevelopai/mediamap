@@ -571,6 +571,7 @@ class DailyInsight(db.Model):
     content = db.Column(db.Text)
     category = db.Column(db.String(100))  # AI, Media, Tech, Industry
     source = db.Column(db.String(200))
+    url = db.Column(db.String(500))  # URL to the original article
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class HighlanderChat(db.Model):

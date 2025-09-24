@@ -3649,7 +3649,12 @@ function updateNewsDisplay(news) {
             newsHtml += `
                 <div class="list-group-item">
                     <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">${article.title}</h6>
+                        <h6 class="mb-1">
+                            <a href="${article.url || article.link || '#'}" target="_blank" class="text-decoration-none">
+                                ${article.title}
+                                <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        </h6>
                         <div class="d-flex align-items-center">
                             <button class="btn btn-outline-primary btn-sm me-2" onclick="saveNewsStory('${article.title.replace(/'/g, "\\'")}', '${article.description.replace(/'/g, "\\'")}', '${article.source.replace(/'/g, "\\'")}', '${category}')">
                                 <i class="bi bi-bookmark"></i> Save
