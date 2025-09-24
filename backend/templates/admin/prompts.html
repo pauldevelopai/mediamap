@@ -69,20 +69,12 @@
 <!-- Statistics Overview -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
-        <div class="card border-primary h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-chat-quote fa-2x text-primary mb-2"></i>
-                <h4 class="text-primary">{{ total_prompts }}</h4>
-                <p class="text-muted small mb-0">Total Prompts</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
         <div class="card border-success h-100">
             <div class="card-body text-center">
                 <i class="bi bi-check-circle fa-2x text-success mb-2"></i>
                 <h4 class="text-success">{{ active_prompts }}</h4>
                 <p class="text-muted small mb-0">Active Prompts</p>
+                <small class="text-muted">Actually used in app</small>
             </div>
         </div>
     </div>
@@ -92,6 +84,7 @@
                 <i class="bi bi-robot fa-2x text-info mb-2"></i>
                 <h4 class="text-info">{{ llm_providers|length }}</h4>
                 <p class="text-muted small mb-0">LLM Providers</p>
+                <small class="text-muted">OpenAI, Custom models</small>
             </div>
         </div>
     </div>
@@ -101,6 +94,17 @@
                 <i class="bi bi-tags fa-2x text-warning mb-2"></i>
                 <h4 class="text-warning">{{ categories|length }}</h4>
                 <p class="text-muted small mb-0">Categories</p>
+                <small class="text-muted">Business, Healthcare, etc.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-secondary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-eye-slash fa-2x text-secondary mb-2"></i>
+                <h4 class="text-secondary">{{ total_prompts - active_prompts }}</h4>
+                <p class="text-muted small mb-0">Inactive Prompts</p>
+                <small class="text-muted">Unused/duplicate</small>
             </div>
         </div>
     </div>
