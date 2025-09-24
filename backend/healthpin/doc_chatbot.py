@@ -133,23 +133,36 @@ class DocChatbotManager:
             }
     
     def _call_openai_api(self, messages):
-        """Call OpenAI API to generate AI response"""
+        """Call OpenAI API or HealthPIN model to generate AI response"""
         try:
-            import openai
-            from backend.app import client
+            # Try to use HealthPIN model first
+            from backend.training.model_factory import get_healthpin_model_manager
             
-            # Use the same OpenAI client as the main chat
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=messages,
-                max_tokens=1000,
-                temperature=0.7
-            )
+            healthpin_manager = get_healthpin_model_manager()
             
-            return response.choices[0].message.content
+            if healthpin_manager.is_model_loaded:
+                # Use custom HealthPIN model
+                response = healthpin_manager.generate_response(
+                    messages[-1]["content"] if messages else "Hello",
+                    conversation_history=messages[:-1] if len(messages) > 1 else []
+                )
+                return response
+            else:
+                # Fallback to OpenAI
+                import openai
+                from backend.app import client
+                
+                response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=messages,
+                    max_tokens=1000,
+                    temperature=0.7
+                )
+                
+                return response.choices[0].message.content
             
         except Exception as e:
-            print(f"❌ OpenAI API error in Doc chatbot: {e}")
+            print(f"❌ AI API error in Doc chatbot: {e}")
             # Fallback to simple response
             return self._generate_simple_response(
                 messages[-1]["content"] if messages else "Hello",

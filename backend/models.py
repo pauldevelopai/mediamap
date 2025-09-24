@@ -175,6 +175,77 @@ class Feedback(db.Model):
     # Relationship
     user = db.relationship('User', backref=db.backref('feedback_submissions', lazy=True)) 
 
+class AgentConfiguration(db.Model):
+    __tablename__ = 'agent_configurations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)  # 'mediamap', 'healthpin', etc.
+    display_name = db.Column(db.String(100), nullable=False)
+    section = db.Column(db.String(50), nullable=False)  # 'mediamap', 'healthpin'
+    role = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    data_sources = db.Column(db.Text, nullable=False)  # JSON string of data sources
+    collection_interval = db.Column(db.Integer, default=30)  # minutes
+    instructions = db.Column(db.Text, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'name': self.name,
+            'display_name': self.display_name,
+            'section': self.section,
+            'role': self.role,
+            'description': self.description,
+            'data_sources': json.loads(self.data_sources) if self.data_sources else [],
+            'collection_interval': self.collection_interval,
+            'instructions': self.instructions,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class WorkflowAgent(db.Model):
+    __tablename__ = 'workflow_agents'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    workflow_name = db.Column(db.String(50), nullable=False)  # 'mediamap', 'healthpin'
+    agent_name = db.Column(db.String(100), nullable=False)
+    display_name = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    data_sources = db.Column(db.Text, nullable=False)  # JSON string of data sources
+    collection_interval = db.Column(db.Integer, default=30)  # minutes
+    instructions = db.Column(db.Text, nullable=False)
+    priority = db.Column(db.Integer, default=1)  # 1 = highest priority
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Unique constraint on workflow_name + agent_name
+    __table_args__ = (db.UniqueConstraint('workflow_name', 'agent_name', name='_workflow_agent_uc'),)
+    
+    def to_dict(self):
+        import json
+        return {
+            'id': self.id,
+            'workflow_name': self.workflow_name,
+            'agent_name': self.agent_name,
+            'display_name': self.display_name,
+            'role': self.role,
+            'description': self.description,
+            'data_sources': json.loads(self.data_sources) if self.data_sources else [],
+            'collection_interval': self.collection_interval,
+            'instructions': self.instructions,
+            'priority': self.priority,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
 class NotionIntegration(db.Model):
     """Model for Notion integration settings"""
     id = db.Column(db.Integer, primary_key=True)

@@ -57,7 +57,7 @@
             <!-- Sidebar -->
             <div class="col-md-2 admin-sidebar p-0">
                 <div class="d-flex flex-column p-3">
-                    <a href="{{ url_for('admin_dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                    <a href="{{ url_for('admin_map') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                         <i class="bi bi-shield-lock me-2"></i>
                         <span class="fs-4">Admin Panel</span>
                     </a>
@@ -65,15 +65,13 @@
                     <ul class="nav nav-pills flex-column mb-auto">
                         <!-- Main Navigation Items -->
                         <li class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                                <i class="bi bi-speedometer2 me-2"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="{{ url_for('admin_map') }}" class="nav-link {% if request.endpoint == 'admin_map' %}active{% endif %}">
                                 <i class="bi bi-geo-alt me-2"></i>
                                 MediaMap
+                            </a>
+                            <a href="{{ url_for('admin_healthpin') }}" class="nav-link {% if request.endpoint == 'admin_healthpin' %}active{% endif %}">
+                                <i class="bi bi-heart-pulse me-2"></i>
+                                HealthPIN
                             </a>
                         </li>
                         <li class="nav-item">
@@ -136,6 +134,12 @@
                                 <span>Additional Tools</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="additionalToolsDropdown">
+                                <li>
+                                    <a href="{{ url_for('admin_dashboard') }}" class="dropdown-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                                        <i class="bi bi-speedometer2 me-2"></i>
+                                        Dashboard
+                                    </a>
+                                </li>
                                 <li>
                                     <a href="{{ url_for('admin_quick_access') }}" class="dropdown-item {% if request.endpoint == 'admin_quick_access' %}active{% endif %}">
                                         <i class="bi bi-lightning-charge me-2"></i>

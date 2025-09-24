@@ -321,15 +321,6 @@
                 <div class="stats-label">Today</div>
             </div>
             
-            <div class="stats-card">
-                <div class="stats-number" id="totalOrganizations">-</div>
-                <div class="stats-label">Organizations</div>
-            </div>
-            
-            <div class="stats-card">
-                <div class="stats-number" id="totalClients">-</div>
-                <div class="stats-label">Clients</div>
-            </div>
             
             <!-- Actions -->
             <div class="mt-4">
@@ -519,17 +510,6 @@ function loadChatStats() {
     .catch(error => console.error('Error loading chat stats:', error));
 }
 
-// Update chat stats with new data
-function updateChatStats(context) {
-    if (context) {
-        if (context.total_organisations !== undefined) {
-            document.getElementById('totalOrganizations').textContent = context.total_organisations;
-        }
-        if (context.client_count !== undefined) {
-            document.getElementById('totalClients').textContent = context.client_count;
-        }
-    }
-}
 
 // Load chat history
 function loadChatHistory() {

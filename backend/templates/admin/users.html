@@ -246,6 +246,111 @@
         </div>
     </div>
 </div>
+
+<!-- Feedback Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-chat-heart me-2"></i>User Feedback (Highlander & Doc)
+                </h6>
+                <span class="badge bg-primary">{{ non_admin_feedback|length }} feedback items</span>
+            </div>
+            <div class="card-body">
+                {% if non_admin_feedback %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                                <th>Follow-up</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in non_admin_feedback %}
+                            <tr>
+                                <td>
+                                    <strong>{{ feedback.username }}</strong>
+                                    <br><small class="text-muted">ID: {{ feedback.user_id }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if feedback.feedback_type == 'bug' %}danger{% elif feedback.feedback_type == 'feature' %}success{% elif feedback.feedback_type == 'improvement' %}warning{% else %}info{% endif %}">
+                                        {{ feedback.feedback_type.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ feedback.subject }}</strong>
+                                </td>
+                                <td>
+                                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ feedback.message[:100] }}{% if feedback.message|length > 100 %}...{% endif %}
+                                    </div>
+                                    {% if feedback.message|length > 100 %}
+                                    <button class="btn btn-sm btn-outline-primary mt-1" onclick="showFullMessage({{ feedback.id }})">
+                                        <i class="bi bi-eye"></i> View Full
+                                    </button>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ feedback.created_at.strftime('%Y-%m-%d %H:%M') if feedback.created_at else 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if feedback.allow_followup %}
+                                    <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-chat-heart fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No feedback yet</h5>
+                    <p class="text-muted">Feedback from non-admin users using Highlander and Doc will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Message Modal -->
+<div class="modal fade" id="fullMessageModal" tabindex="-1" aria-labelledby="fullMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fullMessageModalLabel">Full Feedback Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="fullMessageContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showFullMessage(feedbackId) {
+    // This would need to be implemented with an API call to get the full message
+    // For now, we'll show a placeholder
+    document.getElementById('fullMessageContent').innerHTML = '<p>Full message content would be loaded here for feedback ID: ' + feedbackId + '</p>';
+    var modal = new bootstrap.Modal(document.getElementById('fullMessageModal'));
+    modal.show();
+}
+</script>
+
 {% endblock %}
 
 {% block scripts %}

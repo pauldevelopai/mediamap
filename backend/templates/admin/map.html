@@ -1,8 +1,8 @@
 {% extends "admin/base_admin.html" %}
 
-{% block title %}Business Map | MediaMap{% endblock %}
+{% block title %}MediaMap | MediaMap{% endblock %}
 
-{% block header %}Business Map{% endblock %}
+{% block header %}MediaMap{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -40,18 +40,13 @@
             <div class="card-header py-3">
                 <ul class="nav nav-tabs card-header-tabs" id="businessMapTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="aimap-tab" data-bs-toggle="tab" data-bs-target="#aimap" type="button" role="tab">
-                            <i class="bi bi-geo-alt"></i> AIMAP Organizations
+                        <button class="nav-link active" id="organizations-tab" data-bs-toggle="tab" data-bs-target="#organizations" type="button" role="tab">
+                            <i class="bi bi-building"></i> Organizations
                     </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients" type="button" role="tab">
-                            <i class="bi bi-building"></i> Clients
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="newsrooms-tab" data-bs-toggle="tab" data-bs-target="#newsrooms" type="button" role="tab">
-                            <i class="bi bi-newspaper"></i> Newsrooms
+                            <i class="bi bi-people"></i> Clients
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -67,11 +62,6 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">
                             <i class="bi bi-rss"></i> Daily News
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
-                            <i class="bi bi-graph-up"></i> Analytics
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -118,16 +108,19 @@
             </div>
             <div class="card-body">
                 <div class="tab-content" id="businessMapTabContent">
-                    <!-- AIMAP Organizations Tab -->
-                    <div class="tab-pane fade show active" id="aimap" role="tabpanel">
+                    <!-- Organizations Tab (Merged AIMAP + Newsrooms) -->
+                    <div class="tab-pane fade show active" id="organizations" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5><i class="bi bi-geo-alt"></i> AIMAP Organizations</h5>
+                            <h5><i class="bi bi-building"></i> Organizations & Newsrooms</h5>
                             <div>
                                 <button class="btn btn-success me-2" onclick="showTagManager()">
                                     <i class="bi bi-tags"></i> Manage Tags
                                 </button>
-                                <button class="btn btn-primary" onclick="addNewOrganisation()">
+                                <button class="btn btn-primary me-2" onclick="addNewOrganisation()">
                                     <i class="bi bi-plus-circle"></i> Add Organization
+                                </button>
+                                <button class="btn btn-primary" onclick="addNewsroom()">
+                                    <i class="bi bi-newspaper"></i> Add Newsroom
                                 </button>
                             </div>
                         </div>
@@ -167,6 +160,46 @@
                                         <h6 class="text-info">Benchmarks</h6>
                                         <h4 class="text-info">0</h4>
                                         <small class="text-muted">Available</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Newsroom Categories -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-2">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <h6 class="text-primary">National</h6>
+                                <h4 class="text-primary">{{ national_newsrooms|default(0) }}</h4>
+                                <small class="text-muted">National Newsrooms</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h6 class="text-success">Regional</h6>
+                                <h4 class="text-success">{{ regional_newsrooms|default(0) }}</h4>
+                                <small class="text-muted">Regional Newsrooms</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="text-warning">Digital-First</h6>
+                                <h4 class="text-warning">{{ digital_newsrooms|default(0) }}</h4>
+                                <small class="text-muted">Digital-First Newsrooms</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h6 class="text-info">Total</h6>
+                                <h4 class="text-info">{{ total_newsrooms|default(0) }}</h4>
+                                <small class="text-muted">Newsrooms</small>
                             </div>
                         </div>
                     </div>
@@ -262,8 +295,77 @@
                                     {% endif %}
                                 </tbody>
                             </table>
-    </div>
-</div>
+                        </div>
+                        
+                        <!-- Newsrooms Table -->
+                        <div class="table-responsive mt-4">
+                            <h6 class="mb-3"><i class="bi bi-newspaper"></i> Newsrooms</h6>
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Newsroom</th>
+                                        <th>Type</th>
+                                        <th>Region</th>
+                                        <th>Country</th>
+                                        <th>Size</th>
+                                        <th>Website</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="newsrooms-table-body">
+                                    {% if total_newsrooms == 0 %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <i class="bi bi-inbox"></i>
+                                            <p class="mt-2">No newsrooms found. Start by adding your first newsroom.</p>
+                                            <button class="btn btn-primary btn-sm" onclick="addNewsroom()">
+                                                <i class="bi bi-plus-circle"></i> Add Your First Newsroom
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                        {% for newsroom in newsrooms %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ newsroom.name }}</strong>
+                                                {% if newsroom.description %}
+                                                <br><small class="text-muted">{{ newsroom.description[:100] }}{% if newsroom.description|length > 100 %}...{% endif %}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if newsroom.type == 'National' %}primary{% elif newsroom.type == 'Regional' %}success{% else %}warning{% endif %}">
+                                                    {{ newsroom.type }}
+                                                </span>
+                                            </td>
+                                            <td>{{ newsroom.region or 'N/A' }}</td>
+                                            <td>{{ newsroom.country or 'N/A' }}</td>
+                                            <td>{{ newsroom.size or 'N/A' }}</td>
+                                            <td>
+                                                {% if newsroom.website_url %}
+                                                <a href="{{ newsroom.website_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-link-45deg"></i> Visit
+                                                </a>
+                                                {% else %}
+                                                <span class="text-muted">No website</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" onclick="editNewsroom('{{ newsroom.id }}')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" onclick="deleteNewsroom('{{ newsroom.id }}', '{{ newsroom.name }}')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
                     <!-- People Tab -->
                     <div class="tab-pane fade" id="people" role="tabpanel">
@@ -1187,95 +1289,6 @@
                         </div>
                     </div>
 
-                    <!-- Newsrooms Tab -->
-                    <div class="tab-pane fade" id="newsrooms" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5><i class="bi bi-newspaper"></i> Newsroom Network</h5>
-                            <button class="btn btn-primary" onclick="addNewsroom()">
-                                <i class="bi bi-plus-circle"></i> Add Newsroom
-                            </button>
-                        </div>
-
-                        <!-- Newsroom Categories -->
-                        <div class="row mb-4">
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-primary">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-primary">National</h6>
-                                        <h4 class="text-primary">{{ national_newsrooms|default(0) }}</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-success">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-success">Regional</h6>
-                                        <h4 class="text-success">{{ regional_newsrooms|default(0) }}</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-warning">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-warning">Digital-First</h6>
-                                        <h4 class="text-warning">{{ digital_newsrooms|default(0) }}</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-info">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-info">International</h6>
-                                        <h4 class="text-info">{{ international_newsrooms|default(0) }}</h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Newsrooms Table -->
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Newsroom</th>
-                                        <th>Type</th>
-                                        <th>Location</th>
-                                        <th>AI Readiness</th>
-                                        <th>Last Analysis</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="newsrooms-table-body">
-                                    <tr>
-                                        <td>
-                                            <strong>The Daily Chronicle</strong>
-                                            <br><small class="text-muted">daily-chronicle.com</small>
-                                        </td>
-                                        <td><span class="badge bg-primary">National</span></td>
-                                        <td>New York, NY</td>
-                                        <td><span class="badge bg-success">High</span></td>
-                                        <td>2024-01-20</td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="viewNewsroom('daily-chronicle')">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                                <button class="btn btn-outline-success" onclick="analyzeNewsroom('daily-chronicle')">
-                                                    <i class="bi bi-graph-up"></i>
-                                                </button>
-                                                <button class="btn btn-outline-info" onclick="generateReport('daily-chronicle')">
-                                                    <i class="bi bi-file-text"></i>
-                                                </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteNewsroom('daily-chronicle')">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
 
                     <!-- Research Tab -->
                     <div class="tab-pane fade" id="research" role="tabpanel">
@@ -1393,6 +1406,14 @@
                             <div class="col-md-3 mb-2">
                                 <div class="card border-success">
                                     <div class="card-body text-center">
+                                        <h6 class="text-success">Agent Insights</h6>
+                                        <h4 class="text-success" id="agent-insights-count">0</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
                                         <h6 class="text-success">This Week</h6>
                                         <h4 class="text-success">{{ weekly_insights|default(0) }}</h4>
                                     </div>
@@ -1426,6 +1447,28 @@
                                     <div class="card-body">
                                         <div class="list-group" id="insights-list">
                                             <!-- Insights will be loaded dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- MediaMap Agent Insights -->
+                                <div class="card mt-4">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-robot text-primary me-2"></i>MediaMap Agent Insights
+                                        </h6>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="refreshAgentInsights()">
+                                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="list-group" id="agent-insights-list">
+                                            <div class="text-center py-3">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading agent insights...</span>
+                                                </div>
+                                                <p class="mt-2 text-muted">Loading MediaMap agent insights...</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1567,117 +1610,6 @@
 
 
 
-                    <!-- Analytics Tab -->
-                    <div class="tab-pane fade" id="analytics" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5><i class="bi bi-graph-up"></i> Business Analytics</h5>
-                            <button class="btn btn-primary" onclick="generateAnalyticsReport()">
-                                <i class="bi bi-file-earmark-bar-graph"></i> Generate Report
-                            </button>
-                        </div>
-
-                        <!-- Analytics Overview -->
-                        <div class="row mb-4">
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-primary">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-primary">Total Clients</h6>
-                                        <h4 class="text-primary">{{ total_clients|default(0) }}</h4>
-                                        <small class="text-success">{{ active_clients|default(0) }} active</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-success">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-success">Newsrooms</h6>
-                                        <h4 class="text-success">{{ total_newsrooms|default(0) }}</h4>
-                                        <small class="text-info">{{ national_newsrooms|default(0) }} national</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-warning">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-warning">Research Projects</h6>
-                                        <h4 class="text-warning">{{ research_projects|default(0) }}</h4>
-                                        <small class="text-success">{{ ai_trends|default(0) }} AI trends</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <div class="card border-info">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-info">Daily Insights</h6>
-                                        <h4 class="text-info">{{ daily_insights|default(0) }}</h4>
-                                        <small class="text-success">Today's insights</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Analytics Charts -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">Client Distribution by Industry</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row text-center">
-                                            <div class="col-6">
-                                                <h6 class="text-primary">Media Companies</h6>
-                                                <h4 class="text-primary">{{ media_companies|default(0) }}</h4>
-                                            </div>
-                                            <div class="col-6">
-                                                <h6 class="text-success">Tech Startups</h6>
-                                                <h4 class="text-success">{{ tech_startups|default(0) }}</h4>
-                                            </div>
-                                        </div>
-                                        <div class="row text-center mt-3">
-                                            <div class="col-6">
-                                                <h6 class="text-warning">Non-Profits</h6>
-                                                <h4 class="text-warning">{{ non_profits|default(0) }}</h4>
-                                            </div>
-                                            <div class="col-6">
-                                                <h6 class="text-info">Government</h6>
-                                                <h4 class="text-info">{{ government_clients|default(0) }}</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">Research Project Categories</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row text-center">
-                                            <div class="col-6">
-                                                <h6 class="text-primary">AI Trends</h6>
-                                                <h4 class="text-primary">{{ ai_trends|default(0) }}</h4>
-                                            </div>
-                                            <div class="col-6">
-                                                <h6 class="text-success">Media Analysis</h6>
-                                                <h4 class="text-success">{{ media_analysis|default(0) }}</h4>
-                                            </div>
-                                        </div>
-                                        <div class="row text-center mt-3">
-                                            <div class="col-6">
-                                                <h6 class="text-warning">Market Research</h6>
-                                                <h4 class="text-warning">{{ market_research|default(0) }}</h4>
-                                            </div>
-                                            <div class="col-6">
-                                                <h6 class="text-info">Case Studies</h6>
-                                                <h4 class="text-info">{{ case_studies|default(0) }}</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Newsletter Tab -->
                     <div class="tab-pane fade" id="newsletter" role="tabpanel">
@@ -2805,7 +2737,7 @@
 </div>
 
 <script>
-// Business Map Functions
+// MediaMap Functions
 function addNewClient() {
     const modal = new bootstrap.Modal(document.getElementById('addClientModal'));
     modal.show();
@@ -4104,9 +4036,6 @@ function addNewsSource() {
     alert('Add news source functionality');
 }
 
-function generateAnalyticsReport() {
-    alert('Generating analytics report...');
-}
 
 // Removed Highlander AI Functions
 // Removed Highlander variables
@@ -4211,7 +4140,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadResearchData();
     loadInsightsData();
     loadNewsData();
-    loadAnalyticsData();
     loadNewsletterData();
     loadTrainingData();
     loadAIToolsData();
@@ -4219,13 +4147,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDiscoveryData();
 });
 
-// Initialize charts when analytics tab is shown
-document.getElementById('analytics-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        // Initialize charts here
-        console.log('Analytics tab loaded');
-    }, 100);
-});
 
 // Load insights when insights tab is shown
 document.getElementById('insights-tab').addEventListener('click', function() {
@@ -6442,9 +6363,6 @@ function loadNewsData() {
     console.log('Loading news data...');
 }
 
-function loadAnalyticsData() {
-    console.log('Loading analytics data...');
-}
 
 function loadNewsletterData() {
     console.log('Loading newsletter data...');
@@ -7691,6 +7609,113 @@ function deleteProject(projectId, projectName) {
         });
     }
 }
+
+// MediaMap Agent Insights Functions
+function loadAgentInsights() {
+    fetch('/api/agents/mediamap/insights')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAgentInsights(data.insights);
+                updateAgentInsightsCount(data.insights.length);
+            } else {
+                showNoAgentInsights();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading agent insights:', error);
+            showNoAgentInsights();
+        });
+}
+
+function displayAgentInsights(insights) {
+    const container = document.getElementById('agent-insights-list');
+    
+    if (!insights || insights.length === 0) {
+        showNoAgentInsights();
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => `
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">
+                    <span class="badge bg-primary me-2">${insight.type || 'Insight'}</span>
+                    ${insight.insight || 'Media industry insight'}
+                </h6>
+                <small class="text-muted">${formatTimestamp(insight.timestamp)}</small>
+            </div>
+            <div class="mb-1">
+                <small class="text-muted">
+                    <strong>Category:</strong> ${insight.category || 'General'} | 
+                    <strong>Confidence:</strong> ${Math.round((insight.confidence || 0.5) * 100)}% |
+                    <strong>Source:</strong> ${insight.source || 'MediaMap Agent'}
+                </small>
+            </div>
+            ${insight.metadata ? `
+                <div class="mt-2">
+                    <small class="text-info">
+                        <strong>Keywords:</strong> ${(insight.metadata.keywords || []).join(', ')}
+                    </small>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
+function showNoAgentInsights() {
+    const container = document.getElementById('agent-insights-list');
+    container.innerHTML = `
+        <div class="text-center py-4">
+            <i class="bi bi-robot text-muted" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">No agent insights available yet.</p>
+            <p class="text-muted small">Start the MediaMap agent to begin collecting insights.</p>
+        </div>
+    `;
+    updateAgentInsightsCount(0);
+}
+
+function updateAgentInsightsCount(count) {
+    const countElement = document.getElementById('agent-insights-count');
+    if (countElement) {
+        countElement.textContent = count;
+    }
+}
+
+function refreshAgentInsights() {
+    const container = document.getElementById('agent-insights-list');
+    container.innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Refreshing agent insights...</span>
+            </div>
+            <p class="mt-2 text-muted">Refreshing MediaMap agent insights...</p>
+        </div>
+    `;
+    
+    loadAgentInsights();
+}
+
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'Unknown';
+    
+    try {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    } catch (error) {
+        return 'Invalid date';
+    }
+}
+
+// Load agent insights when the insights tab is shown
+document.addEventListener('DOMContentLoaded', function() {
+    const insightsTab = document.getElementById('insights-tab');
+    if (insightsTab) {
+        insightsTab.addEventListener('shown.bs.tab', function() {
+            loadAgentInsights();
+        });
+    }
+});
 </script>
 
 {% endblock %}

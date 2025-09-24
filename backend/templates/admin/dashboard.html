@@ -47,21 +47,6 @@
             <div class="card-body">
                 <div class="row">
                     <!-- Row 1 -->
-                    <div class="col-md-3 mb-3">
-                        <div class="card border-primary h-100">
-                            <div class="card-body text-center position-relative">
-                                <i class="bi bi-people-fill fa-2x text-primary position-absolute top-0 end-0 mt-2 me-2"></i>
-                                <h6 class="card-title text-primary fw-bold">USERS</h6>
-                                <h4 class="text-primary">{{ user_count|default(0) }}</h4>
-                                <p class="text-muted small mb-2">users</p>
-                                <p class="text-muted small mb-2">{{ admin_count|default(0) }} admins</p>
-                                <div class="mt-auto">
-                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="viewAllUsers()">View All →</button>
-                                    <button class="btn btn-sm btn-success" onclick="addNewAdmin()">+ Admin</button>
-                        </div>
-                    </div>
-                        </div>
-                    </div>
                     
                     <div class="col-md-3 mb-3">
                         <div class="card border-success h-100">
@@ -1067,9 +1052,6 @@ function exportDashboardReport() {
     URL.revokeObjectURL(url);
 }
 
-function viewAllUsers() {
-    window.location.href = "{{ url_for('admin_users') }}";
-}
 
 function addNewAdmin() {
     window.location.href = "{{ url_for('create_admin') }}";

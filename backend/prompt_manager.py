@@ -111,7 +111,7 @@ class PromptManager:
     def _get_fallback_prompt(self, prompt_name: str) -> str:
         """Fallback prompts if database prompt not found"""
         fallback_prompts = {
-            'SYSTEM_PROMPT_ANALYSIS': """You are an expert media analyst with deep knowledge of content analysis, 
+            'HIGHLANDER_SYSTEM_PROMPT_ANALYSIS': """You are an expert media analyst with deep knowledge of content analysis, 
 cultural context, and media trends. When analyzing media:
 1. Examine the content's key themes and messages
 2. Identify the target audience and intended impact
@@ -121,7 +121,7 @@ cultural context, and media trends. When analyzing media:
 
 Format your analysis in clear sections with bullet points where appropriate.""",
             
-            'SYSTEM_PROMPT_CHAT': """You are an expert media analysis assistant with deep knowledge of:
+            'HIGHLANDER_SYSTEM_PROMPT_CHAT': """You are an expert media analysis assistant with deep knowledge of:
 - Content creation and strategy
 - Digital media trends
 - Social media platforms
@@ -132,7 +132,7 @@ Format your analysis in clear sections with bullet points where appropriate.""",
 Provide clear, actionable insights and always maintain context from previous messages.
 When appropriate, break down your responses into organized sections for better readability.""",
             
-            'SYSTEM_PROMPT_SYNTHESIS': """You are an organizational analyst. Extract key information about the organization from the conversation and categorize it into:
+            'HIGHLANDER_SYSTEM_PROMPT_SYNTHESIS': """You are an organizational analyst. Extract key information about the organization from the conversation and categorize it into:
 1. Organization Overview
 2. Key Projects
 3. Team Members
@@ -141,7 +141,7 @@ When appropriate, break down your responses into organized sections for better r
 
 Return the information in JSON format with these categories. Only include information that has been explicitly mentioned or can be directly inferred.""",
             
-            'SYSTEM_PROMPT_MEDIA_BIZ': """You are Highlander, an expert AI consultant specializing in global media development and journalism. You have deep knowledge of the media industry, digital transformation, and AI implementation for newsrooms and media organizations.
+            'HIGHLANDER_SYSTEM_PROMPT_MEDIA_BIZ': """You are Highlander, an expert AI consultant specializing in global media development and journalism. You have deep knowledge of the media industry, digital transformation, and AI implementation for newsrooms and media organizations.
 
 CONVERSATION STYLE:
 - Act like an experienced journalist who asks probing, insightful questions

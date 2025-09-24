@@ -240,19 +240,19 @@ from prompt_manager import get_prompt as get_prompt_from_db
 # Function to get system prompts from database
 def get_system_prompt_analysis():
     """Get the media analysis system prompt from database"""
-    return get_prompt_from_db('SYSTEM_PROMPT_ANALYSIS')
+    return get_prompt_from_db('HIGHLANDER_SYSTEM_PROMPT_ANALYSIS')
 
 def get_system_prompt_chat():
     """Get the chat system prompt from database"""
-    return get_prompt_from_db('SYSTEM_PROMPT_CHAT')
+    return get_prompt_from_db('HIGHLANDER_SYSTEM_PROMPT_CHAT')
 
 def get_system_prompt_synthesis():
     """Get the organization synthesis prompt from database"""
-    return get_prompt_from_db('SYSTEM_PROMPT_SYNTHESIS')
+    return get_prompt_from_db('HIGHLANDER_SYSTEM_PROMPT_SYNTHESIS')
 
 def get_system_prompt_media_biz():
     """Get the Highlander AI business consultant prompt from database"""
-    return get_prompt_from_db('SYSTEM_PROMPT_MEDIA_BIZ')
+    return get_prompt_from_db('HIGHLANDER_SYSTEM_PROMPT_MEDIA_BIZ')
 
 # app.register_blueprint(auth)  # Commented out to avoid route conflicts
 app.register_blueprint(ai_utility_bp)
@@ -354,8 +354,8 @@ def load_model_from_hf():
     try:
         data = request.get_json(silent=True) or {}
         model_name = data.get('model_name') or os.getenv('HF_MODEL_REPO') or 'paulmcnally/highlander-ai-model'
-        from training.model_manager import get_model_manager
-        manager = get_model_manager()
+        from backend.training.model_factory import get_mediamap_model_manager
+        manager = get_mediamap_model_manager()
         ok = manager.load_from_huggingface(model_name)
         return jsonify({ 'success': bool(ok), 'model_name': model_name }), (200 if ok else 500)
     except Exception as e:
@@ -545,75 +545,40 @@ def chat():
         }), 500
     
     try:
-        # Use OpenAI directly for now (bypass custom model issues)
-        print(f"Using OpenAI for chat response")
+        # Use Highlander model manager for MediaMap chat
+        print(f"Using Highlander model manager for MediaMap chat")
         
-        # Prepare chat history for OpenAI - include ALL previous messages for full context
-        chat_history = [
-            {"role": "system", "content": get_system_prompt_media_biz()}
-        ]
+        # Get MediaMap model manager
+        from backend.training.model_factory import get_mediamap_model_manager
+        manager = get_mediamap_model_manager()
         
-        # Add conversation context summary if this is a longer conversation
-        if len(chat_data['messages']) > 10:
-            # Get recent context (last 8 messages) + summary of earlier context
-            recent_messages = chat_data['messages'][-8:]
-            earlier_messages = chat_data['messages'][:-8]
-            
-            # Create a summary of earlier conversation
-            if earlier_messages:
-                earlier_context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in earlier_messages[-10:]])
-                summary_prompt = f"Summarize this earlier conversation context in 2-3 sentences, focusing on business details, challenges, and solutions discussed:\n{earlier_context}"
-                
-                try:
-                    summary_response = client.chat.completions.create(
-                        model="gpt-4",
-                        messages=[
-                            {"role": "system", "content": "Summarize conversation context concisely, focusing on business details."},
-                            {"role": "user", "content": summary_prompt}
-                        ]
-                    )
-                    context_summary = summary_response.choices[0].message.content
-                    chat_history.append({"role": "system", "content": f"Previous conversation context: {context_summary}"})
-                except Exception as summary_error:
-                    print(f"Summary generation failed: {summary_error}")
-                    pass  # If summary fails, continue without it
-            
-            # Add recent messages
-            for msg in recent_messages:
-                chat_history.append({"role": msg['role'], "content": msg['content']})
-        else:
-            # For shorter conversations, include all messages
-            for msg in chat_data['messages']:
-                chat_history.append({"role": msg['role'], "content": msg['content']})
-        
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=chat_history,
-                temperature=0.7,  # Slightly more focused responses
-                max_tokens=300    # Enforce shorter responses
-            )
-            ai_reply = response.choices[0].message.content
-            
-            # Add AI reply to chat
-            chat_data['messages'].append({
-                'role': 'assistant',
-                'content': ai_reply
+        # Prepare conversation history
+        conversation_history = []
+        for msg in chat_data['messages']:
+            conversation_history.append({
+                "role": msg['role'],
+                "content": msg['content']
             })
-            # Save after AI message
-            save_chat_to_db(chat_id, chat_data)
-            return jsonify({
-                'success': True,
-                'reply': ai_reply,
-                'chat_id': chat_id,
-                'model_source': 'openai_fallback'
-            })
-        except Exception as e:
-            print(f"OpenAI API error: {e}")
-            return jsonify({
-                'success': False,
-                'error': f'OpenAI API error: {str(e)}'
-            }), 500
+        
+        # Generate response using Highlander model
+        ai_reply = manager.generate_response(
+            message=message,
+            conversation_history=conversation_history
+        )
+        
+        # Add AI reply to chat
+        chat_data['messages'].append({
+            'role': 'assistant',
+            'content': ai_reply
+        })
+        # Save after AI message
+        save_chat_to_db(chat_id, chat_data)
+        return jsonify({
+            'success': True,
+            'reply': ai_reply,
+            'chat_id': chat_id,
+            'model_source': 'highlander_model'
+        })
             
     except Exception as e:
         print(f"Chat processing error: {e}")
@@ -1481,6 +1446,13 @@ def your_info():
 # Will be moved earlier in file
 
 # Admin routes
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_default():
+    """Default admin page - redirects to MediaMap"""
+    return redirect(url_for('admin_map'))
+
 @app.route('/admin/dashboard')
 @login_required
 @admin_required
@@ -1550,7 +1522,13 @@ def admin_quick_access():
 def admin_users():
     """Admin page to view all users"""
     users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/users.html', users=users)
+    
+    # Get feedback from non-admin users (Highlander and Doc usage feedback)
+    non_admin_feedback = Feedback.query.join(User).filter(
+        User.is_admin == False
+    ).order_by(Feedback.created_at.desc()).all()
+    
+    return render_template('admin/users.html', users=users, non_admin_feedback=non_admin_feedback)
 
 @app.route('/admin/user/<int:user_id>')
 @login_required
@@ -1625,6 +1603,349 @@ def admin_prompts():
 def admin_agents():
     """Admin AI agents dashboard"""
     return render_template('admin/agents.html')
+
+@app.route('/admin/agents/<agent_name>/start', methods=['POST'])
+@login_required
+@admin_required
+def admin_start_agent(agent_name):
+    """Start a specific AI agent from admin interface"""
+    try:
+        from backend.agents.agent_manager import agent_manager
+        
+        if agent_name not in agent_manager.agents:
+            return jsonify({
+                'success': False,
+                'error': f'Agent {agent_name} not found'
+            }), 404
+        
+        success = agent_manager.start_agent(agent_name)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'{agent_name} agent started successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to start {agent_name} agent'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/agents/<agent_name>/stop', methods=['POST'])
+@login_required
+@admin_required
+def admin_stop_agent(agent_name):
+    """Stop a specific AI agent from admin interface"""
+    try:
+        from backend.agents.agent_manager import agent_manager
+        
+        if agent_name not in agent_manager.agents:
+            return jsonify({
+                'success': False,
+                'error': f'Agent {agent_name} not found'
+            }), 404
+        
+        success = agent_manager.stop_agent(agent_name)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'{agent_name} agent stopped successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to stop {agent_name} agent'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/healthpin')
+@login_required
+@admin_required
+def admin_healthpin():
+    """HealthPIN admin dashboard"""
+    try:
+        from backend.healthpin.models import Patient, Doctor, HealthRecord, HealthNews
+        from backend.models import DailyInsight
+        
+        # Get HealthPIN statistics
+        total_patients = Patient.query.count()
+        total_doctors = Doctor.query.count()
+        total_health_records = HealthRecord.query.count()
+        total_health_news = HealthNews.query.count()
+        
+        # Get HealthPIN insights (from DailyInsight with HealthPIN category)
+        healthpin_insights = DailyInsight.query.filter(
+            DailyInsight.category.like('%Health%')
+        ).order_by(DailyInsight.created_at.desc()).limit(10).all()
+        
+        # Get recent health news
+        recent_health_news = HealthNews.query.order_by(HealthNews.created_at.desc()).limit(5).all()
+        
+        return render_template('admin/healthpin.html',
+            total_patients=total_patients,
+            total_doctors=total_doctors,
+            total_health_records=total_health_records,
+            total_health_news=total_health_news,
+            healthpin_insights=healthpin_insights,
+            recent_health_news=recent_health_news
+        )
+    except Exception as e:
+        print(f"Error loading HealthPIN admin page: {e}")
+        return render_template('admin/healthpin.html',
+            total_patients=0,
+            total_doctors=0,
+            total_health_records=0,
+            total_health_news=0,
+            healthpin_insights=[],
+            recent_health_news=[]
+        )
+
+@app.route('/admin/agents/<agent_name>/config', methods=['GET'])
+@login_required
+@admin_required
+def get_agent_config(agent_name):
+    """Get agent configuration"""
+    try:
+        from backend.models import AgentConfiguration
+        import json
+        
+        config = AgentConfiguration.query.filter_by(name=agent_name).first()
+        if config:
+            return jsonify({
+                'success': True,
+                'config': config.to_dict()
+            })
+        else:
+            # Return default configuration
+            default_configs = {
+                'mediamap': {
+                    'name': 'mediamap',
+                    'display_name': 'MediaMap Agent',
+                    'section': 'mediamap',
+                    'role': 'Media Industry Data Collector',
+                    'description': 'Collects and analyzes media industry data from RSS feeds, news sites, and industry publications. Monitors trends, business models, and emerging technologies in journalism and media.',
+                    'data_sources': ['Nieman Lab RSS Feed', 'Poynter Institute', 'Journalism.co.uk', 'MediaPost', 'O\'Reilly Radar'],
+                    'collection_interval': 30,
+                    'instructions': 'Focus on media industry trends, business models, and technological innovations. Analyze content for actionable insights and identify emerging patterns in journalism and media.'
+                },
+                'healthpin': {
+                    'name': 'healthpin',
+                    'display_name': 'HealthPIN Agent',
+                    'section': 'healthpin',
+                    'role': 'Healthcare Data Collector',
+                    'description': 'Collects and analyzes healthcare data from medical journals, clinical guidelines, and healthcare policy updates. Monitors medical research, clinical trials, and healthcare trends.',
+                    'data_sources': ['Healthcare News Feeds', 'Medical Journals', 'Policy Updates', 'Clinical Guidelines', 'Research Publications'],
+                    'collection_interval': 45,
+                    'instructions': 'Focus on healthcare developments, clinical research, and medical policy changes. Analyze content for clinical insights and identify trends in healthcare delivery and technology.'
+                }
+            }
+            
+            if agent_name in default_configs:
+                return jsonify({
+                    'success': True,
+                    'config': default_configs[agent_name]
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': f'Agent {agent_name} not found'
+                }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/agents/<agent_name>/config', methods=['POST'])
+@login_required
+@admin_required
+def update_agent_config(agent_name):
+    """Update agent configuration"""
+    try:
+        from backend.models import AgentConfiguration, db
+        import json
+        
+        data = request.get_json()
+        
+        # Get or create configuration
+        config = AgentConfiguration.query.filter_by(name=agent_name).first()
+        if not config:
+            config = AgentConfiguration(name=agent_name)
+            db.session.add(config)
+        
+        # Update configuration
+        config.display_name = data.get('display_name', config.display_name)
+        config.section = data.get('section', config.section)
+        config.role = data.get('role', config.role)
+        config.description = data.get('description', config.description)
+        config.data_sources = json.dumps(data.get('data_sources', []))
+        config.collection_interval = data.get('collection_interval', config.collection_interval)
+        config.instructions = data.get('instructions', config.instructions)
+        config.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'{agent_name} agent configuration updated successfully',
+            'config': config.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/workflows/<workflow_name>/agents', methods=['GET'])
+@login_required
+@admin_required
+def get_workflow_agents(workflow_name):
+    """Get all agents for a specific workflow"""
+    try:
+        from backend.models import WorkflowAgent
+        
+        agents = WorkflowAgent.query.filter_by(
+            workflow_name=workflow_name,
+            is_active=True
+        ).order_by(WorkflowAgent.priority, WorkflowAgent.created_at).all()
+        
+        return jsonify({
+            'success': True,
+            'workflow': workflow_name,
+            'agents': [agent.to_dict() for agent in agents]
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/workflows/<workflow_name>/agents', methods=['POST'])
+@login_required
+@admin_required
+def add_workflow_agent(workflow_name):
+    """Add a new agent to a workflow"""
+    try:
+        from backend.models import WorkflowAgent, db
+        import json
+        
+        data = request.get_json()
+        
+        # Create new workflow agent
+        agent = WorkflowAgent(
+            workflow_name=workflow_name,
+            agent_name=data.get('agent_name'),
+            display_name=data.get('display_name'),
+            role=data.get('role'),
+            description=data.get('description'),
+            data_sources=json.dumps(data.get('data_sources', [])),
+            collection_interval=data.get('collection_interval', 30),
+            instructions=data.get('instructions'),
+            priority=data.get('priority', 1)
+        )
+        
+        db.session.add(agent)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Agent added to {workflow_name} workflow successfully',
+            'agent': agent.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/workflows/<workflow_name>/agents/<int:agent_id>', methods=['PUT'])
+@login_required
+@admin_required
+def update_workflow_agent(workflow_name, agent_id):
+    """Update a workflow agent"""
+    try:
+        from backend.models import WorkflowAgent, db
+        import json
+        
+        agent = WorkflowAgent.query.filter_by(
+            id=agent_id,
+            workflow_name=workflow_name
+        ).first()
+        
+        if not agent:
+            return jsonify({
+                'success': False,
+                'error': 'Agent not found'
+            }), 404
+        
+        data = request.get_json()
+        
+        # Update agent
+        agent.display_name = data.get('display_name', agent.display_name)
+        agent.role = data.get('role', agent.role)
+        agent.description = data.get('description', agent.description)
+        agent.data_sources = json.dumps(data.get('data_sources', []))
+        agent.collection_interval = data.get('collection_interval', agent.collection_interval)
+        agent.instructions = data.get('instructions', agent.instructions)
+        agent.priority = data.get('priority', agent.priority)
+        agent.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Agent updated successfully',
+            'agent': agent.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/workflows/<workflow_name>/agents/<int:agent_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def remove_workflow_agent(workflow_name, agent_id):
+    """Remove an agent from a workflow"""
+    try:
+        from backend.models import WorkflowAgent, db
+        
+        agent = WorkflowAgent.query.filter_by(
+            id=agent_id,
+            workflow_name=workflow_name
+        ).first()
+        
+        if not agent:
+            return jsonify({
+                'success': False,
+                'error': 'Agent not found'
+            }), 404
+        
+        db.session.delete(agent)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Agent removed from {workflow_name} workflow successfully'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/agents')
 @login_required
@@ -2046,6 +2367,9 @@ def admin_map():
         digital_newsrooms = Newsroom.query.filter_by(type='Digital-First').count()
         international_newsrooms = Newsroom.query.filter_by(type='International').count()
         
+        # Get newsrooms data for the template
+        newsrooms = Newsroom.query.all()
+        
         # Research statistics (for uploaded/scraped AI research reports)
         research_projects = ResearchProject.query.count()
         ai_implementation_reports = ResearchProject.query.filter_by(category='AI Implementation').count()
@@ -2123,6 +2447,7 @@ def admin_map():
         aimap_organisations = []
         total_clients = active_clients = media_companies = tech_startups = non_profits = government_clients = 0
         total_newsrooms = national_newsrooms = regional_newsrooms = digital_newsrooms = international_newsrooms = 0
+        newsrooms = []
         research_projects = ai_implementation_reports = newsroom_ai_reports = tech_trends_reports = industry_reports = 0
         total_insights = weekly_insights = newsroom_insights = ai_strategy_insights = 0
         highlander_chat_count = research_reports_count = client_data_count = 0
@@ -2157,6 +2482,7 @@ def admin_map():
         'total_clients': total_clients,
         'active_clients': active_clients,
         'total_newsrooms': total_newsrooms,
+        'newsrooms': newsrooms,
         'research_projects': research_projects,
         'daily_insights': daily_insights,
         'media_companies': media_companies,
@@ -4442,8 +4768,8 @@ Be conversational, encouraging, and help them think through their experience sys
         
         # Generate AI response
         try:
-            from backend.training.model_manager import get_model_manager
-            manager = get_model_manager()
+            from backend.training.model_factory import get_mediamap_model_manager
+            manager = get_mediamap_model_manager()
             
             conversation = [
                 {"role": "system", "content": system_prompt},
@@ -5363,8 +5689,8 @@ def admin_gpt_context():
         
         # Get AI model status
         try:
-            from backend.training.model_manager import get_model_manager
-            manager = get_model_manager()
+            from backend.training.model_factory import get_mediamap_model_manager
+            manager = get_mediamap_model_manager()
             model_info = manager.get_model_info()
             model_status = "Loaded" if model_info.get('custom_model_loaded', False) else "Not Loaded"
         except:
@@ -5384,8 +5710,8 @@ def admin_gpt_context():
         
         # Get system performance metrics
         try:
-            from backend.training.model_manager import get_model_manager
-            manager = get_model_manager()
+            from backend.training.model_factory import get_mediamap_model_manager
+            manager = get_mediamap_model_manager()
             model_info = manager.get_model_info()
             performance_metrics = manager.get_performance_metrics()
         except:
@@ -5509,8 +5835,8 @@ Note: OpenAI API integration is currently unavailable, so I'm providing a basic 
 def admin_model_status():
     """Admin endpoint to get detailed model status"""
     try:
-        from backend.training.model_manager import get_model_manager
-        manager = get_model_manager()
+        from backend.training.model_factory import get_mediamap_model_manager
+        manager = get_mediamap_model_manager()
         model_info = manager.get_model_info()
         performance_metrics = manager.get_performance_metrics()
         
@@ -6107,7 +6433,7 @@ def training_status():
     """Get training status and model information"""
     try:
         try:
-            from backend.training.model_manager import get_model_manager
+            from backend.training.model_factory import get_mediamap_model_manager
         except ImportError:
             return jsonify({
                 'success': False,
@@ -6117,7 +6443,7 @@ def training_status():
         import os
         import json
         
-        manager = get_model_manager()
+        manager = get_mediamap_model_manager()
         model_info = manager.get_model_info()
         performance_metrics = manager.get_performance_metrics()
         
@@ -6200,7 +6526,7 @@ def deploy_model():
         model_name = data.get('model', 'highlander')
         
         try:
-            from backend.training.model_manager import get_model_manager
+            from backend.training.model_factory import get_mediamap_model_manager
         except ImportError:
             return jsonify({
                 'success': False,
@@ -6251,7 +6577,7 @@ def deploy_model():
             json.dump(deployment_info, f, indent=2)
         
         # Update the model manager
-        manager = get_model_manager()
+        manager = get_mediamap_model_manager()
         success = manager.update_model()
         
         if success:
@@ -6283,7 +6609,7 @@ def model_status():
         model_name = request.args.get('model', 'highlander')
         
         try:
-            from backend.training.model_manager import get_model_manager
+            from backend.training.model_factory import get_mediamap_model_manager
             from backend.training.training_history import get_training_history
         except ImportError:
             return jsonify({
@@ -6291,7 +6617,7 @@ def model_status():
                 'error': 'Training module not available'
             }), 500
         
-        manager = get_model_manager()
+        manager = get_mediamap_model_manager()
         model_info = manager.get_model_info()
         performance_metrics = manager.get_performance_metrics()
         

@@ -1,0 +1,346 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}HealthPIN | Admin{% endblock %}
+
+{% block header %}HealthPIN Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.border-green {
+    border-left: 4px solid #28a745 !important;
+}
+.text-green {
+    color: #28a745 !important;
+}
+.btn-outline-green {
+    color: #28a745;
+    border-color: #28a745;
+}
+.btn-outline-green:hover {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HealthPIN Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-heart-pulse me-2"></i>HealthPIN System Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h6 class="text-success">Total Patients</h6>
+                                <h4 class="text-success">{{ total_patients|default(0) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h6 class="text-info">Total Doctors</h6>
+                                <h4 class="text-info">{{ total_doctors|default(0) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="text-warning">Health Records</h6>
+                                <h4 class="text-warning">{{ total_health_records|default(0) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <h6 class="text-primary">Health News</h6>
+                                <h4 class="text-primary">{{ total_health_news|default(0) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <ul class="nav nav-tabs card-header-tabs" id="healthpinTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="insights-tab" data-bs-toggle="tab" data-bs-target="#insights" type="button" role="tab">
+                            <i class="bi bi-lightbulb"></i> Agent Insights
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">
+                            <i class="bi bi-people"></i> Patients
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" role="tab">
+                            <i class="bi bi-person-badge"></i> Doctors
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">
+                            <i class="bi bi-newspaper"></i> Health News
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="healthpinTabContent">
+                    <!-- Agent Insights Tab -->
+                    <div class="tab-pane fade show active" id="insights" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="bi bi-robot text-success me-2"></i>HealthPIN Agent Insights</h5>
+                            <button class="btn btn-outline-success" onclick="refreshHealthPINInsights()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+
+                        <!-- Insights Overview -->
+                        <div class="row mb-4">
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-success">Agent Insights</h6>
+                                        <h4 class="text-success" id="healthpin-agent-insights-count">0</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-info">This Week</h6>
+                                        <h4 class="text-info" id="healthpin-weekly-insights">0</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-warning">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-warning">Clinical Insights</h6>
+                                        <h4 class="text-warning" id="healthpin-clinical-insights">0</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <div class="card border-primary">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-primary">AI Healthcare</h6>
+                                        <h4 class="text-primary" id="healthpin-ai-insights">0</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- HealthPIN Agent Insights -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-robot text-success me-2"></i>HealthPIN Agent Insights
+                                </h6>
+                                <button class="btn btn-sm btn-outline-success" onclick="refreshHealthPINInsights()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group" id="healthpin-agent-insights-list">
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border text-success" role="status">
+                                            <span class="visually-hidden">Loading HealthPIN agent insights...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">Loading HealthPIN agent insights...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patients Tab -->
+                    <div class="tab-pane fade" id="patients" role="tabpanel">
+                        <h5><i class="bi bi-people text-success me-2"></i>Patient Management</h5>
+                        <p class="text-muted">Manage patient records and health data.</p>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Patient management features will be implemented in the next phase.
+                        </div>
+                    </div>
+
+                    <!-- Doctors Tab -->
+                    <div class="tab-pane fade" id="doctors" role="tabpanel">
+                        <h5><i class="bi bi-person-badge text-success me-2"></i>Doctor Management</h5>
+                        <p class="text-muted">Manage doctor profiles and specializations.</p>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Doctor management features will be implemented in the next phase.
+                        </div>
+                    </div>
+
+                    <!-- Health News Tab -->
+                    <div class="tab-pane fade" id="news" role="tabpanel">
+                        <h5><i class="bi bi-newspaper text-success me-2"></i>Health News</h5>
+                        <p class="text-muted">Latest healthcare news and updates.</p>
+                        
+                        {% if recent_health_news %}
+                        <div class="list-group">
+                            {% for news in recent_health_news %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ news.title }}</h6>
+                                    <small class="text-muted">{{ news.created_at.strftime('%Y-%m-%d') if news.created_at else 'Unknown' }}</small>
+                                </div>
+                                <p class="mb-1">{{ news.summary[:200] }}{% if news.summary|length > 200 %}...{% endif %}</p>
+                                {% if news.url %}
+                                <small><a href="{{ news.url }}" target="_blank" class="text-success">Read more <i class="bi bi-box-arrow-up-right"></i></a></small>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No health news available yet.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// HealthPIN Agent Insights Functions
+function loadHealthPINInsights() {
+    fetch('/api/agents/healthpin/insights')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayHealthPINInsights(data.insights);
+                updateHealthPINInsightsCount(data.insights.length);
+            } else {
+                showNoHealthPINInsights();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading HealthPIN insights:', error);
+            showNoHealthPINInsights();
+        });
+}
+
+function displayHealthPINInsights(insights) {
+    const container = document.getElementById('healthpin-agent-insights-list');
+    
+    if (!insights || insights.length === 0) {
+        showNoHealthPINInsights();
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => `
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">
+                    <span class="badge bg-success me-2">${insight.type || 'Insight'}</span>
+                    ${insight.insight || 'Healthcare insight'}
+                </h6>
+                <small class="text-muted">${formatTimestamp(insight.timestamp)}</small>
+            </div>
+            <div class="mb-1">
+                <small class="text-muted">
+                    <strong>Category:</strong> ${insight.category || 'General'} | 
+                    <strong>Confidence:</strong> ${Math.round((insight.confidence || 0.5) * 100)}% |
+                    <strong>Source:</strong> ${insight.source || 'HealthPIN Agent'}
+                </small>
+            </div>
+            ${insight.specialties ? `
+                <div class="mt-2">
+                    <small class="text-info">
+                        <strong>Specialties:</strong> ${insight.specialties.join(', ')}
+                    </small>
+                </div>
+            ` : ''}
+            ${insight.metadata && insight.metadata.keywords ? `
+                <div class="mt-1">
+                    <small class="text-success">
+                        <strong>Keywords:</strong> ${insight.metadata.keywords.join(', ')}
+                    </small>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
+function showNoHealthPINInsights() {
+    const container = document.getElementById('healthpin-agent-insights-list');
+    container.innerHTML = `
+        <div class="text-center py-4">
+            <i class="bi bi-robot text-muted" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">No HealthPIN agent insights available yet.</p>
+            <p class="text-muted small">Start the HealthPIN agent to begin collecting insights.</p>
+        </div>
+    `;
+    updateHealthPINInsightsCount(0);
+}
+
+function updateHealthPINInsightsCount(count) {
+    const countElement = document.getElementById('healthpin-agent-insights-count');
+    if (countElement) {
+        countElement.textContent = count;
+    }
+}
+
+function refreshHealthPINInsights() {
+    const container = document.getElementById('healthpin-agent-insights-list');
+    container.innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Refreshing HealthPIN insights...</span>
+            </div>
+            <p class="mt-2 text-muted">Refreshing HealthPIN agent insights...</p>
+        </div>
+    `;
+    
+    loadHealthPINInsights();
+}
+
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'Unknown';
+    
+    try {
+        const date = new Date(timestamp);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    } catch (error) {
+        return 'Invalid date';
+    }
+}
+
+// Load HealthPIN insights when the insights tab is shown
+document.addEventListener('DOMContentLoaded', function() {
+    const insightsTab = document.getElementById('insights-tab');
+    if (insightsTab) {
+        insightsTab.addEventListener('shown.bs.tab', function() {
+            loadHealthPINInsights();
+        });
+    }
+    
+    // Load insights on page load if insights tab is active
+    if (document.getElementById('insights').classList.contains('active')) {
+        loadHealthPINInsights();
+    }
+});
+</script>
+{% endblock %}

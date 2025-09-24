@@ -7,7 +7,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h3 mb-1"><i class="bi bi-cpu me-2"></i>AI Model Training</h1>
-        <p class="text-muted mb-0">Train dedicated AI models for MediaMap, HealthPIN, and Highlander with specialized data</p>
+        <p class="text-muted mb-0">Train dedicated AI models for MediaMap and HealthPIN with specialized data. Highlander chatbot uses the MediaMap model.</p>
     </div>
     <div class="btn-group">
         <button class="btn btn-outline-primary btn-sm" onclick="refreshAllModels()">
@@ -35,11 +35,6 @@
                     <i class="bi bi-heart-pulse me-2"></i>HealthPIN AI
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="highlander-tab" data-bs-toggle="tab" data-bs-target="#highlander-panel" type="button" role="tab">
-                    <i class="bi bi-robot me-2"></i>Highlander AI
-                </button>
-            </li>
         </ul>
     </div>
 </div>
@@ -53,7 +48,7 @@
                 <div class="card border-primary shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="bi bi-newspaper me-2"></i>MediaMap AI Model</h5>
-                        <small>Specialized for media industry analysis and business insights</small>
+                        <small>Specialized for media industry analysis and business insights. Powers the Highlander chatbot.</small>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -148,7 +143,7 @@
                 <div class="card border-success shadow-sm">
                     <div class="card-header bg-success text-white">
                         <h5 class="mb-0"><i class="bi bi-heart-pulse me-2"></i>HealthPIN AI Model</h5>
-                        <small>Specialized for healthcare analysis and clinical insights</small>
+                        <small>Specialized for healthcare analysis and clinical insights. Powers the Doc chatbot.</small>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -236,100 +231,6 @@
         </div>
     </div>
 
-    <!-- Highlander AI Panel -->
-    <div class="tab-pane fade" id="highlander-panel" role="tabpanel">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-warning shadow-sm">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0"><i class="bi bi-robot me-2"></i>Highlander AI Model</h5>
-                        <small>General AI assistant for business strategy and implementation</small>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6><i class="bi bi-graph-up me-2"></i>Model Status</h6>
-                                <div id="highlander-model-status">
-                                    <div class="text-center py-3">
-                                        <div class="spinner-border text-warning" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2 mb-0 text-muted">Loading Highlander model status...</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h6><i class="bi bi-database me-2"></i>Training Data</h6>
-                                <div id="highlander-training-data">
-                                    <div class="text-center py-3">
-                                        <div class="spinner-border text-warning" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2 mb-0 text-muted">Loading Highlander training data...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6><i class="bi bi-gear me-2"></i>Actions</h6>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-warning btn-sm" onclick="collectHighlanderData()">
-                                        <i class="bi bi-download me-1"></i>Collect Data
-                                    </button>
-                                    <button class="btn btn-outline-success btn-sm" onclick="trainHighlanderModel()">
-                                        <i class="bi bi-play-circle me-1"></i>Train Model
-                                    </button>
-                                    <button class="btn btn-outline-info btn-sm" onclick="deployHighlanderModel()">
-                                        <i class="bi bi-upload me-1"></i>Deploy Model
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm" onclick="testHighlanderModel()">
-                                        <i class="bi bi-bug me-1"></i>Test Model
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Highlander Data Sources -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h6><i class="bi bi-collection me-2"></i>Data Sources</h6>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="card border-warning">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-chat-dots fa-2x text-warning mb-2"></i>
-                                                <h6>All Conversations</h6>
-                                                <small class="text-muted">General business discussions</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="card border-warning">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-file-text fa-2x text-warning mb-2"></i>
-                                                <h6>Strategy Documents</h6>
-                                                <small class="text-muted">Business plans and strategies</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="card border-warning">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-lightbulb fa-2x text-warning mb-2"></i>
-                                                <h6>Implementation Guides</h6>
-                                                <small class="text-muted">AI deployment best practices</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Training Progress Modal -->
@@ -487,9 +388,6 @@ async function collectHealthPINData() {
     await collectModelData('healthpin');
 }
 
-async function collectHighlanderData() {
-    await collectModelData('highlander');
-}
 
 async function trainMediaMapModel() {
     await trainModel('mediamap');
@@ -499,9 +397,6 @@ async function trainHealthPINModel() {
     await trainModel('healthpin');
 }
 
-async function trainHighlanderModel() {
-    await trainModel('highlander');
-}
 
 async function deployMediaMapModel() {
     await deployModel('mediamap');
@@ -511,9 +406,6 @@ async function deployHealthPINModel() {
     await deployModel('healthpin');
 }
 
-async function deployHighlanderModel() {
-    await deployModel('highlander');
-}
 
 async function testMediaMapModel() {
     await testModel('mediamap');
@@ -523,9 +415,6 @@ async function testHealthPINModel() {
     await testModel('healthpin');
 }
 
-async function testHighlanderModel() {
-    await testModel('highlander');
-}
 
 // Core model operations
 async function collectModelData(modelName) {

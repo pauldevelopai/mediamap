@@ -30,6 +30,27 @@
     margin-top: 8px;
 }
 
+.user-view-selector {
+    min-width: 200px;
+}
+
+.user-view-selector .form-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.user-view-selector .form-select {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.user-view-selector .form-select:focus {
+    background-color: white;
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
 .chat-interface {
     display: flex;
     height: 600px;
@@ -191,8 +212,25 @@
 <div class="doc-chat-container">
     <!-- Chat Header -->
     <div class="chat-header">
-        <h3><i class="bi bi-heart-pulse me-2"></i>Doc - Healthcare AI Assistant</h3>
-        <div class="subtitle">Your AI healthcare assistant specialized in medical information, patient care, and healthcare technology</div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3><i class="bi bi-heart-pulse me-2"></i>Doc - Healthcare AI Assistant</h3>
+                <div class="subtitle">Your AI healthcare assistant specialized in medical information, patient care, and healthcare technology</div>
+            </div>
+            <div class="user-view-selector">
+                <label for="userViewSelect" class="form-label text-white mb-1">
+                    <i class="bi bi-person-gear me-1"></i>View as User:
+                </label>
+                <select class="form-select form-select-sm" id="userViewSelect" onchange="switchUserView()">
+                    <option value="admin">Admin View</option>
+                    <option value="doctor">Doctor</option>
+                    <option value="nurse">Nurse</option>
+                    <option value="patient">Patient</option>
+                    <option value="researcher">Researcher</option>
+                    <option value="student">Medical Student</option>
+                </select>
+            </div>
+        </div>
     </div>
     
     <!-- Chat Interface -->
@@ -273,63 +311,19 @@
     </div>
 </div>
 
-    <!-- Patient Lookup Section -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="bi bi-person-search me-2"></i>
-                        Patient Lookup
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="input-group mb-3">
-                        <input type="text" id="patientSearch" class="form-control" placeholder="Search by patient ID, name, or phone...">
-                        <button class="btn btn-outline-secondary" type="button" onclick="searchPatient()">
-                            <i class="bi bi-search me-1"></i>
-                            Search
-                        </button>
-                    </div>
-                    <div id="patientResults" class="mt-3"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Quick Actions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('What are the latest healthcare trends?')">
-                            <i class="bi bi-graph-up me-1"></i>
-                            Healthcare Trends
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('How can I improve patient care?')">
-                            <i class="bi bi-heart me-1"></i>
-                            Patient Care Tips
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('What are the best practices for medical documentation?')">
-                            <i class="bi bi-file-text me-1"></i>
-                            Documentation Best Practices
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('Tell me about HealthPIN features')">
-                            <i class="bi bi-info-circle me-1"></i>
-                            HealthPIN Features
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
 let chatHistory = [];
+let messageIdCounter = 0;
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial time
+    document.getElementById('initialTime').textContent = new Date().toLocaleTimeString();
+    
+    // Generate session ID
+    document.getElementById('sessionId').textContent = 'DOC-' + Date.now();
+});
 
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
@@ -352,8 +346,8 @@ function sendMessage() {
 }
 
 function askDoc(question) {
-    // Add loading message
-    const loadingId = addMessageToChat('assistant', 'Thinking...', true);
+    // Show typing indicator
+    showTypingIndicator();
     
     fetch('/healthpin/doc/chat', {
         method: 'POST',
@@ -362,13 +356,13 @@ function askDoc(question) {
         },
         body: JSON.stringify({
             message: question,
-            context: 'admin_dashboard'
+            conversation_history: chatHistory
         })
     })
     .then(response => response.json())
     .then(data => {
-        // Remove loading message
-        removeMessage(loadingId);
+        // Hide typing indicator
+        hideTypingIndicator();
         
         if (data.success) {
             addMessageToChat('assistant', data.response);
@@ -377,10 +371,19 @@ function askDoc(question) {
         }
     })
     .catch(error => {
-        removeMessage(loadingId);
+        hideTypingIndicator();
         addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
         console.error('Error:', error);
     });
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'block';
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'none';
 }
 
 function addMessageToChat(sender, message, isLoading = false) {
@@ -388,22 +391,17 @@ function addMessageToChat(sender, message, isLoading = false) {
     const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
     // Remove welcome message if it exists
-    const welcomeMsg = chatMessages.querySelector('.text-center');
-    if (welcomeMsg) {
+    const welcomeMsg = chatMessages.querySelector('.message.assistant-message');
+    if (welcomeMsg && chatHistory.length === 0) {
         welcomeMsg.remove();
     }
     
     const messageDiv = document.createElement('div');
     messageDiv.id = messageId;
-    messageDiv.className = `mb-3 ${sender === 'user' ? 'text-end' : 'text-start'}`;
+    messageDiv.className = `message ${sender === 'user' ? 'user-message' : 'assistant-message'}`;
     
     const messageContent = document.createElement('div');
-    messageContent.className = `d-inline-block p-3 rounded-3 ${
-        sender === 'user' 
-            ? 'bg-primary text-white' 
-            : 'bg-light border'
-    }`;
-    messageContent.style.maxWidth = '80%';
+    messageContent.className = 'message-content';
     
     if (isLoading) {
         messageContent.innerHTML = `
@@ -418,11 +416,16 @@ function addMessageToChat(sender, message, isLoading = false) {
         messageContent.innerHTML = message.replace(/\n/g, '<br>');
     }
     
+    const messageTime = document.createElement('div');
+    messageTime.className = 'message-time';
+    messageTime.textContent = new Date().toLocaleTimeString();
+    
     messageDiv.appendChild(messageContent);
+    messageDiv.appendChild(messageTime);
     chatMessages.appendChild(messageDiv);
     
     // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    scrollToBottom();
     
     // Store in history
     chatHistory.push({
@@ -435,6 +438,11 @@ function addMessageToChat(sender, message, isLoading = false) {
     return messageId;
 }
 
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
 function removeMessage(messageId) {
     const message = document.getElementById(messageId);
     if (message) {
@@ -445,10 +453,19 @@ function removeMessage(messageId) {
 function clearChat() {
     const chatMessages = document.getElementById('chatMessages');
     chatMessages.innerHTML = `
-        <div class="text-center text-muted">
-            <i class="bi bi-chat-dots fs-1"></i>
-            <p class="mt-2">Start a conversation with Doc, your healthcare AI assistant</p>
-            <small>Ask about medical information, patient care, or healthcare technology</small>
+        <div class="message assistant-message">
+            <div class="message-content">
+                <strong>Doc:</strong> Hello! I'm your healthcare AI assistant. I can help you with:
+                <ul class="mt-2 mb-0">
+                    <li>Medical information and clinical guidance</li>
+                    <li>Patient care and treatment planning</li>
+                    <li>Healthcare technology and EHR systems</li>
+                    <li>Clinical decision support</li>
+                    <li>Healthcare analytics and reporting</li>
+                </ul>
+                <p class="mt-2 mb-0">What healthcare topic would you like to discuss?</p>
+            </div>
+            <div class="message-time">${new Date().toLocaleTimeString()}</div>
         </div>
     `;
     chatHistory = [];
@@ -475,48 +492,211 @@ function exportChat() {
     window.URL.revokeObjectURL(url);
 }
 
-function searchPatient() {
-    const searchTerm = document.getElementById('patientSearch').value.trim();
-    if (!searchTerm) return;
+// User View Switching Functionality
+let currentUserView = 'admin';
+
+function switchUserView() {
+    const select = document.getElementById('userViewSelect');
+    const selectedView = select.value;
+    currentUserView = selectedView;
     
-    const resultsDiv = document.getElementById('patientResults');
-    resultsDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Searching...</div>';
+    // Update the chat interface based on user view
+    updateInterfaceForUserView(selectedView);
     
-    // This would typically call a patient search API
-    // For now, we'll simulate a search
+    // Show notification
+    showUserViewNotification(selectedView);
+}
+
+function updateInterfaceForUserView(userView) {
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const quickActions = document.querySelectorAll('.quick-action-btn');
+    
+    // Clear existing messages
+    chatMessages.innerHTML = '';
+    
+    // Add welcome message based on user view
+    const welcomeMessage = getWelcomeMessageForUserView(userView);
+    addMessageToChat(welcomeMessage, 'assistant');
+    
+    // Update input placeholder
+    chatInput.placeholder = getInputPlaceholderForUserView(userView);
+    
+    // Update quick actions based on user view
+    updateQuickActionsForUserView(userView);
+}
+
+function getWelcomeMessageForUserView(userView) {
+    const messages = {
+        'admin': `Hello! I'm Doc, your healthcare AI assistant. I can help you with:
+        <ul class="mt-2 mb-0">
+            <li>Medical information and clinical guidance</li>
+            <li>Patient care and treatment planning</li>
+            <li>Healthcare technology and EHR systems</li>
+            <li>Clinical decision support</li>
+            <li>Healthcare analytics and reporting</li>
+        </ul>
+        <p class="mt-2 mb-0">What healthcare topic would you like to discuss?</p>`,
+        
+        'doctor': `Hello Doctor! I'm Doc, your AI clinical assistant. I can help you with:
+        <ul class="mt-2 mb-0">
+            <li>Clinical decision support and diagnostics</li>
+            <li>Treatment protocols and guidelines</li>
+            <li>Drug interactions and contraindications</li>
+            <li>Patient case analysis</li>
+            <li>Medical literature summaries</li>
+        </ul>
+        <p class="mt-2 mb-0">How can I assist with your clinical practice today?</p>`,
+        
+        'nurse': `Hello! I'm Doc, your nursing AI assistant. I can help you with:
+        <ul class="mt-2 mb-0">
+            <li>Patient care protocols</li>
+            <li>Medication administration guidelines</li>
+            <li>Vital signs interpretation</li>
+            <li>Patient education materials</li>
+            <li>Nursing best practices</li>
+        </ul>
+        <p class="mt-2 mb-0">What nursing support do you need today?</p>`,
+        
+        'patient': `Hello! I'm Doc, your personal health assistant. I can help you with:
+        <ul class="mt-2 mb-0">
+            <li>Understanding your health conditions</li>
+            <li>Medication information and reminders</li>
+            <li>Lifestyle and wellness advice</li>
+            <li>Preparing for doctor visits</li>
+            <li>General health questions</li>
+        </ul>
+        <p class="mt-2 mb-0">What health questions do you have today?</p>`,
+        
+        'researcher': `Hello! I'm Doc, your research AI assistant. I can help you with:
+        <ul class="mt-2 mb-0">
+            <li>Literature reviews and summaries</li>
+            <li>Research methodology guidance</li>
+            <li>Data analysis support</li>
+            <li>Clinical trial information</li>
+            <li>Medical statistics and epidemiology</li>
+        </ul>
+        <p class="mt-2 mb-0">What research assistance do you need?</p>`,
+        
+        'student': `Hello! I'm Doc, your medical education assistant. I can help you with:
+        <ul class="mt-2 mb-0">
+            <li>Medical concepts and terminology</li>
+            <li>Case study analysis</li>
+            <li>Study guides and summaries</li>
+            <li>Clinical rotation preparation</li>
+            <li>Medical exam preparation</li>
+        </ul>
+        <p class="mt-2 mb-0">What would you like to learn about today?</p>`
+    };
+    
+    return messages[userView] || messages['admin'];
+}
+
+function getInputPlaceholderForUserView(userView) {
+    const placeholders = {
+        'admin': 'Ask Doc about healthcare, patients, or medical information...',
+        'doctor': 'Ask about clinical cases, treatments, or medical guidelines...',
+        'nurse': 'Ask about patient care, medications, or nursing protocols...',
+        'patient': 'Ask about your health, medications, or wellness...',
+        'researcher': 'Ask about research, studies, or medical literature...',
+        'student': 'Ask about medical concepts, cases, or study topics...'
+    };
+    
+    return placeholders[userView] || placeholders['admin'];
+}
+
+function updateQuickActionsForUserView(userView) {
+    const quickActionsContainer = document.querySelector('.sidebar-section:first-of-type');
+    if (!quickActionsContainer) return;
+    
+    const actions = getQuickActionsForUserView(userView);
+    quickActionsContainer.innerHTML = `
+        <h6><i class="bi bi-lightning me-2"></i>Quick Actions</h6>
+        ${actions.map(action => `
+            <button class="quick-action-btn" onclick="askDoc('${action.question}')">
+                <i class="bi ${action.icon} me-2"></i>${action.label}
+            </button>
+        `).join('')}
+    `;
+}
+
+function getQuickActionsForUserView(userView) {
+    const actions = {
+        'admin': [
+            { label: 'Healthcare Trends', icon: 'bi-graph-up', question: 'What are the latest healthcare trends?' },
+            { label: 'Patient Care Tips', icon: 'bi-heart', question: 'How can I improve patient care?' },
+            { label: 'EHR Best Practices', icon: 'bi-laptop', question: 'Tell me about EHR best practices' },
+            { label: 'Medical Guidelines', icon: 'bi-book', question: 'What are the latest medical guidelines?' }
+        ],
+        'doctor': [
+            { label: 'Clinical Guidelines', icon: 'bi-book', question: 'Show me the latest clinical guidelines' },
+            { label: 'Drug Interactions', icon: 'bi-capsule', question: 'Check for drug interactions' },
+            { label: 'Diagnostic Support', icon: 'bi-search', question: 'Help with differential diagnosis' },
+            { label: 'Treatment Protocols', icon: 'bi-clipboard-check', question: 'Treatment protocol recommendations' }
+        ],
+        'nurse': [
+            { label: 'Care Protocols', icon: 'bi-clipboard-check', question: 'Show me nursing care protocols' },
+            { label: 'Medication Guide', icon: 'bi-capsule', question: 'Medication administration guidelines' },
+            { label: 'Vital Signs', icon: 'bi-heart-pulse', question: 'Help interpret vital signs' },
+            { label: 'Patient Education', icon: 'bi-person-check', question: 'Patient education materials' }
+        ],
+        'patient': [
+            { label: 'Health Questions', icon: 'bi-question-circle', question: 'I have questions about my health' },
+            { label: 'Medication Info', icon: 'bi-capsule', question: 'Tell me about my medications' },
+            { label: 'Wellness Tips', icon: 'bi-heart', question: 'Wellness and lifestyle advice' },
+            { label: 'Doctor Prep', icon: 'bi-person-check', question: 'How to prepare for my doctor visit' }
+        ],
+        'researcher': [
+            { label: 'Literature Review', icon: 'bi-journal-text', question: 'Help with literature review' },
+            { label: 'Research Methods', icon: 'bi-graph-up', question: 'Research methodology guidance' },
+            { label: 'Clinical Trials', icon: 'bi-clipboard-data', question: 'Clinical trial information' },
+            { label: 'Data Analysis', icon: 'bi-bar-chart', question: 'Statistical analysis support' }
+        ],
+        'student': [
+            { label: 'Medical Concepts', icon: 'bi-book', question: 'Explain medical concepts' },
+            { label: 'Case Studies', icon: 'bi-clipboard-data', question: 'Help with case studies' },
+            { label: 'Study Guides', icon: 'bi-journal-text', question: 'Create study guides' },
+            { label: 'Exam Prep', icon: 'bi-mortarboard', question: 'Medical exam preparation' }
+        ]
+    };
+    
+    return actions[userView] || actions['admin'];
+}
+
+function showUserViewNotification(userView) {
+    const userViewNames = {
+        'admin': 'Admin View',
+        'doctor': 'Doctor',
+        'nurse': 'Nurse',
+        'patient': 'Patient',
+        'researcher': 'Researcher',
+        'student': 'Medical Student'
+    };
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    notification.innerHTML = `
+        <i class="bi bi-person-check me-2"></i>
+        <strong>View Switched:</strong> Now viewing as ${userViewNames[userView]}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-dismiss after 3 seconds
     setTimeout(() => {
-        resultsDiv.innerHTML = `
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                Patient search functionality would be implemented here.
-                <br><small>Search term: "${searchTerm}"</small>
-            </div>
-        `;
-    }, 1000);
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
 }
+
+// Initialize with admin view
+document.addEventListener('DOMContentLoaded', function() {
+    updateInterfaceForUserView('admin');
+});
+
 </script>
-
-<style>
-.chat-messages {
-    scrollbar-width: thin;
-    scrollbar-color: #6c757d #f8f9fa;
-}
-
-.chat-messages::-webkit-scrollbar {
-    width: 6px;
-}
-
-.chat-messages::-webkit-scrollbar-track {
-    background: #f8f9fa;
-}
-
-.chat-messages::-webkit-scrollbar-thumb {
-    background-color: #6c757d;
-    border-radius: 3px;
-}
-
-.chat-messages::-webkit-scrollbar-thumb:hover {
-    background-color: #495057;
-}
-</style>
 {% endblock %}

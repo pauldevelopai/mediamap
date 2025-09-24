@@ -77,11 +77,11 @@ if wait_for_app; then
     echo "🎉 AIMAP Application Started Successfully!"
     echo "📍 App URL: http://localhost:$PORT"
     echo "🔑 Admin login: admin / admin123"
-    echo "🎯 Opening admin dashboard in Chrome..."
+    echo "🎯 Opening MediaMap admin page in Chrome..."
     echo ""
     
-    # Open Chrome to admin dashboard
-    ADMIN_URL="http://localhost:$PORT/admin/dashboard"
+    # Open Chrome to admin MediaMap page
+    ADMIN_URL="http://localhost:$PORT/admin/map"
     
     # Try different Chrome commands for different systems
     if command -v google-chrome >/dev/null 2>&1; then
@@ -97,7 +97,7 @@ if wait_for_app; then
         echo "⚠️  Chrome not found. Please manually open: $ADMIN_URL"
     fi
     
-    echo "🌐 Admin Dashboard: $ADMIN_URL"
+    echo "🌐 MediaMap Admin: $ADMIN_URL"
     echo "📊 Chat Management: http://localhost:$PORT/admin/chat-management"
     echo "🤖 AI Agents: http://localhost:$PORT/admin/agents"
     echo ""
