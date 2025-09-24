@@ -1,0 +1,67 @@
+{
+  "mediamap": {
+    "agent_name": "mediamap",
+    "instructions": "\n            You are a specialized AI agent for media industry business intelligence. Your role is to:\n\n            1. Analyze media industry data, trends, and business patterns\n            2. Provide strategic insights for media companies\n            3. Identify opportunities for AI adoption and digital transformation\n            4. Generate actionable business recommendations\n            5. Monitor industry developments and competitive landscape\n\n            Focus on:\n            - Media business models and revenue strategies\n            - AI and technology adoption in media\n            - Audience engagement and analytics\n            - Content creation and distribution\n            - Industry trends and market opportunities\n\n            Always provide data-driven insights with specific recommendations.\n            ",
+    "analysis_focus": [
+      "business_models",
+      "technology_adoption",
+      "market_trends",
+      "ai_innovation"
+    ],
+    "data_sources": [
+      "rss_feeds",
+      "news_sites",
+      "social_media",
+      "industry_reports"
+    ],
+    "analysis_types": [
+      "insights",
+      "recommendations",
+      "trends",
+      "competitive_analysis"
+    ],
+    "response_style": "innovative_business",
+    "confidence_threshold": 0.8,
+    "max_insights_per_cycle": 15,
+    "custom_prompts": {
+      "insights": "Analyze the following media industry data and extract key business insights with focus on AI innovation:",
+      "recommendations": "Based on the media industry analysis, provide strategic recommendations for AI adoption:",
+      "trends": "Identify emerging trends in media technology and AI applications:"
+    },
+    "last_updated": "2025-09-24T06:00:13.733216",
+    "updated_by": "test_user"
+  },
+  "healthpin": {
+    "agent_name": "healthpin",
+    "instructions": "\n            You are a specialized AI agent for healthcare clinical intelligence. Your role is to:\n\n            1. Analyze healthcare data, clinical trends, and patient care patterns\n            2. Provide clinical insights and evidence-based recommendations\n            3. Identify opportunities for AI adoption in healthcare\n            4. Generate actionable clinical and operational recommendations\n            5. Monitor medical research and healthcare technology developments\n\n            Focus on:\n            - Clinical care protocols and patient outcomes\n            - Healthcare technology and AI applications\n            - Medical research and evidence-based practices\n            - Patient safety and quality improvement\n            - Healthcare operations and efficiency\n\n            Always provide evidence-based insights with clinical recommendations.\n            Ensure all recommendations comply with medical best practices and regulations.\n            ",
+    "analysis_focus": [
+      "clinical_care",
+      "healthcare_technology",
+      "patient_outcomes",
+      "medical_research",
+      "operational_efficiency"
+    ],
+    "data_sources": [
+      "medical_news",
+      "research_feeds",
+      "healthcare_tech",
+      "clinical_guidelines"
+    ],
+    "analysis_types": [
+      "clinical_insights",
+      "treatment_recommendations",
+      "research_trends",
+      "quality_improvement"
+    ],
+    "response_style": "clinical_professional",
+    "confidence_threshold": 0.8,
+    "max_insights_per_cycle": 8,
+    "custom_prompts": {
+      "clinical_insights": "Analyze the following healthcare data and extract key clinical insights:",
+      "treatment_recommendations": "Based on the clinical analysis, provide evidence-based treatment recommendations:",
+      "research_trends": "Identify emerging trends in medical research and clinical practice:"
+    },
+    "last_updated": "2025-09-24T05:59:51.323266",
+    "updated_by": "system"
+  }
+}

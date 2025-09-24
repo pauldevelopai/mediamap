@@ -1,0 +1,928 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}AI Agents Dashboard - Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    .agent-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #007bff;
+    }
+    
+    .agent-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-running {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-stopped {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .insight-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 3px solid #28a745;
+    }
+    
+    .trend-item {
+        background: #e3f2fd;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-left: 3px solid #2196f3;
+    }
+    
+    .activity-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .activity-log {
+        max-height: 200px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 10px;
+    }
+    
+    .activity-entry {
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .activity-entry:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-text {
+        font-size: 14px;
+        color: #495057;
+    }
+    
+    .progress {
+        background-color: #e9ecef;
+    }
+    
+    .progress-bar {
+        background-color: #28a745;
+        transition: width 0.3s ease;
+    }
+    
+    .badge {
+        font-size: 0.75em;
+    }
+    
+    .badge.bg-success {
+        background-color: #28a745 !important;
+    }
+    
+    .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+    
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+    }
+    
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+    }
+    
+    .recommendation-item {
+        background: #fff3e0;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-left: 3px solid #ff9800;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .metric-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .metric-label {
+        font-size: 12px;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .section-subtitle {
+        margin: 5px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>🤖 AI Agents Dashboard</h1>
+                    <p class="text-muted mb-0">Autonomous AI agents that continuously collect data and generate insights for MediaMap and HealthPIN</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshDashboard()" title="Refresh the dashboard data">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- What Agents Do Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        What Do These Agents Do?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-newspaper me-2"></i>MediaMap Agent</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Collects data from media industry RSS feeds</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Monitors journalism and media news sites</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Analyzes business models and revenue trends</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Generates insights about media industry patterns</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Provides business recommendations</li>
+                            </ul>
+                            <small class="text-muted">
+                                <strong>Data Sources:</strong> Nieman Lab, Poynter, Journalism.co.uk, MediaPost, O'Reilly Radar
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Collects healthcare industry data</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Monitors medical research and policy updates</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Analyzes clinical care trends</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Generates healthcare insights</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Provides clinical recommendations</li>
+                            </ul>
+                            <small class="text-muted">
+                                <strong>Data Sources:</strong> Healthcare news feeds, medical journals, policy updates
+                            </small>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>How it works:</strong> Each agent can be started individually to begin running in the background, 
+                        collecting real data from RSS feeds and websites, analyzing it with AI, and storing insights in the database. 
+                        The agents learn from patterns and provide recommendations for your business.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Activity Monitor -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-activity me-2"></i>
+                        Real-Time Activity Monitor
+                    </h5>
+                    <small class="text-muted">Live view of what agents are doing right now</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><strong>📰 MediaMap Agent</strong></span>
+                                    <span id="mediamap-live-status" class="badge bg-secondary">Checking...</span>
+                                </div>
+                                <div id="mediamap-current-activity" class="mt-2">
+                                    <small class="text-muted">Initializing...</small>
+                                </div>
+                                <div id="mediamap-next-action" class="mt-1">
+                                    <small class="text-info">Next: Checking status...</small>
+                                </div>
+                                <div id="mediamap-progress" class="mt-2">
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-success btn-sm me-2" onclick="startIndividualAgent('mediamap')" id="mediamap-start-btn">
+                                        <i class="bi bi-play-circle"></i> Start
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="stopIndividualAgent('mediamap')" id="mediamap-stop-btn">
+                                        <i class="bi bi-stop-circle"></i> Stop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><strong>🏥 HealthPIN Agent</strong></span>
+                                    <span id="healthpin-live-status" class="badge bg-secondary">Checking...</span>
+                                </div>
+                                <div id="healthpin-current-activity" class="mt-2">
+                                    <small class="text-muted">Initializing...</small>
+                                </div>
+                                <div id="healthpin-next-action" class="mt-1">
+                                    <small class="text-info">Next: Checking status...</small>
+                                </div>
+                                <div id="healthpin-progress" class="mt-2">
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-success btn-sm me-2" onclick="startIndividualAgent('healthpin')" id="healthpin-start-btn">
+                                        <i class="bi bi-play-circle"></i> Start
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="stopIndividualAgent('healthpin')" id="healthpin-stop-btn">
+                                        <i class="bi bi-stop-circle"></i> Stop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Status Overview -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="agent-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>📰 MediaMap Agent</h5>
+                    <span id="mediamap-status" class="agent-status status-pending">Loading...</span>
+                </div>
+                <div id="mediamap-activity" class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span id="mediamap-activity-text">Checking status...</span>
+                    </small>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="mediamap-cycles">-</div>
+                            <div class="metric-label">Learning Cycles</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="mediamap-data">-</div>
+                            <div class="metric-label">Data Points</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="mediamap-insights">-</div>
+                            <div class="metric-label">Insights</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary" onclick="runAgentCycle('mediamap')">
+                        <i class="bi bi-arrow-repeat"></i> Run Cycle
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="viewAgentDetails('mediamap')">
+                        <i class="bi bi-eye"></i> View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="agent-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>🏥 HealthPIN Agent</h5>
+                    <span id="healthpin-status" class="agent-status status-pending">Loading...</span>
+                </div>
+                <div id="healthpin-activity" class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span id="healthpin-activity-text">Checking status...</span>
+                    </small>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="healthpin-cycles">-</div>
+                            <div class="metric-label">Learning Cycles</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="healthpin-data">-</div>
+                            <div class="metric-label">Data Points</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="healthpin-insights">-</div>
+                            <div class="metric-label">Insights</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary" onclick="runAgentCycle('healthpin')">
+                        <i class="bi bi-arrow-repeat"></i> Run Cycle
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="viewAgentDetails('healthpin')">
+                        <i class="bi bi-eye"></i> View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Insights -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="section-header">
+                <h3 class="section-title">📰 MediaMap Insights</h3>
+                <p class="section-subtitle">Recent business and industry insights</p>
+            </div>
+            <div id="mediamap-insights-list">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="section-header">
+                <h3 class="section-title">🏥 HealthPIN Insights</h3>
+                <p class="section-subtitle">Recent clinical and healthcare insights</p>
+            </div>
+            <div id="healthpin-insights-list">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Activity Log -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Detailed Activity Log
+                    </h5>
+                    <small class="text-muted">Recent actions, timing, and next steps for each agent</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-newspaper me-2"></i>MediaMap Agent Activity</h6>
+                            <div id="mediamap-activity-log" class="activity-log">
+                                <div class="activity-entry">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="activity-text">Initializing agent...</span>
+                                        <small class="text-muted">Just now</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent Activity</h6>
+                            <div id="healthpin-activity-log" class="activity-log">
+                                <div class="activity-entry">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="activity-text">Initializing agent...</span>
+                                        <small class="text-muted">Just now</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        Performance Metrics
+                    </h5>
+                    <small class="text-muted">Response times, success rates, and efficiency metrics</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value" id="avg-response-time">-</div>
+                                <div class="metric-label">Avg Response Time</div>
+                                <small class="text-muted" id="response-time-detail">ms</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value" id="success-rate">-</div>
+                                <div class="metric-label">Success Rate</div>
+                                <small class="text-muted" id="success-rate-detail">%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value" id="data-per-hour">-</div>
+                                <div class="metric-label">Data Points/Hour</div>
+                                <small class="text-muted" id="data-rate-detail">items</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center">
+                                <div class="metric-value" id="insights-per-hour">-</div>
+                                <div class="metric-label">Insights/Hour</div>
+                                <small class="text-muted" id="insights-rate-detail">items</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="section-header">
+                <h3 class="section-title">💼 Business Recommendations</h3>
+                <p class="section-subtitle">AI-generated business advice</p>
+            </div>
+            <div id="mediamap-recommendations">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="section-header">
+                <h3 class="section-title">🏥 Clinical Recommendations</h3>
+                <p class="section-subtitle">AI-generated clinical advice</p>
+            </div>
+            <div id="healthpin-recommendations">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trends -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="section-header">
+                <h3 class="section-title">📈 Industry Trends</h3>
+                <p class="section-subtitle">Media industry trends and patterns</p>
+            </div>
+            <div id="mediamap-trends">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="section-header">
+                <h3 class="section-title">📊 Clinical Trends</h3>
+                <p class="section-subtitle">Healthcare and clinical trends</p>
+            </div>
+            <div id="healthpin-trends">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let dashboardData = null;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboard();
+    loadLiveMonitoring();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadDashboard, 30000);
+    
+    // Auto-refresh live monitoring every 5 seconds
+    setInterval(loadLiveMonitoring, 5000);
+});
+
+// Load dashboard data
+async function loadDashboard() {
+    try {
+        const response = await fetch('/api/agents/dashboard');
+        const data = await response.json();
+        
+        if (data.success) {
+            dashboardData = data.dashboard;
+            updateDashboard();
+        } else {
+            console.error('Failed to load dashboard:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    }
+}
+
+// Load real-time monitoring data
+async function loadLiveMonitoring() {
+    try {
+        const [liveResponse, activityResponse] = await Promise.all([
+            fetch('/api/agents/monitoring/live-status'),
+            fetch('/api/agents/monitoring/activity-log')
+        ]);
+        
+        const liveData = await liveResponse.json();
+        const activityData = await activityResponse.json();
+        
+        if (liveData.success) {
+            updateLiveStatus(liveData.live_status);
+            updatePerformanceMetrics(liveData.metrics);
+        }
+        
+        if (activityData.success) {
+            updateActivityLog(activityData.activity_log);
+        }
+    } catch (error) {
+        console.error('Error loading live monitoring:', error);
+    }
+}
+
+// Update live status display
+function updateLiveStatus(liveStatus) {
+    liveStatus.forEach(agent => {
+        const agentName = agent.agent.toLowerCase();
+        
+        // Update live status badge
+        const statusElement = document.getElementById(`${agentName}-live-status`);
+        if (statusElement) {
+            statusElement.textContent = agent.status;
+            statusElement.className = `badge ${agent.status === 'running' ? 'bg-success' : 'bg-danger'}`;
+        }
+        
+        // Update current activity
+        const activityElement = document.getElementById(`${agentName}-current-activity`);
+        if (activityElement) {
+            activityElement.innerHTML = `<small class="text-muted">${agent.current_activity}</small>`;
+        }
+        
+        // Update next action
+        const nextElement = document.getElementById(`${agentName}-next-action`);
+        if (nextElement) {
+            nextElement.innerHTML = `<small class="text-info">Next: ${agent.next_action}</small>`;
+        }
+        
+        // Update progress bar
+        const progressElement = document.querySelector(`#${agentName}-progress .progress-bar`);
+        if (progressElement) {
+            progressElement.style.width = `${agent.progress}%`;
+            progressElement.setAttribute('aria-valuenow', agent.progress);
+        }
+    });
+}
+
+// Update performance metrics
+function updatePerformanceMetrics(metrics) {
+    if (metrics.avg_response_time !== undefined) {
+        document.getElementById('avg-response-time').textContent = Math.round(metrics.avg_response_time);
+    }
+    
+    if (metrics.success_rate !== undefined) {
+        document.getElementById('success-rate').textContent = Math.round(metrics.success_rate * 100);
+    }
+    
+    if (metrics.data_per_hour !== undefined) {
+        document.getElementById('data-per-hour').textContent = Math.round(metrics.data_per_hour);
+    }
+    
+    if (metrics.insights_per_hour !== undefined) {
+        document.getElementById('insights-per-hour').textContent = Math.round(metrics.insights_per_hour);
+    }
+}
+
+// Update activity log
+function updateActivityLog(activityLog) {
+    Object.entries(activityLog).forEach(([agentName, activities]) => {
+        const logElement = document.getElementById(`${agentName.toLowerCase()}-activity-log`);
+        if (logElement) {
+            const html = activities.map(activity => `
+                <div class="activity-entry">
+                    <div class="d-flex justify-content-between">
+                        <span class="activity-text">${activity.action}: ${activity.details}</span>
+                        <small class="text-muted">${activity.timestamp}</small>
+                    </div>
+                </div>
+            `).join('');
+            logElement.innerHTML = html;
+        }
+    });
+}
+
+// Update dashboard with data
+function updateDashboard() {
+    if (!dashboardData) return;
+    
+    // Update agent status
+    updateAgentStatus('mediamap', dashboardData.status.mediamap);
+    updateAgentStatus('healthpin', dashboardData.status.healthpin);
+    
+    // Update insights
+    updateInsights('mediamap', dashboardData.mediamap.insights);
+    updateInsights('healthpin', dashboardData.healthpin.insights);
+    
+    // Update recommendations
+    updateRecommendations('mediamap', dashboardData.mediamap.recommendations);
+    updateRecommendations('healthpin', dashboardData.healthpin.recommendations);
+    
+    // Update trends
+    updateTrends('mediamap', dashboardData.mediamap.trends);
+    updateTrends('healthpin', dashboardData.healthpin.trends);
+}
+
+// Update agent status
+function updateAgentStatus(agentName, status) {
+    const statusElement = document.getElementById(`${agentName}-status`);
+    const cyclesElement = document.getElementById(`${agentName}-cycles`);
+    const dataElement = document.getElementById(`${agentName}-data`);
+    const insightsElement = document.getElementById(`${agentName}-insights`);
+    const activityElement = document.getElementById(`${agentName}-activity-text`);
+    
+    if (status) {
+        // Update status
+        const isRunning = status.is_running;
+        statusElement.textContent = isRunning ? 'Running' : 'Stopped';
+        statusElement.className = `agent-status ${isRunning ? 'status-running' : 'status-stopped'}`;
+        
+        // Update activity text
+        if (activityElement) {
+            const now = new Date().toLocaleTimeString();
+            if (isRunning) {
+                activityElement.textContent = `Active - Collecting data and analyzing patterns (Last update: ${now})`;
+            } else {
+                activityElement.textContent = `Stopped - No background data collection`;
+            }
+        }
+        
+        // Update metrics
+        cyclesElement.textContent = status.learning_cycles || 0;
+        dataElement.textContent = status.total_data_collected || 0;
+        insightsElement.textContent = status.knowledge_base_size || 0;
+    }
+}
+
+// Update insights
+function updateInsights(agentName, insights) {
+    const container = document.getElementById(`${agentName}-insights-list`);
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = '<p class="text-muted">No insights available</p>';
+        return;
+    }
+    
+    const html = insights.map(insight => `
+        <div class="insight-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">${insight.type || 'Insight'}</h6>
+                    <p class="mb-1">${insight.insight || 'No insight text'}</p>
+                    <small class="text-muted">${insight.category || 'General'} • ${insight.confidence ? (insight.confidence * 100).toFixed(0) + '%' : 'N/A'} confidence</small>
+                </div>
+                <span class="badge bg-secondary">${insight.timestamp ? new Date(insight.timestamp).toLocaleDateString() : 'Recent'}</span>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+// Update recommendations
+function updateRecommendations(agentName, recommendations) {
+    const container = document.getElementById(`${agentName}-recommendations`);
+    
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = '<p class="text-muted">No recommendations available</p>';
+        return;
+    }
+    
+    const html = recommendations.map(rec => `
+        <div class="recommendation-item">
+            <p class="mb-0">${rec}</p>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+// Update trends
+function updateTrends(agentName, trends) {
+    const container = document.getElementById(`${agentName}-trends`);
+    
+    if (!trends || Object.keys(trends).length === 0) {
+        container.innerHTML = '<p class="text-muted">No trends available</p>';
+        return;
+    }
+    
+    const html = Object.entries(trends).map(([trendType, trendData]) => `
+        <div class="trend-item">
+            <h6 class="mb-1">${trendType.replace('_', ' ')}</h6>
+            <p class="mb-0 small">${trendData.length} patterns identified</p>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+// Agent control functions
+async function startIndividualAgent(agentName) {
+    try {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Starting...';
+        
+        showAlert(`Starting ${agentName} agent... This will begin background data collection and analysis.`, 'info');
+        
+        const response = await fetch(`/api/agents/${agentName}/start`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`✅ ${agentName} agent started successfully! It is now collecting real data and generating insights in the background.`, 'success');
+            loadDashboard();
+        } else {
+            showAlert(`Failed to start ${agentName} agent: ${data.error}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Error starting ${agentName} agent: ${error.message}`, 'danger');
+    } finally {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        startBtn.disabled = false;
+        startBtn.innerHTML = '<i class="bi bi-play-circle"></i> Start';
+    }
+}
+
+async function stopIndividualAgent(agentName) {
+    try {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        
+        stopBtn.disabled = true;
+        stopBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Stopping...';
+        
+        showAlert(`Stopping ${agentName} agent... This will halt background data collection.`, 'warning');
+        
+        const response = await fetch(`/api/agents/${agentName}/stop`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`🛑 ${agentName} agent stopped successfully!`, 'info');
+            loadDashboard();
+        } else {
+            showAlert(`Failed to stop ${agentName} agent: ${data.error}`, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Error stopping ${agentName} agent: ${error.message}`, 'danger');
+    } finally {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        stopBtn.disabled = false;
+        stopBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop';
+    }
+}
+
+async function runAgentCycle(agentName) {
+    try {
+        const response = await fetch(`/api/agents/${agentName}/cycle`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`${agentName} learning cycle completed`, 'success');
+            loadDashboard();
+        } else {
+            showAlert(`Failed to run cycle for ${agentName}: ` + data.error, 'danger');
+        }
+    } catch (error) {
+        showAlert(`Error running cycle for ${agentName}: ` + error.message, 'danger');
+    }
+}
+
+function viewAgentDetails(agentName) {
+    // This would open a detailed view of the agent
+    showAlert(`Viewing details for ${agentName} agent`, 'info');
+}
+
+function refreshDashboard() {
+    loadDashboard();
+    showAlert('Dashboard refreshed', 'info');
+}
+
+function showAlert(message, type) {
+    // Create and show a Bootstrap alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of the page
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
+
+
+

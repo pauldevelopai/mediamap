@@ -2,7 +2,24 @@
 
 {% block title %}Chat Management | MediaMap{% endblock %}
 
-{% block header %}Chat Management{% endblock %}
+{% block header %}
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="h3 mb-0">💬 Chat Management</h1>
+        <p class="text-muted mb-0">View and manage chats from all admin and regular users</p>
+    </div>
+    <div class="btn-group">
+        <button class="btn btn-outline-primary btn-sm" onclick="refreshChatData()">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Refresh
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="showCleanupModal()">
+            <i class="bi bi-trash me-1"></i>
+            Cleanup
+        </button>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -14,7 +31,10 @@
                 </h6>
                 <div class="d-flex align-items-center">
                     <span class="badge bg-primary me-2">
-                        <i class="bi bi-chat"></i> {{ total_chats }} Chats
+                        <i class="bi bi-chat"></i> {{ total_chats }} Total Chats
+                    </span>
+                    <span class="badge bg-success me-2">
+                        <i class="bi bi-robot"></i> {{ total_highlander_chats }} Highlander
                     </span>
                     <span class="badge bg-info me-2">
                         <i class="bi bi-message"></i> {{ total_messages }} Messages
@@ -67,6 +87,122 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- User Statistics -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people fa-2x text-success mb-2"></i>
+                                <h6 class="card-title">Total Users</h6>
+                                <h4 class="text-success">{{ total_users }}</h4>
+                                <small class="text-muted">{{ active_users }} active users</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="bi bi-shield-check fa-2x text-info mb-2"></i>
+                                <h6 class="card-title">Admin Chats</h6>
+                                <h4 class="text-info">{{ admin_chats }}</h4>
+                                <small class="text-muted">Chats from admin users</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person fa-2x text-primary mb-2"></i>
+                                <h6 class="card-title">Regular User Chats</h6>
+                                <h4 class="text-primary">{{ regular_user_chats }}</h4>
+                                <small class="text-muted">Chats from regular users</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Active Users -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-trophy"></i> Top Active Users
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if top_users %}
+                    <div class="list-group list-group-flush">
+                        {% for user in top_users %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ user.username }}</strong>
+                                    <span class="badge {% if user.is_admin %}bg-danger{% else %}bg-primary{% endif %} ms-2">
+                                        {{ user.user_type }}
+                                    </span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">{{ user.chat_count }} total</span>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <span class="badge bg-info me-1">{{ user.regular_chats }} Regular</span>
+                                    <span class="badge bg-success">{{ user.highlander_chats }} Highlander</span>
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No user data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Chats with User Info -->
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-clock-history"></i> Recent Chats by All Users
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if recent_chats %}
+                    <div class="list-group list-group-flush">
+                        {% for chat in recent_chats %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        {{ chat.title }}
+                                        <span class="badge {% if chat.chat_type == 'Highlander Chat' %}bg-success{% else %}bg-info{% endif %} ms-2">
+                                            {{ chat.chat_type }}
+                                        </span>
+                                    </h6>
+                                    <p class="mb-1 text-muted small">{{ chat.preview }}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-person me-1"></i>{{ chat.user_name }}
+                                        <span class="badge {% if chat.user_type == 'Admin' %}bg-danger{% else %}bg-primary{% endif %} ms-2">
+                                            {{ chat.user_type }}
+                                        </span>
+                                        <i class="bi bi-clock me-1 ms-2"></i>{{ chat.created_at }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-secondary">{{ chat.message_count }} msgs</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No recent chats available</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -275,6 +411,35 @@ document.getElementById('confirmCleanupBtn').addEventListener('click', function(
         modal.hide();
     });
 });
+
+// New functions for enhanced chat management
+function refreshChatData() {
+    // Reload the page to get fresh data
+    window.location.reload();
+}
+
+function showCleanupModal() {
+    // Show the cleanup modal with options
+    const modal = new bootstrap.Modal(document.getElementById('cleanupModal'));
+    document.getElementById('cleanupMessage').textContent = 'Select a cleanup option below:';
+    modal.show();
+}
+
+// Add click handlers for user filtering
+function filterByUser(userId) {
+    // This could be enhanced to filter the chat list by specific user
+    console.log('Filtering by user:', userId);
+    // For now, just show an alert
+    alert('User filtering feature coming soon!');
+}
+
+// Add click handlers for user type filtering
+function filterByUserType(userType) {
+    // This could be enhanced to filter the chat list by user type
+    console.log('Filtering by user type:', userType);
+    // For now, just show an alert
+    alert(`Filtering by ${userType} users - feature coming soon!`);
+}
 </script>
 {% endblock %}
 

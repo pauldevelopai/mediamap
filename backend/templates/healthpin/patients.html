@@ -1,0 +1,508 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Patient Management | HealthPIN{% endblock %}
+
+{% block header %}Patient Management{% endblock %}
+
+{% block content %}
+<!-- Patient Creation Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-person-plus me-2"></i>Add New Patient
+                </h6>
+            </div>
+            <div class="card-body">
+                <form id="patientForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                                <div class="form-text">Include country code (e.g., +27821234567)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="whatsapp_id" class="form-label">WhatsApp ID</label>
+                                <input type="text" class="form-control" id="whatsapp_id" name="whatsapp_id">
+                                <div class="form-text">Optional WhatsApp identifier</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="first_name" class="form-label">First Name *</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="last_name" class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="language_preference" class="form-label">Language</label>
+                                <select class="form-select" id="language_preference" name="language_preference">
+                                    <option value="en">English</option>
+                                    <option value="zu">isiZulu</option>
+                                    <option value="xh">isiXhosa</option>
+                                    <option value="af">Afrikaans</option>
+                                    <option value="sn">Shona</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="province" class="form-label">Province</label>
+                                <select class="form-select" id="province" name="province">
+                                    <option value="">Select Province</option>
+                                    <option value="Gauteng">Gauteng</option>
+                                    <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                    <option value="Western Cape">Western Cape</option>
+                                    <option value="Eastern Cape">Eastern Cape</option>
+                                    <option value="Free State">Free State</option>
+                                    <option value="Limpopo">Limpopo</option>
+                                    <option value="Mpumalanga">Mpumalanga</option>
+                                    <option value="Northern Cape">Northern Cape</option>
+                                    <option value="North West">North West</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="preferred_specialties" class="form-label">Preferred Specialties</label>
+                                <select class="form-select" id="preferred_specialties" name="preferred_specialties" multiple>
+                                    <option value="General Practice">General Practice</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                    <option value="Gynecology">Gynecology</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Dermatology">Dermatology</option>
+                                    <option value="Orthopedics">Orthopedics</option>
+                                    <option value="Internal Medicine">Internal Medicine</option>
+                                    <option value="Emergency Medicine">Emergency Medicine</option>
+                                </select>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cultural_preferences" class="form-label">Cultural Preferences</label>
+                                <select class="form-select" id="cultural_preferences" name="cultural_preferences" multiple>
+                                    <option value="Traditional Medicine">Traditional Medicine</option>
+                                    <option value="Family Involvement">Family Involvement</option>
+                                    <option value="Religious Considerations">Religious Considerations</option>
+                                    <option value="Gender Preferences">Gender Preferences</option>
+                                    <option value="Language Requirements">Language Requirements</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="emergency_contact_name" class="form-label">Emergency Contact Name</label>
+                                <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="emergency_contact_phone" class="form-label">Emergency Contact Phone</label>
+                                <input type="tel" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="accessibility_needs" class="form-label">Accessibility Needs</label>
+                        <textarea class="form-control" id="accessibility_needs" name="accessibility_needs" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Clear Form
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-1"></i>Add Patient
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Listing Section -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold">
+            <i class="bi bi-people me-2"></i>All Patients
+        </h6>
+        <div class="btn-group" role="group">
+            <button class="btn btn-sm btn-outline-primary" onclick="refreshPatients()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <button class="btn btn-sm btn-outline-info" onclick="exportPatients()">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="patientsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Location</th>
+                        <th>Language</th>
+                        <th>Specialties</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patientsTableBody">
+                    <!-- Patients will be loaded here via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Statistics -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0" id="totalPatients">0</h4>
+                        <p class="mb-0">Total Patients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0" id="activePatients">0</h4>
+                        <p class="mb-0">Active Patients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0" id="newThisMonth">0</h4>
+                        <p class="mb-0">New This Month</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-plus fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0" id="withMatches">0</h4>
+                        <p class="mb-0">With Doctor Matches</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-heart-pulse fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    let patientsTable;
+    
+    $(document).ready(function() {
+        loadPatients();
+        setupFormHandlers();
+    });
+    
+    function setupFormHandlers() {
+        $('#patientForm').on('submit', function(e) {
+            e.preventDefault();
+            createPatient();
+        });
+    }
+    
+    async function loadPatients() {
+        try {
+            const response = await fetch('/healthpin/api/patients', {
+                credentials: 'same-origin'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                displayPatients(result.patients);
+                updateStatistics(result.patients);
+            } else {
+                console.error('Error loading patients:', result.error);
+                showAlert('Error loading patients: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            console.error('Error loading patients:', error);
+            showAlert('Error loading patients. Please try again.', 'danger');
+        }
+    }
+    
+    function displayPatients(patients) {
+        const tbody = document.getElementById('patientsTableBody');
+        tbody.innerHTML = '';
+        
+        patients.forEach(patient => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${patient.id}</td>
+                <td>
+                    <strong>${patient.first_name} ${patient.last_name}</strong>
+                    ${patient.gender ? `<br><small class="text-muted">${patient.gender}</small>` : ''}
+                </td>
+                <td>
+                    ${patient.phone_number}
+                    ${patient.whatsapp_id ? `<br><small class="text-success">WhatsApp: ${patient.whatsapp_id}</small>` : ''}
+                </td>
+                <td>
+                    ${patient.city || 'N/A'}
+                    ${patient.province ? `<br><small class="text-muted">${patient.province}</small>` : ''}
+                </td>
+                <td>
+                    <span class="badge bg-info">${patient.language_preference?.toUpperCase() || 'EN'}</span>
+                </td>
+                <td>
+                    ${patient.preferred_specialties && patient.preferred_specialties.length > 0 
+                        ? patient.preferred_specialties.map(s => `<span class="badge bg-secondary me-1">${s}</span>`).join('')
+                        : '<span class="text-muted">None</span>'}
+                </td>
+                <td>
+                    ${patient.created_at ? new Date(patient.created_at).toLocaleDateString() : 'N/A'}
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-info" onclick="viewPatient(${patient.id})" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="editPatient(${patient.id})" title="Edit Patient">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-success" onclick="matchDoctors(${patient.id})" title="Find Doctors">
+                            <i class="bi bi-heart-pulse"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deletePatient(${patient.id}, '${patient.first_name} ${patient.last_name}')" title="Delete Patient">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // Initialize DataTable if not already done
+        if (!patientsTable) {
+            patientsTable = $('#patientsTable').DataTable({
+                order: [[0, 'desc']],
+                pageLength: 25,
+                responsive: true
+            });
+        } else {
+            patientsTable.clear().rows.add($(tbody).find('tr')).draw();
+        }
+    }
+    
+    function updateStatistics(patients) {
+        const total = patients.length;
+        const active = patients.filter(p => p.is_active).length;
+        const thisMonth = patients.filter(p => {
+            const created = new Date(p.created_at);
+            const now = new Date();
+            return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+        }).length;
+        
+        document.getElementById('totalPatients').textContent = total;
+        document.getElementById('activePatients').textContent = active;
+        document.getElementById('newThisMonth').textContent = thisMonth;
+        document.getElementById('withMatches').textContent = 'N/A'; // Would need additional API call
+    }
+    
+    async function createPatient() {
+        const formData = new FormData(document.getElementById('patientForm'));
+        const data = Object.fromEntries(formData.entries());
+        
+        // Convert multi-select values to arrays
+        data.preferred_specialties = Array.from(document.getElementById('preferred_specialties').selectedOptions).map(o => o.value);
+        data.cultural_preferences = Array.from(document.getElementById('cultural_preferences').selectedOptions).map(o => o.value);
+        
+        try {
+            const response = await fetch('/healthpin/patients', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('Patient created successfully!', 'success');
+                clearForm();
+                loadPatients();
+            } else {
+                showAlert('Error creating patient: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            console.error('Error creating patient:', error);
+            showAlert('Error creating patient. Please try again.', 'danger');
+        }
+    }
+    
+    function clearForm() {
+        document.getElementById('patientForm').reset();
+    }
+    
+    function refreshPatients() {
+        loadPatients();
+    }
+    
+    function exportPatients() {
+        // Simple CSV export
+        const table = document.getElementById('patientsTable');
+        const rows = table.querySelectorAll('tr');
+        let csv = [];
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = [], cols = rows[i].querySelectorAll('td, th');
+            for (let j = 0; j < cols.length - 1; j++) { // Exclude actions column
+                let cellText = cols[j].innerText.replace(/"/g, '""');
+                row.push('"' + cellText + '"');
+            }
+            csv.push(row.join(','));
+        }
+        
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'patients_export_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+    
+    function viewPatient(patientId) {
+        // Navigate to patient detail page
+        window.location.href = `/healthpin/patients/${patientId}`;
+    }
+    
+    function editPatient(patientId) {
+        // Navigate to patient edit page
+        window.location.href = `/healthpin/patients/${patientId}/edit`;
+    }
+    
+    function matchDoctors(patientId) {
+        // Navigate to doctor matching page
+        window.location.href = `/healthpin/patients/${patientId}/match-doctors`;
+    }
+    
+    function deletePatient(patientId, patientName) {
+        if (confirm(`Are you sure you want to delete patient "${patientName}"?\n\nThis action will:\n- Delete all patient data (health records, matches, etc.)\n- Remove the patient account permanently\n- Cannot be undone\n\nThis action cannot be undone!`)) {
+            // Create a form to submit the delete request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/healthpin/patients/${patientId}/delete`;
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at the top of the content
+        const content = document.querySelector('.container-fluid');
+        content.insertBefore(alertDiv, content.firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+{% endblock %}

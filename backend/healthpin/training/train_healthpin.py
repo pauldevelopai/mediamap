@@ -29,8 +29,8 @@ from datetime import datetime
 # Add backend to path for imports
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from healthpin.training.healthpin_trainer import HealthPINModelTrainer, HealthPINDataCollector
-from healthpin.training.healthpin_model_manager import HealthPINModelManager
+from .healthpin_trainer import HealthPINModelTrainer, HealthPINDataCollector
+from .healthpin_model_manager import HealthPINModelManager
 
 # Set up logging
 logging.basicConfig(

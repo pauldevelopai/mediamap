@@ -1,0 +1,310 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Doc - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-heart-pulse me-2"></i>
+                    Doc - Healthcare AI Assistant
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearChat()">
+                            <i class="bi bi-trash me-1"></i>
+                            Clear Chat
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportChat()">
+                            <i class="bi bi-download me-1"></i>
+                            Export Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-robot me-2"></i>
+                        Doc - Healthcare AI Assistant
+                    </h5>
+                    <small class="text-muted">Specialized in medical information, patient care, and healthcare technology</small>
+                </div>
+                <div class="card-body">
+                    <!-- Chat Messages Container -->
+                    <div id="chatMessages" class="chat-messages" style="height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem; background-color: #f8f9fa;">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-chat-dots fs-1"></i>
+                            <p class="mt-2">Start a conversation with Doc, your healthcare AI assistant</p>
+                            <small>Ask about medical information, patient care, or healthcare technology</small>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="input-group">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Ask Doc about healthcare, patients, or medical information..." onkeypress="handleKeyPress(event)">
+                        <button class="btn btn-primary" type="button" onclick="sendMessage()">
+                            <i class="bi bi-send me-1"></i>
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Lookup Section -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-person-search me-2"></i>
+                        Patient Lookup
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <input type="text" id="patientSearch" class="form-control" placeholder="Search by patient ID, name, or phone...">
+                        <button class="btn btn-outline-secondary" type="button" onclick="searchPatient()">
+                            <i class="bi bi-search me-1"></i>
+                            Search
+                        </button>
+                    </div>
+                    <div id="patientResults" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('What are the latest healthcare trends?')">
+                            <i class="bi bi-graph-up me-1"></i>
+                            Healthcare Trends
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('How can I improve patient care?')">
+                            <i class="bi bi-heart me-1"></i>
+                            Patient Care Tips
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('What are the best practices for medical documentation?')">
+                            <i class="bi bi-file-text me-1"></i>
+                            Documentation Best Practices
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askDoc('Tell me about HealthPIN features')">
+                            <i class="bi bi-info-circle me-1"></i>
+                            HealthPIN Features
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let chatHistory = [];
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    addMessageToChat('user', message);
+    input.value = '';
+    
+    // Send to Doc chatbot
+    askDoc(message);
+}
+
+function askDoc(question) {
+    // Add loading message
+    const loadingId = addMessageToChat('assistant', 'Thinking...', true);
+    
+    fetch('/healthpin/doc/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: question,
+            context: 'admin_dashboard'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Remove loading message
+        removeMessage(loadingId);
+        
+        if (data.success) {
+            addMessageToChat('assistant', data.response);
+        } else {
+            addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
+        }
+    })
+    .catch(error => {
+        removeMessage(loadingId);
+        addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
+        console.error('Error:', error);
+    });
+}
+
+function addMessageToChat(sender, message, isLoading = false) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    // Remove welcome message if it exists
+    const welcomeMsg = chatMessages.querySelector('.text-center');
+    if (welcomeMsg) {
+        welcomeMsg.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.id = messageId;
+    messageDiv.className = `mb-3 ${sender === 'user' ? 'text-end' : 'text-start'}`;
+    
+    const messageContent = document.createElement('div');
+    messageContent.className = `d-inline-block p-3 rounded-3 ${
+        sender === 'user' 
+            ? 'bg-primary text-white' 
+            : 'bg-light border'
+    }`;
+    messageContent.style.maxWidth = '80%';
+    
+    if (isLoading) {
+        messageContent.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                ${message}
+            </div>
+        `;
+    } else {
+        messageContent.innerHTML = message.replace(/\n/g, '<br>');
+    }
+    
+    messageDiv.appendChild(messageContent);
+    chatMessages.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Store in history
+    chatHistory.push({
+        id: messageId,
+        sender: sender,
+        message: message,
+        timestamp: new Date()
+    });
+    
+    return messageId;
+}
+
+function removeMessage(messageId) {
+    const message = document.getElementById(messageId);
+    if (message) {
+        message.remove();
+    }
+}
+
+function clearChat() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = `
+        <div class="text-center text-muted">
+            <i class="bi bi-chat-dots fs-1"></i>
+            <p class="mt-2">Start a conversation with Doc, your healthcare AI assistant</p>
+            <small>Ask about medical information, patient care, or healthcare technology</small>
+        </div>
+    `;
+    chatHistory = [];
+}
+
+function exportChat() {
+    if (chatHistory.length === 0) {
+        alert('No chat history to export');
+        return;
+    }
+    
+    const chatText = chatHistory.map(msg => 
+        `${msg.sender.toUpperCase()}: ${msg.message}`
+    ).join('\n\n');
+    
+    const blob = new Blob([chatText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `doc-chat-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function searchPatient() {
+    const searchTerm = document.getElementById('patientSearch').value.trim();
+    if (!searchTerm) return;
+    
+    const resultsDiv = document.getElementById('patientResults');
+    resultsDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Searching...</div>';
+    
+    // This would typically call a patient search API
+    // For now, we'll simulate a search
+    setTimeout(() => {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Patient search functionality would be implemented here.
+                <br><small>Search term: "${searchTerm}"</small>
+            </div>
+        `;
+    }, 1000);
+}
+</script>
+
+<style>
+.chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #f8f9fa;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background-color: #6c757d;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background-color: #495057;
+}
+</style>
+{% endblock %}

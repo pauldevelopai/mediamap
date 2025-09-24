@@ -12,11 +12,11 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from healthpin.models import (
+from backend.healthpin.models import (
     Patient, Doctor, HealthRecord, DoctorMatch, 
     FamilyNotification, Consultation, HealthNews
 )
-from models import db
+from backend.models import db
 
 def seed_healthpin_data():
     """Seed HealthPIN with sample data"""

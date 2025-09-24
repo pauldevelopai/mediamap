@@ -1,0 +1,35 @@
+{
+  "business_analysis": {
+    "name": "Business Analysis",
+    "description": "Comprehensive business analysis with strategic insights",
+    "prompt_template": "\n                Analyze the following business data and provide:\n                1. Key business insights and patterns\n                2. Strategic opportunities and threats\n                3. Actionable recommendations\n                4. Market implications\n                \n                Data: {data}\n                ",
+    "expected_output_format": "Structured analysis with numbered insights and recommendations",
+    "use_cases": [
+      "market_analysis",
+      "competitive_intelligence",
+      "strategic_planning"
+    ]
+  },
+  "clinical_analysis": {
+    "name": "Clinical Analysis",
+    "description": "Evidence-based clinical analysis and recommendations",
+    "prompt_template": "\n                Analyze the following clinical data and provide:\n                1. Clinical insights and patterns\n                2. Evidence-based recommendations\n                3. Patient safety considerations\n                4. Quality improvement opportunities\n                \n                Data: {data}\n                ",
+    "expected_output_format": "Clinical analysis with evidence-based recommendations",
+    "use_cases": [
+      "patient_care",
+      "clinical_decision_support",
+      "quality_improvement"
+    ]
+  },
+  "trend_analysis": {
+    "name": "Trend Analysis",
+    "description": "Identify and analyze emerging trends",
+    "prompt_template": "\n                Analyze the following data for trends and provide:\n                1. Emerging trends and patterns\n                2. Trend significance and implications\n                3. Future projections\n                4. Strategic recommendations based on trends\n                \n                Data: {data}\n                ",
+    "expected_output_format": "Trend analysis with future projections and recommendations",
+    "use_cases": [
+      "market_trends",
+      "technology_trends",
+      "industry_analysis"
+    ]
+  }
+}

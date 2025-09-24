@@ -14,23 +14,10 @@ Core Features:
 
 try:
     from .routes import healthpin_bp
-    from .models import (
-        Patient, Doctor, HealthRecord, DoctorMatch,
-        FamilyNotification, Consultation, HealthNews
-    )
 except ImportError as e:
     print(f"HealthPIN import error: {e}")
     healthpin_bp = None
-    Patient = None
-    Doctor = None
-    HealthRecord = None
-    DoctorMatch = None
-    FamilyNotification = None
-    Consultation = None
-    HealthNews = None
 
 __all__ = [
-    'healthpin_bp',
-    'Patient', 'Doctor', 'HealthRecord', 'DoctorMatch',
-    'FamilyNotification', 'Consultation', 'HealthNews'
+    'healthpin_bp'
 ]

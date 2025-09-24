@@ -60,12 +60,12 @@ class HighlanderModelManager:
             # Find latest deployed model
             deployment_dir = self.models_dir / "deployment"
             if not deployment_dir.exists():
-                logger.warning("No deployed model found")
+                logger.info("No deployed model found. Using OpenAI fallback for AI analysis.")
                 return False
             
             deployment_info_file = deployment_dir / "deployment_info.json"
             if not deployment_info_file.exists():
-                logger.warning("No deployment info found")
+                logger.info("No deployment info found. Using OpenAI fallback for AI analysis.")
                 return False
             
             # Load deployment metadata
@@ -215,28 +215,7 @@ class HighlanderModelManager:
             messages = [
                 {
                     "role": "system",
-                    "content": """You are Highlander, an expert AI business consultant specializing in media companies.
-
-CONVERSATION STYLE:
-- Keep responses concise and actionable (2-4 sentences max)
-- Never repeat greetings or introductions unless it's truly the first message
-- Be direct and professional - skip pleasantries if you've already been introduced
-- Build on previous conversation context naturally
-- Ask ONE focused follow-up question per response
-
-YOUR EXPERTISE:
-- Media business strategy and operations
-- AI implementation for content creation, audience analysis, workflow optimization
-- Digital transformation and automation
-- Revenue optimization and growth strategies
-
-APPROACH:
-- Listen for business challenges and immediately suggest specific AI solutions
-- Reference previous conversation points to show you remember the context
-- Provide concrete, implementable advice rather than general statements
-- Focus on ROI and practical business impact
-
-NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."""
+                    "content": self._get_custom_model_prompt()
                 }
             ]
             
@@ -321,6 +300,37 @@ NEVER say 'Hello' again after the first interaction. Always continue the convers
         # Calculate new average
         new_avg = ((current_avg * (total_requests - 1)) + response_time) / total_requests
         self.inference_stats['avg_response_time'] = new_avg
+    
+    def _get_custom_model_prompt(self) -> str:
+        """Get the custom model prompt from database"""
+        try:
+            from prompt_manager import get_prompt as get_prompt_from_db
+            return get_prompt_from_db('Custom Model System Prompt')
+        except Exception as e:
+            logger.error(f"Error loading custom model prompt from database: {e}")
+            # Fallback to hardcoded prompt
+            return """You are Highlander, an expert AI business consultant specializing in media companies.
+
+CONVERSATION STYLE:
+- Keep responses concise and actionable (2-4 sentences max)
+- Never repeat greetings or introductions unless it's truly the first message
+- Be direct and professional - skip pleasantries if you've already been introduced
+- Build on previous conversation context naturally
+- Ask ONE focused follow-up question per response
+
+YOUR EXPERTISE:
+- Media business strategy and operations
+- AI implementation for content creation, audience analysis, workflow optimization
+- Digital transformation and automation
+- Revenue optimization and growth strategies
+
+APPROACH:
+- Listen for business challenges and immediately suggest specific AI solutions
+- Reference previous conversation points to show you remember the context
+- Provide concrete, implementable advice rather than general statements
+- Focus on ROI and practical business impact
+
+NEVER say 'Hello' again after the first interaction. Always continue the conversation naturally."""
     
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about loaded models"""

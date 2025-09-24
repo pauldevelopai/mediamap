@@ -584,6 +584,9 @@ class HighlanderChat(db.Model):
     category = db.Column(db.String(100))  # Client Analysis, Business Strategy, etc.
     processed = db.Column(db.Boolean, default=False)  # For later processing
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref='highlander_chats')
 
 class NewsroomImplementationExperience(db.Model):
     """Track newsroom experiences with AIMAP implementations"""
@@ -1624,4 +1627,137 @@ class ProjectTemplate(db.Model):
             'tags': self.tags.split(',') if self.tags and isinstance(self.tags, str) else [],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class PromptTemplate(db.Model):
+    __tablename__ = 'prompt_templates'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=True)
+    category = db.Column(db.String(100), nullable=False)  # e.g., 'system', 'user', 'analysis', 'training'
+    prompt_type = db.Column(db.String(50), nullable=False)  # e.g., 'system_message', 'user_prompt', 'template'
+    content = db.Column(db.Text, nullable=False)
+    llm_provider = db.Column(db.String(50), nullable=False)  # e.g., 'openai', 'custom_model', 'both'
+    model_name = db.Column(db.String(100), nullable=True)  # e.g., 'gpt-4', 'highlander-ai', 'dialoGPT'
+    usage_context = db.Column(db.String(200), nullable=True)  # Where it's used in the app
+    variables = db.Column(db.Text, nullable=True)  # JSON string of available variables
+    is_active = db.Column(db.Boolean, default=True)
+    version = db.Column(db.String(20), default='1.0')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
+    # Relationships
+    creator = db.relationship('User', backref='created_prompts')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'prompt_type': self.prompt_type,
+            'content': self.content,
+            'llm_provider': self.llm_provider,
+            'model_name': self.model_name,
+            'usage_context': self.usage_context,
+            'variables': self.variables,
+            'is_active': self.is_active,
+            'version': self.version,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'created_by': self.created_by
+        }
+
+
+class PromptVersion(db.Model):
+    """Track version history of prompts for rollback capability"""
+    __tablename__ = 'prompt_versions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    prompt_id = db.Column(db.Integer, db.ForeignKey('prompt_templates.id'), nullable=False)
+    version_number = db.Column(db.String(20), nullable=False)  # e.g., '1.0', '1.1', '2.0'
+    content = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    variables = db.Column(db.Text, nullable=True)
+    change_reason = db.Column(db.Text, nullable=True)  # Why this version was created
+    is_active = db.Column(db.Boolean, default=False)  # Only one version can be active
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
+    # Relationships
+    prompt = db.relationship('PromptTemplate', backref='versions')
+    creator = db.relationship('User', backref='created_prompt_versions')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'prompt_id': self.prompt_id,
+            'version_number': self.version_number,
+            'content': self.content,
+            'description': self.description,
+            'variables': self.variables,
+            'change_reason': self.change_reason,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'created_by': self.created_by
+        }
+
+
+class PromptPerformance(db.Model):
+    """Track performance metrics for prompts"""
+    __tablename__ = 'prompt_performance'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    prompt_id = db.Column(db.Integer, db.ForeignKey('prompt_templates.id'), nullable=False)
+    version_number = db.Column(db.String(20), nullable=False)  # Which version was used
+    session_id = db.Column(db.String(100), nullable=True)  # Track user sessions
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
+    # Performance Metrics
+    response_time_ms = db.Column(db.Integer, nullable=True)  # Response time in milliseconds
+    token_count_input = db.Column(db.Integer, nullable=True)  # Input tokens used
+    token_count_output = db.Column(db.Integer, nullable=True)  # Output tokens generated
+    cost_estimate = db.Column(db.Float, nullable=True)  # Estimated cost in USD
+    
+    # Quality Metrics
+    user_rating = db.Column(db.Integer, nullable=True)  # 1-5 star rating
+    user_feedback = db.Column(db.Text, nullable=True)  # User comments
+    was_helpful = db.Column(db.Boolean, nullable=True)  # Binary helpful/not helpful
+    response_quality_score = db.Column(db.Float, nullable=True)  # AI-generated quality score
+    
+    # Usage Context
+    usage_context = db.Column(db.String(200), nullable=True)  # Where it was used
+    variables_used = db.Column(db.Text, nullable=True)  # JSON of variables that were substituted
+    error_occurred = db.Column(db.Boolean, default=False)
+    error_message = db.Column(db.Text, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    prompt = db.relationship('PromptTemplate', backref='performance_records')
+    user = db.relationship('User', backref='prompt_feedback')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'prompt_id': self.prompt_id,
+            'version_number': self.version_number,
+            'session_id': self.session_id,
+            'user_id': self.user_id,
+            'response_time_ms': self.response_time_ms,
+            'token_count_input': self.token_count_input,
+            'token_count_output': self.token_count_output,
+            'cost_estimate': self.cost_estimate,
+            'user_rating': self.user_rating,
+            'user_feedback': self.user_feedback,
+            'was_helpful': self.was_helpful,
+            'response_quality_score': self.response_quality_score,
+            'usage_context': self.usage_context,
+            'variables_used': self.variables_used,
+            'error_occurred': self.error_occurred,
+            'error_message': self.error_message,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

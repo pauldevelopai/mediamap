@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+
+{% block title %}AI Agents Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    .agent-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-left: 5px solid #007bff;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .agent-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    
+    .agent-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    .agent-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+    }
+    
+    .agent-subtitle {
+        font-size: 14px;
+        color: #6c757d;
+        margin: 5px 0 0 0;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-running {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+    }
+    
+    .status-stopped {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+        box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+        box-shadow: 0 2px 10px rgba(255, 193, 7, 0.3);
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        background: linear-gradient(135deg, #e9ecef, #dee2e6);
+        transform: scale(1.02);
+    }
+    
+    .metric-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #007bff;
+        margin-bottom: 5px;
+    }
+    
+    .metric-label {
+        font-size: 12px;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+    
+    .insights-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .insights-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .insight-item {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 4px solid #28a745;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .insight-type {
+        font-size: 12px;
+        font-weight: 600;
+        color: #28a745;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .insight-text {
+        font-size: 14px;
+        color: #495057;
+        margin: 5px 0;
+        line-height: 1.4;
+    }
+    
+    .insight-meta {
+        font-size: 11px;
+        color: #6c757d;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .control-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .btn-agent {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-start {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .btn-start:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-stop {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+    }
+    
+    .btn-stop:hover {
+        background: linear-gradient(135deg, #c82333, #bd2130);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-cycle {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+    
+    .btn-cycle:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    }
+    
+    .btn-details {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+    }
+    
+    .btn-details:hover {
+        background: linear-gradient(135deg, #495057, #343a40);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 0;
+        margin-bottom: 30px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .page-subtitle {
+        font-size: 16px;
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .global-controls {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-left: 5px solid #28a745;
+    }
+    
+    .global-controls h3 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">🤖 AI Agents Dashboard</h1>
+        <p class="page-subtitle">Monitor and manage your intelligent AI agents that continuously learn and provide insights</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Global Controls -->
+    <div class="global-controls">
+        <h3><i class="bi bi-gear-fill me-2"></i>Global Agent Controls</h3>
+        <div class="control-buttons">
+            <button class="btn-agent btn-start" onclick="startAllAgents()">
+                <i class="bi bi-play-circle me-2"></i>Start All Agents
+            </button>
+            <button class="btn-agent btn-stop" onclick="stopAllAgents()">
+                <i class="bi bi-stop-circle me-2"></i>Stop All Agents
+            </button>
+            <button class="btn-agent btn-cycle" onclick="refreshDashboard()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Refresh Dashboard
+            </button>
+        </div>
+    </div>
+    
+    <!-- Agents Grid -->
+    <div class="row">
+        <!-- MediaMap Agent -->
+        <div class="col-lg-6 mb-4">
+            <div class="agent-card">
+                <div class="agent-header">
+                    <div>
+                        <h2 class="agent-title">📰 MediaMap Agent</h2>
+                        <p class="agent-subtitle">Media Industry Intelligence & Business Insights</p>
+                    </div>
+                    <span id="mediamap-status" class="status-badge status-pending">Loading...</span>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="mediamap-cycles">-</div>
+                        <div class="metric-label">Learning Cycles</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="mediamap-data">-</div>
+                        <div class="metric-label">Data Points</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="mediamap-insights">-</div>
+                        <div class="metric-label">Insights</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="mediamap-uptime">-</div>
+                        <div class="metric-label">Uptime</div>
+                    </div>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="btn-agent btn-cycle" onclick="runAgentCycle('mediamap')">
+                        <i class="bi bi-arrow-repeat me-2"></i>Run Cycle
+                    </button>
+                    <button class="btn-agent btn-details" onclick="viewAgentDetails('mediamap')">
+                        <i class="bi bi-eye me-2"></i>View Details
+                    </button>
+                </div>
+                
+                <div class="insights-section">
+                    <h4 class="insights-title">
+                        <i class="bi bi-lightbulb me-2"></i>Recent Insights
+                    </h4>
+                    <div id="mediamap-insights-list">
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Loading insights...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HealthPIN Agent -->
+        <div class="col-lg-6 mb-4">
+            <div class="agent-card">
+                <div class="agent-header">
+                    <div>
+                        <h2 class="agent-title">🏥 HealthPIN Agent</h2>
+                        <p class="agent-subtitle">Healthcare Intelligence & Clinical Insights</p>
+                    </div>
+                    <span id="healthpin-status" class="status-badge status-pending">Loading...</span>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="healthpin-cycles">-</div>
+                        <div class="metric-label">Learning Cycles</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="healthpin-data">-</div>
+                        <div class="metric-label">Data Points</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="healthpin-insights">-</div>
+                        <div class="metric-label">Insights</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="healthpin-uptime">-</div>
+                        <div class="metric-label">Uptime</div>
+                    </div>
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="btn-agent btn-cycle" onclick="runAgentCycle('healthpin')">
+                        <i class="bi bi-arrow-repeat me-2"></i>Run Cycle
+                    </button>
+                    <button class="btn-agent btn-details" onclick="viewAgentDetails('healthpin')">
+                        <i class="bi bi-eye me-2"></i>View Details
+                    </button>
+                </div>
+                
+                <div class="insights-section">
+                    <h4 class="insights-title">
+                        <i class="bi bi-lightbulb me-2"></i>Recent Insights
+                    </h4>
+                    <div id="healthpin-insights-list">
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Loading insights...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommendations Section -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="agent-card">
+                <div class="insights-section">
+                    <h4 class="insights-title">
+                        <i class="bi bi-briefcase me-2"></i>Business Recommendations
+                    </h4>
+                    <div id="mediamap-recommendations">
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Loading recommendations...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="agent-card">
+                <div class="insights-section">
+                    <h4 class="insights-title">
+                        <i class="bi bi-heart-pulse me-2"></i>Clinical Recommendations
+                    </h4>
+                    <div id="healthpin-recommendations">
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">Loading recommendations...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let dashboardData = null;
+let refreshInterval = null;
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboard();
+    
+    // Auto-refresh every 30 seconds
+    refreshInterval = setInterval(loadDashboard, 30000);
+});
+
+// Load dashboard data
+async function loadDashboard() {
+    try {
+        const response = await fetch('/api/agents/dashboard');
+        const data = await response.json();
+        
+        if (data.success) {
+            dashboardData = data.dashboard;
+            updateDashboard();
+        } else {
+            console.error('Failed to load dashboard:', data.error);
+            showNotification('Failed to load dashboard data', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showNotification('Error loading dashboard: ' + error.message, 'error');
+    }
+}
+
+// Update dashboard with data
+function updateDashboard() {
+    if (!dashboardData) return;
+    
+    // Update agent status
+    updateAgentStatus('mediamap', dashboardData.status.mediamap);
+    updateAgentStatus('healthpin', dashboardData.status.healthpin);
+    
+    // Update insights
+    updateInsights('mediamap', dashboardData.mediamap.insights);
+    updateInsights('healthpin', dashboardData.healthpin.insights);
+    
+    // Update recommendations
+    updateRecommendations('mediamap', dashboardData.mediamap.recommendations);
+    updateRecommendations('healthpin', dashboardData.healthpin.recommendations);
+}
+
+// Update agent status
+function updateAgentStatus(agentName, status) {
+    const statusElement = document.getElementById(`${agentName}-status`);
+    const cyclesElement = document.getElementById(`${agentName}-cycles`);
+    const dataElement = document.getElementById(`${agentName}-data`);
+    const insightsElement = document.getElementById(`${agentName}-insights`);
+    const uptimeElement = document.getElementById(`${agentName}-uptime`);
+    
+    if (status) {
+        // Update status badge
+        statusElement.textContent = status.is_running ? 'Running' : 'Stopped';
+        statusElement.className = `status-badge ${status.is_running ? 'status-running' : 'status-stopped'}`;
+        
+        // Update metrics
+        cyclesElement.textContent = status.learning_cycles || 0;
+        dataElement.textContent = status.total_data_collected || 0;
+        insightsElement.textContent = status.knowledge_base_size || 0;
+        
+        // Calculate uptime
+        if (status.last_learning_time) {
+            const lastRun = new Date(status.last_learning_time);
+            const now = new Date();
+            const diffHours = Math.floor((now - lastRun) / (1000 * 60 * 60));
+            uptimeElement.textContent = `${diffHours}h`;
+        } else {
+            uptimeElement.textContent = '0h';
+        }
+    }
+}
+
+// Update insights
+function updateInsights(agentName, insights) {
+    const container = document.getElementById(`${agentName}-insights-list`);
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-lightbulb"></i>
+                <p>No insights available yet</p>
+                <small>Run a learning cycle to generate insights</small>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = insights.slice(0, 3).map(insight => `
+        <div class="insight-item">
+            <div class="insight-type">${insight.type || 'Insight'}</div>
+            <div class="insight-text">${insight.insight || 'No insight text'}</div>
+            <div class="insight-meta">
+                <span>${insight.category || 'General'}</span>
+                <span>${insight.confidence ? (insight.confidence * 100).toFixed(0) + '%' : 'N/A'} confidence</span>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+// Update recommendations
+function updateRecommendations(agentName, recommendations) {
+    const container = document.getElementById(`${agentName}-recommendations`);
+    
+    if (!recommendations || recommendations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-clipboard-check"></i>
+                <p>No recommendations available yet</p>
+                <small>Agents need more data to generate recommendations</small>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = recommendations.map(rec => `
+        <div class="insight-item">
+            <div class="insight-type">Recommendation</div>
+            <div class="insight-text">${rec}</div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+// Agent control functions
+async function startAllAgents() {
+    try {
+        showNotification('Starting all agents...', 'info');
+        const response = await fetch('/api/agents/start', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('All agents started successfully!', 'success');
+            loadDashboard();
+        } else {
+            showNotification('Failed to start agents: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Error starting agents: ' + error.message, 'error');
+    }
+}
+
+async function stopAllAgents() {
+    try {
+        showNotification('Stopping all agents...', 'info');
+        const response = await fetch('/api/agents/stop', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('All agents stopped successfully!', 'success');
+            loadDashboard();
+        } else {
+            showNotification('Failed to stop agents: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Error stopping agents: ' + error.message, 'error');
+    }
+}
+
+async function runAgentCycle(agentName) {
+    try {
+        showNotification(`Running learning cycle for ${agentName}...`, 'info');
+        const response = await fetch(`/api/agents/${agentName}/cycle`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`${agentName} learning cycle completed!`, 'success');
+            loadDashboard();
+        } else {
+            showNotification(`Failed to run cycle for ${agentName}: ` + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification(`Error running cycle for ${agentName}: ` + error.message, 'error');
+    }
+}
+
+function viewAgentDetails(agentName) {
+    // Navigate to detailed agent view
+    window.location.href = `/agents/details?agent=${agentName}`;
+}
+
+function refreshDashboard() {
+    loadDashboard();
+    showNotification('Dashboard refreshed!', 'info');
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+</script>
+{% endblock %}

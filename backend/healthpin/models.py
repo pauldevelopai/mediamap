@@ -49,10 +49,10 @@ class Patient(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships - using string references to avoid circular imports
-    health_records = db.relationship('healthpin.models.HealthRecord', back_populates='patient', cascade='all, delete-orphan')
-    doctor_matches = db.relationship('healthpin.models.DoctorMatch', back_populates='patient', cascade='all, delete-orphan')
-    family_notifications = db.relationship('healthpin.models.FamilyNotification', back_populates='patient', cascade='all, delete-orphan')
+    # Relationships - using fully qualified module paths
+    health_records = db.relationship('backend.healthpin.models.HealthRecord', cascade='all, delete-orphan', overlaps="health_records")
+    doctor_matches = db.relationship('backend.healthpin.models.DoctorMatch', cascade='all, delete-orphan', overlaps="doctor_matches")
+    family_notifications = db.relationship('backend.healthpin.models.FamilyNotification', cascade='all, delete-orphan', overlaps="family_notifications")
     
     def to_dict(self):
         return {
@@ -131,8 +131,8 @@ class Doctor(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    doctor_matches = db.relationship('healthpin.models.DoctorMatch', back_populates='doctor', cascade='all, delete-orphan')
-    consultations = db.relationship('healthpin.models.Consultation', back_populates='doctor', cascade='all, delete-orphan')
+    doctor_matches = db.relationship('backend.healthpin.models.DoctorMatch', cascade='all, delete-orphan', overlaps="doctor_matches")
+    consultations = db.relationship('backend.healthpin.models.Consultation', cascade='all, delete-orphan', overlaps="consultations")
     
     def to_dict(self):
         return {
@@ -173,6 +173,7 @@ class HealthRecord(db.Model):
     """Health record model for HealthBank functionality"""
     __tablename__ = 'healthpin_health_records'
     __table_args__ = {'extend_existing': True}
+    __mapper_args__ = {'polymorphic_identity': 'healthpin_health_record'}
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('healthpin_patients.id'), nullable=False)
@@ -211,8 +212,7 @@ class HealthRecord(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('healthpin.models.Patient', back_populates='health_records')
-    doctor = db.relationship('healthpin.models.Doctor')
+    doctor = db.relationship('backend.healthpin.models.Doctor', overlaps="doctor")
     
     def to_dict(self):
         return {
@@ -275,8 +275,6 @@ class DoctorMatch(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('healthpin.models.Patient', back_populates='doctor_matches')
-    doctor = db.relationship('healthpin.models.Doctor', back_populates='doctor_matches')
     
     def to_dict(self):
         return {
@@ -336,8 +334,7 @@ class FamilyNotification(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('healthpin.models.Patient', back_populates='family_notifications')
-    health_record = db.relationship('healthpin.models.HealthRecord')
+    health_record = db.relationship('backend.healthpin.models.HealthRecord', overlaps="health_record")
     
     def to_dict(self):
         return {
@@ -394,9 +391,7 @@ class Consultation(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    patient = db.relationship('healthpin.models.Patient')
-    doctor = db.relationship('healthpin.models.Doctor', back_populates='consultations')
-    family_notifications = db.relationship('healthpin.models.FamilyNotification', backref='consultation')
+    family_notifications = db.relationship('backend.healthpin.models.FamilyNotification', overlaps="family_notifications")
     
     def to_dict(self):
         return {

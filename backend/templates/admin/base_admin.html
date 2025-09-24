@@ -71,21 +71,21 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url_for('admin_quick_access') }}" class="nav-link {% if request.endpoint == 'admin_quick_access' %}active{% endif %}">
-                                <i class="bi bi-lightning-charge me-2"></i>
-                                Quick Access
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="{{ url_for('admin_map') }}" class="nav-link {% if request.endpoint == 'admin_map' %}active{% endif %}">
                                 <i class="bi bi-geo-alt me-2"></i>
-                                Business Map
+                                MediaMap
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ url_for('highlander_page') }}" class="nav-link {% if request.endpoint == 'highlander_page' %}active{% endif %}">
                                 <i class="bi bi-robot me-2"></i>
-                                Highlander AI
+                                Highlander
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_doc_chatbot') }}" class="nav-link {% if request.endpoint == 'admin_doc_chatbot' %}active{% endif %}">
+                                <i class="bi bi-heart-pulse me-2"></i>
+                                Doc
                             </a>
                         </li>
                         <li class="nav-item">
@@ -98,6 +98,24 @@
                             <a href="{{ url_for('admin_training') }}" class="nav-link {% if request.endpoint == 'admin_training' %}active{% endif %}">
                                 <i class="bi bi-cpu me-2"></i>
                                 AI Training
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_prompts') }}" class="nav-link {% if request.endpoint == 'admin_prompts' %}active{% endif %}">
+                                <i class="bi bi-chat-quote me-2"></i>
+                                Prompts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_agents') }}" class="nav-link {% if request.endpoint == 'admin_agents' %}active{% endif %}">
+                                <i class="bi bi-robot me-2"></i>
+                                AI Agents
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_chat_management') }}" class="nav-link {% if request.endpoint == 'admin_chat_management' %}active{% endif %}">
+                                <i class="bi bi-chat-dots me-2"></i>
+                                Chat Management
                             </a>
                         </li>
                         <!-- Create Users link removed - now integrated into Users page -->
@@ -119,6 +137,12 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="additionalToolsDropdown">
                                 <li>
+                                    <a href="{{ url_for('admin_quick_access') }}" class="dropdown-item {% if request.endpoint == 'admin_quick_access' %}active{% endif %}">
+                                        <i class="bi bi-lightning-charge me-2"></i>
+                                        Quick Access
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ url_for('admin_prototyping') }}" class="dropdown-item {% if request.endpoint == 'admin_prototyping' %}active{% endif %}">
                                         <i class="bi bi-cpu me-2"></i>
                                         AI Prototyping
@@ -128,12 +152,6 @@
                                     <a href="{{ url_for('admin_chats') }}" class="dropdown-item {% if request.endpoint == 'admin_chats' or request.endpoint == 'admin_chat_detail' %}active{% endif %}">
                                         <i class="bi bi-chat-dots me-2"></i>
                                         Chats
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ url_for('admin_chat_management') }}" class="dropdown-item {% if request.endpoint == 'admin_chat_management' %}active{% endif %}">
-                                        <i class="bi bi-trash me-2"></i>
-                                        Chat Management
                                     </a>
                                 </li>
                                 <li>

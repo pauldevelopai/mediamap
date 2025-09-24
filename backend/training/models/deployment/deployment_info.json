@@ -1,6 +1,8 @@
 {
+  "deployed_at": "2025-09-23T13:44:53.579605",
   "model_path": "/Users/paulmcnally/Developai Dropbox/Paul McNally/ON THE COMPUTER/PYTHON 2025/mediamap/backend/training/models/deployment/model",
-  "deployed_at": "2025-07-21T19:20:00",
+  "status": "deployed",
+  "version": "1.0.0",
   "checkpoint_source": "checkpoint-500",
   "model_type": "custom_highlander",
   "training_steps": 500,

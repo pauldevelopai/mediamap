@@ -1,0 +1,8 @@
+{
+  "model_name": "Highlander AI Model",
+  "version": "1.0",
+  "model_path": "/Users/paulmcnally/Developai Dropbox/Paul McNally/ON THE COMPUTER/PYTHON 2025/mediamap/backend/training/models/placeholder.model",
+  "deployed_at": "2025-01-24T06:00:00Z",
+  "status": "placeholder",
+  "description": "Placeholder for custom trained Highlander AI model"
+}
