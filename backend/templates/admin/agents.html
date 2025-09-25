@@ -418,7 +418,8 @@
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Doctor Directory Agent (South Africa)</h6>
                                             <div>
-                                                <span id="doctor-agent-count" class="badge bg-secondary">Loading...</span>
+                                                <span id="doctor-agent-count" class="badge bg-success">336 doctors</span>
+                                                <span id="agent-status" class="badge bg-warning ms-2">Stopped</span>
                                             </div>
                                         </div>
                                         <div class="card-body">
@@ -917,6 +918,10 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
     loadLiveMonitoring();
     
+    // Load doctor data immediately (no loading states)
+    refreshDoctorDirectoryStatus();
+    updateAgentStatus();
+    
     // Auto-refresh every 30 seconds
     setInterval(loadDashboard, 30000);
     
@@ -925,8 +930,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-refresh live monitoring every 5 seconds
     setInterval(loadLiveMonitoring, 5000);
-    // Load doctor agent status
-    refreshDoctorDirectoryStatus();
+    
+    // Real-time updates every 10 seconds
+    setInterval(function() {
+        refreshDoctorDirectoryStatus();
+        updateAgentStatus();
+    }, 10000);
 });
 
 // Load dashboard data
@@ -1370,7 +1379,90 @@ async function scrapeHealthpinDoctors() {
 }
 
 function showEditAgentModal(agentName, config) {
-    // Create edit modal
+    // Create modal HTML
+    const modalHtml = `
+        <div class="modal fade" id="editAgentModal" tabindex="-1" aria-labelledby="editAgentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editAgentModalLabel">
+                            <i class="bi bi-gear me-2"></i>Edit ${agentName.charAt(0).toUpperCase() + agentName.slice(1)} Agent
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editAgentForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="agentName" class="form-label">Agent Name</label>
+                                        <input type="text" class="form-control" id="agentName" value="${config.name}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="agentSection" class="form-label">Section</label>
+                                        <input type="text" class="form-control" id="agentSection" value="${config.section}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="learningInterval" class="form-label">Learning Interval (minutes)</label>
+                                        <input type="number" class="form-control" id="learningInterval" value="${config.learning_interval}" min="1" max="1440">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxDataPoints" class="form-label">Max Data Points</label>
+                                        <input type="number" class="form-control" id="maxDataPoints" value="${config.max_data_points}" min="1" max="10000">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="dataSources" class="form-label">Data Sources (one per line)</label>
+                                <textarea class="form-control" id="dataSources" rows="6" placeholder="Enter data source URLs, one per line">${config.data_sources.join('\n')}</textarea>
+                                <div class="form-text">Enter one data source URL per line. These will be used for data collection.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="storagePath" class="form-label">Storage Path</label>
+                                <input type="text" class="form-control" id="storagePath" value="${config.storage_path}" readonly>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="saveAgentChanges('${agentName}')">
+                            <i class="bi bi-check-circle me-2"></i>Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if it exists
+    const existingModal = document.getElementById('editAgentModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('editAgentModal'));
+    modal.show();
+    
+    // Clean up modal when hidden
+    document.getElementById('editAgentModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}// Create edit modal
     const modalHtml = `
         <div class="modal fade" id="editAgentModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
@@ -1482,12 +1574,21 @@ function getAgentInstructions(agentName) {
 // Save agent changes
 function saveAgentChanges(agentName) {
     const formData = {
-        role: document.getElementById('agentRole').value,
-        description: document.getElementById('agentDescription').value,
         data_sources: document.getElementById('dataSources').value.split('\n').filter(line => line.trim()),
-        collection_interval: parseInt(document.getElementById('collectionInterval').value),
-        instructions: document.getElementById('agentInstructions').value
+        learning_interval: parseInt(document.getElementById('learningInterval').value),
+        max_data_points: parseInt(document.getElementById('maxDataPoints').value)
     };
+    
+    // Validate form data
+    if (!formData.data_sources.length) {
+        showAlert('Please provide at least one data source', 'warning');
+        return;
+    }
+    
+    if (formData.learning_interval < 1 || formData.learning_interval > 1440) {
+        showAlert('Learning interval must be between 1 and 1440 minutes', 'warning');
+        return;
+    }
     
     // Show loading state
     const saveBtn = document.querySelector('#editAgentModal .btn-primary');
@@ -1496,7 +1597,7 @@ function saveAgentChanges(agentName) {
     saveBtn.disabled = true;
     
     // Save to backend
-    fetch(`/admin/agents/${agentName}/config`, {
+    fetch(`/api/agents/${agentName}/config`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1545,6 +1646,28 @@ async function refreshDoctorDirectoryStatus() {
         const badge = document.getElementById('doctor-agent-count');
         badge.className = 'badge bg-danger';
         badge.textContent = 'Error';
+    }
+}
+
+async function updateAgentStatus() {
+    try {
+        const res = await fetch('/api/agents/healthpin/status', { credentials: 'include' });
+        const data = await res.json();
+        const statusBadge = document.getElementById('agent-status');
+        if (data.success) {
+            const isRunning = data.status.is_running;
+            if (isRunning) {
+                statusBadge.className = 'badge bg-success ms-2';
+                statusBadge.textContent = 'Running';
+            } else {
+                statusBadge.className = 'badge bg-warning ms-2';
+                statusBadge.textContent = 'Stopped';
+            }
+        }
+    } catch (e) {
+        const statusBadge = document.getElementById('agent-status');
+        statusBadge.className = 'badge bg-danger ms-2';
+        statusBadge.textContent = 'Error';
     }
 }
 

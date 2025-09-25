@@ -209,11 +209,8 @@ class HealthRecord(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    doctor = db.relationship(
-        'backend.healthpin.models.Doctor',
-        foreign_keys=[doctor_id]
-    )
+    # Relationships - removed to avoid SQLAlchemy conflicts
+    # doctor = db.relationship('backend.healthpin.models.Doctor', foreign_keys=[doctor_id])
     
     def to_dict(self):
         return {
@@ -275,11 +272,8 @@ class DoctorMatch(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    doctor = db.relationship(
-        'backend.healthpin.models.Doctor',
-        foreign_keys=[doctor_id]
-    )
+    # Relationships - removed to avoid SQLAlchemy conflicts
+    # doctor = db.relationship('backend.healthpin.models.Doctor', foreign_keys=[doctor_id])
     
     def to_dict(self):
         return {
@@ -395,12 +389,9 @@ class Consultation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
+    # Relationships - removed to avoid SQLAlchemy conflicts
     family_notifications = db.relationship('backend.healthpin.models.FamilyNotification', overlaps="family_notifications")
-    doctor = db.relationship(
-        'backend.healthpin.models.Doctor',
-        foreign_keys=[doctor_id]
-    )
+    # doctor = db.relationship('backend.healthpin.models.Doctor', foreign_keys=[doctor_id])
     
     def to_dict(self):
         return {

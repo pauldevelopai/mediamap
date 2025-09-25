@@ -154,6 +154,8 @@ class AgentManager:
             return True
         
         try:
+            # Set running flag to True for individual agent
+            self.running = True
             agent = self.agents[agent_name]
             thread = threading.Thread(
                 target=self._agent_worker,
@@ -198,12 +200,14 @@ class AgentManager:
     def _agent_worker(self, agent_name: str, agent: Any):
         """Worker function for each agent"""
         logger.info(f"🔄 {agent_name} agent worker started")
+        agent.is_running = True
         
         while self.running and not agent.stop_flag:
             try:
                 if agent.should_run_learning_cycle():
                     logger.info(f"🧠 {agent_name} starting learning cycle")
                     agent.run_learning_cycle()
+                    agent.last_cycle_time = datetime.now()
                     logger.info(f"✅ {agent_name} learning cycle completed")
                 else:
                     # Sleep for a short time before checking again
@@ -213,6 +217,7 @@ class AgentManager:
                 logger.error(f"❌ Error in {agent_name} agent: {e}")
                 time.sleep(300)  # Wait 5 minutes before retrying
         
+        agent.is_running = False
         logger.info(f"🛑 {agent_name} agent worker stopped")
     
     def run_single_cycle(self, agent_name: str):

@@ -6893,6 +6893,20 @@ def my_chats():
     # Get user's chats
     chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).all()
     return render_template('user_chats.html', chats=chats)
+# Test route
+@app.route('/test', methods=['GET', 'POST'])
+def test():
+    if request.method == 'POST':
+        return jsonify({'success': True, 'method': 'POST', 'data': request.form.to_dict()})
+    return jsonify({'success': True, 'method': 'GET'})
+
+# Simple login test
+@app.route('/simple-login', methods=['GET', 'POST'])
+def simple_login():
+    if request.method == 'POST':
+        return jsonify({'success': True, 'message': 'POST request received', 'data': request.form.to_dict()})
+    return jsonify({'success': True, 'message': 'GET request received'})
+
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -6901,8 +6915,7 @@ def login():
         password = request.form.get('password')
         
         if not username or not password:
-            flash('Please enter both username and password.', 'danger')
-            return render_template('login.html')
+            return jsonify({'success': False, 'error': 'Please enter both username and password.'})
         
         user = User.query.filter_by(username=username).first()
         
@@ -6924,17 +6937,17 @@ def login():
             next_page = request.args.get('next')
             if (requested_section == 'admin' or (next_page and next_page.startswith('/admin'))) and getattr(user, 'is_admin', False):
                 session['section'] = 'admin'
-                return redirect(url_for('admin_map'))
+                return jsonify({'success': True, 'redirect': url_for('admin_map')})
 
             # Otherwise route by stored section
             if resolved_section == 'healthpin':
                 session['section'] = 'healthpin'
-                return redirect(url_for('doc_chatbot.doc_chat'))
+                return jsonify({'success': True, 'redirect': url_for('doc_chatbot.doc_chat')})
             else:
                 session['section'] = 'mediamap'
-                return redirect(url_for('mediamap_dashboard'))
+                return jsonify({'success': True, 'redirect': url_for('mediamap_dashboard')})
         else:
-            flash('Invalid username or password.', 'danger')
+            return jsonify({'success': False, 'error': 'Invalid username or password.'})
     
     return render_template('login.html')
 

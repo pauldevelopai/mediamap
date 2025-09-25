@@ -135,6 +135,30 @@ def doctor_directory_status():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@agents_bp.route('/healthpin/status')
+@login_required
+def healthpin_agent_status():
+    """Return the current status of the HealthPIN agent."""
+    try:
+        if 'healthpin' not in agent_manager.agents:
+            return jsonify({'success': False, 'error': 'HealthPIN agent not available'}), 404
+        
+        agent = agent_manager.agents['healthpin']
+        is_running = getattr(agent, 'is_running', False)
+        
+        return jsonify({
+            'success': True, 
+            'status': {
+                'is_running': is_running,
+                'name': agent.config.name,
+                'section': agent.config.section,
+                'last_cycle': getattr(agent, 'last_cycle_time', None),
+                'total_data_collected': getattr(agent, 'total_data_collected', 0)
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @agents_bp.route('/healthpin/doctor-directory/clean', methods=['POST'])
 @login_required
 def doctor_directory_clean():
@@ -147,6 +171,57 @@ def doctor_directory_clean():
             return jsonify({'success': False, 'error': 'Cleaning not supported'}), 400
         result = agent.clean_doctor_data(dry_run=False)
         return jsonify({'success': True, 'result': result}) if result.get('success') else (jsonify({'success': False, 'error': result.get('error', 'Unknown error')}), 500)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@agents_bp.route('/<agent_name>/config', methods=['GET'])
+@login_required
+def get_agent_config(agent_name):
+    """Get agent configuration for editing."""
+    try:
+        if agent_name not in agent_manager.agents:
+            return jsonify({'success': False, 'error': f'Agent {agent_name} not found'}), 404
+        
+        agent = agent_manager.agents[agent_name]
+        config = {
+            'name': agent.config.name,
+            'section': agent.config.section,
+            'data_sources': agent.config.data_sources,
+            'learning_interval': agent.config.learning_interval,
+            'max_data_points': agent.config.max_data_points,
+            'api_keys': {k: '***' if v else '' for k, v in agent.config.api_keys.items()},
+            'storage_path': agent.config.storage_path
+        }
+        return jsonify({'success': True, 'config': config})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@agents_bp.route('/<agent_name>/config', methods=['POST'])
+@login_required
+def update_agent_config(agent_name):
+    """Update agent configuration."""
+    try:
+        if agent_name not in agent_manager.agents:
+            return jsonify({'success': False, 'error': f'Agent {agent_name} not found'}), 404
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No configuration data provided'}), 400
+        
+        agent = agent_manager.agents[agent_name]
+        
+        # Update configuration
+        if 'data_sources' in data:
+            agent.config.data_sources = data['data_sources']
+        if 'learning_interval' in data:
+            agent.config.learning_interval = int(data['learning_interval'])
+        if 'max_data_points' in data:
+            agent.config.max_data_points = int(data['max_data_points'])
+        
+        # Save configuration (you might want to persist this to a file or database)
+        # For now, we'll just update the in-memory config
+        
+        return jsonify({'success': True, 'message': 'Configuration updated successfully'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
