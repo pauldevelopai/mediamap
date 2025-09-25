@@ -182,11 +182,41 @@
 
                     <!-- Doctors Tab -->
                     <div class="tab-pane fade" id="doctors" role="tabpanel">
-                        <h5><i class="bi bi-person-badge text-success me-2"></i>Doctor Management</h5>
-                        <p class="text-muted">Manage doctor profiles and specializations.</p>
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Doctor management features will be implemented in the next phase.
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="bi bi-person-badge text-success me-2"></i>Doctor Management</h5>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-success" onclick="scrapeDoctors()">
+                                    <i class="bi bi-cloud-download"></i> Scrape SA Doctors
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="loadDoctors()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div id="scrape-status" class="mb-3"></div>
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Specialties</th>
+                                        <th>Practice</th>
+                                        <th>City</th>
+                                        <th>Province</th>
+                                        <th>Contact</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="doctors-table-body">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <div class="spinner-border text-success" role="status">
+                                                <span class="visually-hidden">Loading doctors...</span>
+                                            </div>
+                                            <div class="mt-2">Loading doctors...</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -327,6 +357,65 @@ function formatTimestamp(timestamp) {
         return 'Invalid date';
     }
 }
+
+// Doctors management
+async function loadDoctors() {
+    try {
+        const res = await fetch('/admin/healthpin/doctors/list');
+        const data = await res.json();
+        const tbody = document.getElementById('doctors-table-body');
+        if (!data.success || !data.doctors || data.doctors.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No doctors found.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = data.doctors.map(d => `
+            <tr>
+                <td>${d.full_name || (d.first_name + ' ' + (d.last_name || ''))}</td>
+                <td>${(d.specialties || []).join(', ')}</td>
+                <td>${d.practice_name || ''}</td>
+                <td>${d.city || ''}</td>
+                <td>${d.province || ''}</td>
+                <td>
+                    ${d.phone ? `<div><i class="bi bi-telephone"></i> ${d.phone}</div>` : ''}
+                    ${d.email ? `<div><i class="bi bi-envelope"></i> ${d.email}</div>` : ''}
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        const tbody = document.getElementById('doctors-table-body');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Failed to load doctors.</td></tr>`;
+    }
+}
+
+async function scrapeDoctors() {
+    const status = document.getElementById('scrape-status');
+    status.innerHTML = `<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Starting scrape of South African doctors...</div>`;
+    try {
+        const res = await fetch('/api/agents/healthpin/scrape/doctors', { method: 'POST', credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            status.innerHTML = `<div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> Scrape complete. Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.
+            </div>`;
+            loadDoctors();
+        } else {
+            status.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> ${data.error || 'Scrape failed'}</div>`;
+        }
+    } catch (e) {
+        status.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error: ${e.message}</div>`;
+    }
+}
+
+// Auto-load doctors when doctors tab is shown
+document.addEventListener('DOMContentLoaded', function() {
+    const doctorsTab = document.getElementById('doctors-tab');
+    if (doctorsTab) {
+        doctorsTab.addEventListener('shown.bs.tab', function() {
+            loadDoctors();
+        });
+    }
+});
 
 // Load HealthPIN insights when the insights tab is shown
 document.addEventListener('DOMContentLoaded', function() {

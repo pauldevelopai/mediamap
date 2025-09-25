@@ -268,6 +268,8 @@
                                     <h5><i class="bi bi-newspaper me-2"></i>MediaMap Agent</h5>
                                     <p class="text-muted">Autonomous AI agent for media industry data collection and analysis</p>
                                     
+                                    
+                                    
                                     <!-- Agent Instructions -->
                                     <div class="card mb-4">
                                         <div class="card-header">
@@ -411,6 +413,39 @@
                                     <h5><i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent</h5>
                                     <p class="text-muted">Autonomous AI agent for healthcare industry data collection and analysis</p>
                                     
+                                    <!-- Doctor Directory Agent Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Doctor Directory Agent (South Africa)</h6>
+                                            <div>
+                                                <span id="doctor-agent-count" class="badge bg-secondary">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2">Scrapes and maintains a directory of doctors in South Africa from public sources.</p>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-success" id="doctor-scrape-btn" onclick="runDoctorDirectoryAgent()">
+                                                    <i class="bi bi-cloud-download"></i> Run Scrape
+                                                </button>
+                                                <button class="btn btn-outline-secondary" id="doctor-refresh-btn" onclick="refreshDoctorDirectoryStatus()">
+                                                    <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                                                </button>
+                                                <button class="btn btn-outline-warning" id="doctor-clean-btn" onclick="cleanDoctorDirectory()">
+                                                    <i class="bi bi-broom"></i> Clean Doctor Data
+                                                </button>
+                                                <a class="btn btn-outline-info" href="/admin/healthpin#doctors" onclick="navigateToHealthpinDoctors(event)">
+                                                    <i class="bi bi-box-arrow-up-right"></i> View in HealthPIN
+                                                </a>
+                                            </div>
+                                            <div id="doctor-progress" class="mt-3" style="display:none;">
+                                                <div class="progress" style="height: 8px;">
+                                                    <div id="doctor-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 10%" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <small id="doctor-progress-label" class="text-muted d-block mt-1">Working...</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <!-- Agent Instructions -->
                                     <div class="card mb-4">
                                         <div class="card-header">
@@ -498,6 +533,9 @@
                                                 </button>
                                                 <button class="btn btn-outline-primary" onclick="runAgentCycle('healthpin')">
                                                     <i class="bi bi-arrow-repeat"></i> Run Single Cycle
+                                                </button>
+                                                <button class="btn btn-outline-success" onclick="scrapeHealthpinDoctors()">
+                                                    <i class="bi bi-cloud-download"></i> Scrape SA Doctors
                                                 </button>
                                                 <button class="btn btn-outline-info" onclick="viewAgentDetails('healthpin')">
                                                     <i class="bi bi-eye"></i> View Details
@@ -887,12 +925,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-refresh live monitoring every 5 seconds
     setInterval(loadLiveMonitoring, 5000);
+    // Load doctor agent status
+    refreshDoctorDirectoryStatus();
 });
 
 // Load dashboard data
 async function loadDashboard() {
     try {
-        const response = await fetch('/api/agents/dashboard');
+    const response = await fetch('/api/agents/dashboard', { credentials: 'include' });
         const data = await response.json();
         
         if (data.success) {
@@ -910,8 +950,8 @@ async function loadDashboard() {
 async function loadLiveMonitoring() {
     try {
         const [liveResponse, activityResponse] = await Promise.all([
-            fetch('/api/agents/monitoring/live-status'),
-            fetch('/api/agents/monitoring/activity-log')
+            fetch('/api/agents/monitoring/live-status', { credentials: 'include' }),
+            fetch('/api/agents/monitoring/activity-log', { credentials: 'include' })
         ]);
         
         const liveData = await liveResponse.json();
@@ -1125,7 +1165,7 @@ async function startIndividualAgent(agentName) {
         
         showAlert(`Starting ${agentName} agent... This will begin background data collection and analysis.`, 'info');
         
-        const response = await fetch(`/api/agents/${agentName}/start`, { method: 'POST' });
+        const response = await fetch(`/api/agents/${agentName}/start`, { method: 'POST', credentials: 'include' });
         const data = await response.json();
         
         if (data.success) {
@@ -1154,7 +1194,7 @@ async function stopIndividualAgent(agentName) {
         
         showAlert(`Stopping ${agentName} agent... This will halt background data collection.`, 'warning');
         
-        const response = await fetch(`/api/agents/${agentName}/stop`, { method: 'POST' });
+        const response = await fetch(`/api/agents/${agentName}/stop`, { method: 'POST', credentials: 'include' });
         const data = await response.json();
         
         if (data.success) {
@@ -1175,7 +1215,7 @@ async function stopIndividualAgent(agentName) {
 
 async function runAgentCycle(agentName) {
     try {
-        const response = await fetch(`/api/agents/${agentName}/cycle`, { method: 'POST' });
+        const response = await fetch(`/api/agents/${agentName}/cycle`, { method: 'POST', credentials: 'include' });
         const data = await response.json();
         
         if (data.success) {
@@ -1311,6 +1351,24 @@ function editAgent(agentName) {
         });
 }
 
+// Trigger HealthPIN doctors scrape
+async function scrapeHealthpinDoctors() {
+    try {
+        showAlert('Starting scrape of South African doctors...', 'info');
+        const res = await fetch('/api/agents/healthpin/scrape/doctors', { method: 'POST', credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            showAlert(`Scrape complete. Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.`, 'success');
+            loadDashboard();
+        } else {
+            showAlert(`Scrape failed: ${data.error || 'Unknown error'}`, 'danger');
+        }
+    } catch (e) {
+        showAlert(`Error starting scrape: ${e.message}`, 'danger');
+    }
+}
+
 function showEditAgentModal(agentName, config) {
     // Create edit modal
     const modalHtml = `
@@ -1373,6 +1431,8 @@ function showEditAgentModal(agentName, config) {
     const modal = new bootstrap.Modal(document.getElementById('editAgentModal'));
     modal.show();
 }
+
+// removed MediaMap Clean button per product requirements
 
 // Get agent role
 function getAgentRole(agentName) {
@@ -1467,6 +1527,113 @@ function saveAgentChanges(agentName) {
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
     });
+}
+
+async function refreshDoctorDirectoryStatus() {
+    try {
+        const res = await fetch('/api/agents/healthpin/doctor-directory/status', { credentials: 'include' });
+        const data = await res.json();
+        const badge = document.getElementById('doctor-agent-count');
+        if (data.success) {
+            badge.className = 'badge bg-success';
+            badge.textContent = `${data.status.total_doctors || 0} doctors`;
+        } else {
+            badge.className = 'badge bg-danger';
+            badge.textContent = 'Error';
+        }
+    } catch (e) {
+        const badge = document.getElementById('doctor-agent-count');
+        badge.className = 'badge bg-danger';
+        badge.textContent = 'Error';
+    }
+}
+
+async function runDoctorDirectoryAgent() {
+    try {
+        showAlert('Starting Doctor Directory scrape (South Africa)...', 'info');
+        const btn = document.getElementById('doctor-scrape-btn');
+        const cleanBtn = document.getElementById('doctor-clean-btn');
+        const refreshBtn = document.getElementById('doctor-refresh-btn');
+        const progress = document.getElementById('doctor-progress');
+        const bar = document.getElementById('doctor-progress-bar');
+        const label = document.getElementById('doctor-progress-label');
+        btn.disabled = true; cleanBtn.disabled = true; refreshBtn.disabled = true;
+        progress.style.display = 'block';
+        bar.style.width = '15%'; bar.setAttribute('aria-valuenow', 15);
+        label.textContent = 'Initializing scrape...';
+
+        // Kick off scrape
+        const res = await fetch('/api/agents/healthpin/scrape/doctors', { method: 'POST', credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            bar.style.width = '90%'; bar.setAttribute('aria-valuenow', 90);
+            label.textContent = 'Finalizing...';
+            showAlert(`Doctor Directory updated. Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.`, 'success');
+            await refreshDoctorDirectoryStatus();
+        } else {
+            showAlert(`Doctor Directory scrape failed: ${data.error || 'Unknown error'}`, 'danger');
+        }
+    } catch (e) {
+        showAlert(`Error starting Doctor Directory scrape: ${e.message}`, 'danger');
+    } finally {
+        const btn = document.getElementById('doctor-scrape-btn');
+        const cleanBtn = document.getElementById('doctor-clean-btn');
+        const refreshBtn = document.getElementById('doctor-refresh-btn');
+        const progress = document.getElementById('doctor-progress');
+        const bar = document.getElementById('doctor-progress-bar');
+        const label = document.getElementById('doctor-progress-label');
+        bar.style.width = '100%'; bar.setAttribute('aria-valuenow', 100);
+        label.textContent = 'Completed';
+        setTimeout(()=>{ progress.style.display = 'none'; bar.style.width = '10%'; label.textContent = 'Working...'; }, 1200);
+        btn.disabled = false; cleanBtn.disabled = false; refreshBtn.disabled = false;
+    }
+}
+
+function navigateToHealthpinDoctors(event) {
+    event.preventDefault();
+    window.location.href = '/admin/healthpin#doctors';
+}
+
+async function cleanDoctorDirectory() {
+    try {
+        showAlert('Cleaning doctor directory data (normalize & dedupe)...', 'info');
+        const btn = document.getElementById('doctor-clean-btn');
+        const scrapeBtn = document.getElementById('doctor-scrape-btn');
+        const refreshBtn = document.getElementById('doctor-refresh-btn');
+        const progress = document.getElementById('doctor-progress');
+        const bar = document.getElementById('doctor-progress-bar');
+        const label = document.getElementById('doctor-progress-label');
+        btn.disabled = true; scrapeBtn.disabled = true; refreshBtn.disabled = true;
+        progress.style.display = 'block';
+        bar.style.width = '20%'; bar.setAttribute('aria-valuenow', 20);
+        label.textContent = 'Cleaning records...';
+
+        const res = await fetch('/api/agents/healthpin/doctor-directory/clean', { method: 'POST', credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            bar.style.width = '90%'; bar.setAttribute('aria-valuenow', 90);
+            label.textContent = 'Finalizing...';
+            showAlert(`Doctor data cleaned. Updated: ${r.updated || 0}, Removed duplicates: ${r.removed || 0}.`, 'success');
+            await refreshDoctorDirectoryStatus();
+        } else {
+            showAlert(`Doctor cleaning failed: ${data.error || 'Unknown error'}`, 'danger');
+        }
+    } catch (e) {
+        showAlert(`Error cleaning doctor data: ${e.message}`, 'danger');
+    } finally {
+        const btn = document.getElementById('doctor-clean-btn');
+        const scrapeBtn = document.getElementById('doctor-scrape-btn');
+        const refreshBtn = document.getElementById('doctor-refresh-btn');
+        const progress = document.getElementById('doctor-progress');
+        const bar = document.getElementById('doctor-progress-bar');
+        const label = document.getElementById('doctor-progress-label');
+        bar.style.width = '100%'; bar.setAttribute('aria-valuenow', 100);
+        label.textContent = 'Completed';
+        setTimeout(()=>{ progress.style.display = 'none'; bar.style.width = '10%'; label.textContent = 'Working...'; }, 1200);
+        btn.disabled = false; scrapeBtn.disabled = false; refreshBtn.disabled = false;
+    }
 }
 
 // Multiple agents workflow functions

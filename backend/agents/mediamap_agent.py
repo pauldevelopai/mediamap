@@ -13,6 +13,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from urllib.parse import urljoin, urlparse
+import re
 from bs4 import BeautifulSoup
 import feedparser
 
@@ -57,6 +58,118 @@ class MediaMapAgent(BaseAgent):
         ]
         
         logger.info(f"📰 MediaMap agent initialized with {len(self.media_sources)} data source categories")
+
+    # -----------------------------
+    # Data Cleaning for MediaMap
+    # -----------------------------
+    def clean_existing_data(self, dry_run: bool = False) -> Dict[str, Any]:
+        """Clean and deduplicate existing collected data stored in the agent's data file.
+
+        - Deduplicate by normalized URL and normalized title
+        - Normalize titles (trim, fix whitespace)
+        - Canonicalize URLs (lowercase scheme/host, remove fragments)
+        - Drop entries with too-short content
+        """
+        try:
+            # Load existing
+            if not os.path.exists(self.data_file):
+                return {"success": True, "kept": 0, "removed": 0, "deduped": 0}
+
+            with open(self.data_file, 'r') as f:
+                items = json.load(f) or []
+
+            original_count = len(items)
+
+            def normalize_title(title: str) -> str:
+                if not title:
+                    return ""
+                t = re.sub(r"\s+", " ", title).strip()
+                return t
+
+            def canonical_url(url: str) -> str:
+                if not url:
+                    return ""
+                try:
+                    p = urlparse(url)
+                    # Normalize scheme/host, drop fragment
+                    scheme = (p.scheme or 'https').lower()
+                    netloc = (p.netloc or '').lower()
+                    path = p.path or '/'
+                    query = f"?{p.query}" if p.query else ''
+                    return f"{scheme}://{netloc}{path}{query}"
+                except Exception:
+                    return url
+
+            seen_urls = set()
+            seen_titles = set()
+            cleaned = []
+            deduped = 0
+            removed_short = 0
+
+            for it in items:
+                title = normalize_title(it.get('content') or it.get('title') or '')
+                url = canonical_url(it.get('metadata', {}).get('url') or it.get('link') or '')
+
+                # Filter short content
+                content = (it.get('content') or '').strip()
+                if len(content) < 50 and len(title) < 20:
+                    removed_short += 1
+                    continue
+
+                # Deduplicate by URL first, fallback to title
+                key = None
+                if url:
+                    key = ('url', url)
+                elif title:
+                    key = ('title', title.lower())
+
+                if key:
+                    if key in seen_urls or key in seen_titles:
+                        deduped += 1
+                        continue
+                    if key[0] == 'url':
+                        seen_urls.add(key)
+                    else:
+                        seen_titles.add(key)
+
+                # Write back normalized fields
+                it['content'] = content if content else title
+                if 'metadata' not in it:
+                    it['metadata'] = {}
+                if url:
+                    it['metadata']['url'] = url
+                # Keep normalized title as part of content/metadata for usability
+                it['metadata']['normalized_title'] = title
+
+                cleaned.append(it)
+
+            kept = len(cleaned)
+            removed = original_count - kept
+
+            if not dry_run:
+                with open(self.data_file, 'w') as f:
+                    json.dump(cleaned, f, indent=2)
+
+            return {
+                "success": True,
+                "original": original_count,
+                "kept": kept,
+                "removed": removed,
+                "deduped": deduped,
+                "removed_short": removed_short,
+                "dry_run": dry_run
+            }
+        except Exception as e:
+            logger.error(f"Error cleaning MediaMap data: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_learning_cycle(self):
+        # Clean before regular cycle to keep store healthy
+        try:
+            self.clean_existing_data(dry_run=False)
+        except Exception as e:
+            logger.warning(f"MediaMap clean failed in cycle: {e}")
+        return super().run_learning_cycle()
     
     def _collect_from_source(self, source: str) -> List[Dict[str, Any]]:
         """Collect data from media industry sources"""

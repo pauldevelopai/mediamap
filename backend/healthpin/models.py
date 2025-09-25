@@ -130,10 +130,8 @@ class Doctor(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    doctor_matches = db.relationship('backend.healthpin.models.DoctorMatch', cascade='all, delete-orphan', overlaps="doctor_matches")
-    consultations = db.relationship('backend.healthpin.models.Consultation', cascade='all, delete-orphan', overlaps="consultations")
-    
+    # Relationships will be defined on child models using backref
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -212,7 +210,10 @@ class HealthRecord(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    doctor = db.relationship('backend.healthpin.models.Doctor', overlaps="doctor")
+    doctor = db.relationship(
+        'backend.healthpin.models.Doctor',
+        foreign_keys=[doctor_id]
+    )
     
     def to_dict(self):
         return {
@@ -275,6 +276,10 @@ class DoctorMatch(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    doctor = db.relationship(
+        'backend.healthpin.models.Doctor',
+        foreign_keys=[doctor_id]
+    )
     
     def to_dict(self):
         return {
@@ -392,6 +397,10 @@ class Consultation(db.Model):
     
     # Relationships
     family_notifications = db.relationship('backend.healthpin.models.FamilyNotification', overlaps="family_notifications")
+    doctor = db.relationship(
+        'backend.healthpin.models.Doctor',
+        foreign_keys=[doctor_id]
+    )
     
     def to_dict(self):
         return {

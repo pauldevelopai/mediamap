@@ -69,6 +69,320 @@ class HealthPINAgent(BaseAgent):
         ]
         
         logger.info(f"🏥 HealthPIN agent initialized with {len(self.healthcare_sources)} data source categories")
+
+    def scrape_doctors_south_africa(self, limit: Optional[int] = None, progress_cb: Optional[Any] = None) -> Dict[str, Any]:
+        """Scrape doctors in South Africa using Overpass (OpenStreetMap) API.
+
+        Creates or updates Doctor records with a synthetic license key based on OSM element id.
+        """
+        try:
+            overpass_endpoints = [
+                "https://overpass-api.de/api/interpreter",
+                "https://overpass.kumi.systems/api/interpreter",
+                "https://overpass.openstreetmap.ru/api/interpreter"
+            ]
+            query = (
+                "[out:json][timeout:180];"
+                "area[\"ISO3166-1\"=\"ZA\"]->.searchArea;"
+                "("
+                "  node[\"amenity\"=\"doctors\"](area.searchArea);"
+                "  node[\"healthcare\"=\"doctor\"](area.searchArea);"
+                "  way[\"amenity\"=\"doctors\"](area.searchArea);"
+                "  way[\"healthcare\"=\"doctor\"](area.searchArea);"
+                "  relation[\"amenity\"=\"doctors\"](area.searchArea);"
+                "  relation[\"healthcare\"=\"doctor\"](area.searchArea);"
+                ");"
+                "out center tags;"
+            )
+
+            last_error = None
+            data = None
+            for endpoint in overpass_endpoints:
+                try:
+                    resp = requests.post(endpoint, data={"data": query}, timeout=240)
+                    if resp.status_code == 429:
+                        last_error = f"Rate limited by Overpass endpoint: {endpoint}"
+                        continue
+                    resp.raise_for_status()
+                    data = resp.json()
+                    if not isinstance(data, dict) or 'elements' not in data:
+                        last_error = f"Unexpected response from {endpoint}"
+                        continue
+                    break
+                except Exception as e:
+                    last_error = str(e)
+                    continue
+            if data is None:
+                return {"success": False, "error": last_error or "Overpass query failed"}
+
+            elements = data.get("elements", [])
+            if limit and isinstance(limit, int) and limit > 0:
+                elements = elements[:limit]
+
+            total = max(1, len(elements))
+            if progress_cb:
+                progress_cb(10, {"stage": "fetched", "total": total})
+
+            created = 0
+            updated = 0
+            skipped = 0
+
+            # Import here to avoid circular imports at module load
+            try:
+                from backend.healthpin.models import Doctor
+                from backend.models import db
+            except ImportError:
+                from healthpin.models import Doctor
+                from models import db
+
+            processed = 0
+            for el in elements:
+                tags = el.get("tags", {})
+                if not tags:
+                    skipped += 1
+                    processed += 1
+                    if progress_cb and processed % 50 == 0:
+                        pct = 10 + int((processed / total) * 80)
+                        progress_cb(min(90, pct), {"processed": processed, "created": created, "updated": updated, "skipped": skipped})
+                    continue
+
+                # Build synthetic unique license from OSM id
+                osm_type = el.get("type", "node")
+                osm_id = el.get("id")
+                license_key = f"OSM-{osm_type}-{osm_id}"
+
+                # Name and title parsing
+                name = tags.get("name") or ""
+                title, first_name, last_name = self._clean_name(name)
+
+                # Location
+                city = self._clean_city(tags.get("addr:city") or tags.get("addr:suburb") or "")
+                province = self._clean_province(tags.get("addr:province") or tags.get("addr:state") or "")
+                address_parts = [
+                    tags.get("addr:housenumber"),
+                    tags.get("addr:street"),
+                    tags.get("addr:suburb"),
+                    city,
+                    province,
+                    tags.get("addr:postcode"),
+                ]
+                address = ", ".join([p for p in address_parts if p]) or None
+
+                # Contact
+                phone = self._normalize_phone_za(tags.get("phone") or tags.get("contact:phone"))
+                email = self._normalize_email(tags.get("email") or tags.get("contact:email"))
+
+                # Coordinates
+                lat = el.get("lat") or (el.get("center", {}) or {}).get("lat")
+                lon = el.get("lon") or (el.get("center", {}) or {}).get("lon")
+
+                # Specialties
+                specialties = []
+                for key in [
+                    "healthcare:speciality",
+                    "healthcare:specialty",
+                    "specialty",
+                    "medical:specialty",
+                ]:
+                    if tags.get(key):
+                        specialties = [s.strip() for s in str(tags.get(key)).replace(";", ",").split(",") if s.strip()]
+                        break
+
+                # Practice name if different from person name
+                practice_name = None
+                if tags.get("operator"):
+                    practice_name = tags.get("operator")
+                elif tags.get("name") and not title:
+                    # Might be a facility rather than a person
+                    practice_name = tags.get("name")
+
+                # Find existing doctor
+                existing = Doctor.query.filter_by(medical_license=license_key).first()
+                if existing:
+                    existing.first_name = first_name or existing.first_name
+                    existing.last_name = last_name or existing.last_name
+                    existing.title = title or existing.title
+                    existing.specialties = specialties or existing.specialties
+                    existing.practice_name = practice_name or existing.practice_name
+                    existing.city = city or existing.city
+                    existing.province = province or existing.province
+                    existing.address = address or existing.address
+                    existing.phone = phone or existing.phone
+                    existing.email = email or existing.email
+                    existing.latitude = lat or existing.latitude
+                    existing.longitude = lon or existing.longitude
+                    updated += 1
+                else:
+                    doc = Doctor(
+                        first_name=first_name,
+                        last_name=last_name,
+                        title=title,
+                        medical_license=license_key,
+                        specialties=specialties or [],
+                        qualifications=[],
+                        years_experience=None,
+                        practice_name=practice_name,
+                        practice_type=None,
+                        languages_spoken=[],
+                        city=city or "",
+                        province=province or "",
+                        address=address,
+                        latitude=lat,
+                        longitude=lon,
+                        phone=phone,
+                        email=email,
+                        whatsapp_available=False,
+                        consultation_fee=None,
+                        accepts_medical_aid=False,
+                        availability_schedule={},
+                        patient_ratings={},
+                        cultural_sensitivity_score=0.0,
+                        accessibility_score=0.0,
+                        communication_style=None,
+                        is_verified=False,
+                        is_active=True,
+                    )
+                    db.session.add(doc)
+                    created += 1
+
+                processed += 1
+                if progress_cb and processed % 50 == 0:
+                    pct = 10 + int((processed / total) * 80)
+                    progress_cb(min(90, pct), {"processed": processed, "created": created, "updated": updated, "skipped": skipped})
+
+            db.session.commit()
+
+            if progress_cb:
+                progress_cb(100, {"processed": processed, "created": created, "updated": updated, "skipped": skipped})
+            return {
+                "success": True,
+                "created": created,
+                "updated": updated,
+                "skipped": skipped,
+                "total_processed": len(elements)
+            }
+        except Exception as e:
+            logger.error(f"Error scraping SA doctors: {e}")
+            return {"success": False, "error": str(e)}
+
+    def clean_doctor_data(self, dry_run: bool = False) -> Dict[str, Any]:
+        """Normalize, dedupe, and validate existing doctor records."""
+        try:
+            try:
+                from backend.healthpin.models import Doctor
+                from backend.models import db
+            except ImportError:
+                from healthpin.models import Doctor
+                from models import db
+
+            doctors = Doctor.query.all()
+            seen_licenses = set()
+            updated = 0
+            removed = 0
+
+            for d in doctors:
+                # Normalize names/title
+                title, first, last = self._clean_name(f"{d.title or ''} {d.first_name or ''} {d.last_name or ''}".strip())
+                d.title = title or d.title
+                d.first_name = first or d.first_name
+                d.last_name = last or d.last_name
+
+                # Normalize phone/email
+                d.phone = self._normalize_phone_za(d.phone)
+                d.email = self._normalize_email(d.email)
+
+                # Normalize city/province
+                d.city = self._clean_city(d.city)
+                d.province = self._clean_province(d.province)
+
+                # Deduplicate by license
+                if d.medical_license:
+                    if d.medical_license in seen_licenses:
+                        if not dry_run:
+                            db.session.delete(d)
+                        removed += 1
+                        continue
+                    seen_licenses.add(d.medical_license)
+
+                updated += 1
+
+            if not dry_run:
+                db.session.commit()
+
+            return {"success": True, "updated": updated, "removed": removed, "dry_run": dry_run}
+        except Exception as e:
+            logger.error(f"Error cleaning doctor data: {e}")
+            return {"success": False, "error": str(e)}
+
+    # ----------------------------
+    # Cleaning/normalization utils
+    # ----------------------------
+    def _normalize_phone_za(self, phone: Optional[str]) -> Optional[str]:
+        if not phone:
+            return None
+        p = str(phone)
+        for ch in [" ", "(", ")", "-", "."]:
+            p = p.replace(ch, "")
+        if p.startswith("+27"):
+            return p
+        if p.startswith("27"):
+            return "+" + p
+        if p.startswith("0") and len(p) >= 10:
+            return "+27" + p[1:]
+        # Fallback: if digits length 9-12, assume missing +
+        digits = ''.join([c for c in p if c.isdigit()])
+        if len(digits) >= 9:
+            if digits.startswith("27"):
+                return "+" + digits
+            return "+27" + digits[-9:]
+        return None
+
+    def _normalize_email(self, email: Optional[str]) -> Optional[str]:
+        if not email:
+            return None
+        e = email.strip().lower()
+        return e if "@" in e and "." in e.split("@")[-1] else None
+
+    def _clean_name(self, full_name: str) -> (Optional[str], str, str):
+        if not full_name:
+            return None, "Unknown", ""
+        n = full_name.strip()
+        title = None
+        lower = n.lower()
+        if lower.startswith("dr. "):
+            title = "Dr."
+            n = n[4:].strip()
+        elif lower.startswith("dr "):
+            title = "Dr."
+            n = n[3:].strip()
+        parts = [p for p in n.split(" ") if p]
+        first = parts[0].capitalize() if parts else "Unknown"
+        last = " ".join([p.capitalize() for p in parts[1:]]) if len(parts) > 1 else ""
+        return title, first, last
+
+    def _clean_city(self, city: Optional[str]) -> Optional[str]:
+        return city.strip().title() if city else None
+
+    def _clean_province(self, province: Optional[str]) -> Optional[str]:
+        if not province:
+            return None
+        p = province.strip().title()
+        # Basic normalization for common SA provinces
+        mapping = {
+            "Kwazulu-Natal": "KwaZulu-Natal",
+            "Wes-Kaap": "Western Cape",
+            "Oos-Kaap": "Eastern Cape",
+        }
+        return mapping.get(p, p)
+
+    # Run scrape as part of regular learning cycle so it runs in background
+    def run_learning_cycle(self):
+        try:
+            self.scrape_doctors_south_africa()
+        except Exception as e:
+            logger.error(f"Doctor directory scrape failed in cycle: {e}")
+        # Continue with normal collection/learning
+        return super().run_learning_cycle()
     
     def _collect_from_source(self, source: str) -> List[Dict[str, Any]]:
         """Collect data from healthcare sources"""

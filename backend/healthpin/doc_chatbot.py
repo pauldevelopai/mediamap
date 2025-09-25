@@ -8,6 +8,7 @@ import time
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, session
 from flask_login import login_required, current_user
+from backend.app import section_required
 from backend.models import db, ChatMessage, User, PromptTemplate
 from prompt_manager import get_prompt as get_prompt_from_db
 from prompt_version_manager import performance_tracker
@@ -460,6 +461,7 @@ doc_manager = DocChatbotManager()
 
 @doc_chatbot_bp.route('/')
 @login_required
+@section_required('healthpin')
 def doc_chat():
     """Main Doc chatbot interface"""
     return render_template('healthpin/doc_chat.html', 
@@ -468,12 +470,14 @@ def doc_chat():
 
 @doc_chatbot_bp.route('/whatsapp-setup')
 @login_required
+@section_required('healthpin')
 def whatsapp_setup():
     """WhatsApp setup guide"""
     return render_template('healthpin/twilio_setup.html')
 
 @doc_chatbot_bp.route('/chat', methods=['POST'])
 @login_required
+@section_required('healthpin')
 def doc_chat_message():
     """Handle Doc chatbot messages"""
     try:
@@ -514,6 +518,7 @@ def doc_chat_message():
 
 @doc_chatbot_bp.route('/history')
 @login_required
+@section_required('healthpin')
 def doc_chat_history():
     """Get Doc chatbot conversation history"""
     try:
@@ -540,6 +545,7 @@ def doc_chat_history():
 
 @doc_chatbot_bp.route('/feedback', methods=['POST'])
 @login_required
+@section_required('healthpin')
 def doc_chat_feedback():
     """Record feedback for Doc chatbot responses"""
     try:
@@ -600,6 +606,7 @@ def doc_chat_feedback():
 
 @doc_chatbot_bp.route('/stats')
 @login_required
+@section_required('healthpin')
 def doc_chat_stats():
     """Get Doc chatbot usage statistics"""
     try:

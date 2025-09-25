@@ -153,6 +153,16 @@
                 
                 <form method="POST" action="{{ url_for('register') }}">
                     <div class="mb-3">
+                        <label for="section" class="form-label">Select section</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-grid-3x3-gap"></i></span>
+                            <select id="section" name="section" class="form-select" required>
+                                <option value="mediamap" selected>MediaMap</option>
+                                <option value="healthpin">HealthPIN</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>

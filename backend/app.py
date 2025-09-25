@@ -215,6 +215,20 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Section access decorator
+def section_required(required_section):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            current_section = session.get('section')
+            if current_section != required_section:
+                flash('You do not have access to this section.', 'danger')
+                if current_section == 'healthpin':
+                    return redirect(url_for('doc_chatbot.doc_chat'))
+                return redirect(url_for('mediamap_dashboard'))
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 # Initialize OpenAI client (only if API key is available)
 openai_api_key = os.getenv('OPENAI_API_KEY')
 app.config['OPENAI_API_KEY'] = openai_api_key  # Add this line to set the API key in app config
@@ -702,7 +716,6 @@ def get_current_user_id():
         return current_user.id
     logger.info("No authenticated user")
     return None
-
 def browse_website(url):
     """
     Browse a website and extract readable content
@@ -1452,7 +1465,6 @@ def your_info():
 def admin_default():
     """Default admin page - redirects to MediaMap"""
     return redirect(url_for('admin_map'))
-
 @app.route('/admin/dashboard')
 @login_required
 @admin_required
@@ -1707,6 +1719,21 @@ def admin_healthpin():
             healthpin_insights=[],
             recent_health_news=[]
         )
+
+@app.route('/admin/healthpin/doctors/list')
+@login_required
+@admin_required
+def admin_healthpin_doctors_list():
+    """List doctors for admin HealthPIN page table."""
+    try:
+        from backend.healthpin.models import Doctor
+        doctors = Doctor.query.order_by(Doctor.created_at.desc()).limit(500).all()
+        return jsonify({
+            'success': True,
+            'doctors': [d.to_dict() for d in doctors]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/agents/<agent_name>/config', methods=['GET'])
 @login_required
@@ -2250,9 +2277,6 @@ def admin_predictions():
 def admin_intelligence_reports():
     """Admin page for intelligence reports"""
     return render_template('admin/intelligence_reports.html')
-
-# HealthPIN route removed - consolidated into healthpin dashboard
-
 @app.route('/admin/prototyping')
 @login_required
 @admin_required
@@ -3001,7 +3025,6 @@ def manage_organizations():
             return jsonify({'status': 'success'})
         except Exception as e:
             return jsonify({'error': str(e)})
-
 # Organization Discovery API Endpoints
 @app.route('/admin/map/discover', methods=['POST'])
 @login_required
@@ -3718,7 +3741,6 @@ def update_training_attendee(attendee_id):
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
 @app.route('/admin/chat-management')
 @login_required
 @admin_required
@@ -4437,11 +4459,9 @@ COMPREHENSIVE BUSINESS CONTEXT:
 - AIMAP Organizations: {total_organisations}
 - Media Organizations: {media_organisations}
 - Communications Organizations: {communications_organisations}
-
 DETAILED DATA SAMPLES:
 - Recent Clients: {', '.join(client_details) if client_details else 'None'}
 - Recent Organizations: {', '.join(org_details) if org_details else 'None'}
-
 YOUR CAPABILITIES:
 1. FULL DATA ACCESS: You can access and analyze ALL data in the system
 2. BUSINESS INTELLIGENCE: Provide insights on organizations, clients, projects, and trends
@@ -4523,7 +4543,6 @@ Respond as Highlander AI, your trusted business advisor. Always provide actionab
                 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
 @app.route('/admin/map/highlander/chats', methods=['GET'])
 @login_required
 @admin_required
@@ -5213,7 +5232,6 @@ def get_ai_tools():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
 @app.route('/admin/map/ai-tools', methods=['POST'])
 @login_required
 @admin_required
@@ -5321,7 +5339,6 @@ def update_ai_tool(tool_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
-
 @app.route('/admin/map/ai-tools/<int:tool_id>', methods=['DELETE'])
 @login_required
 @admin_required
@@ -5975,7 +5992,6 @@ def toggle_admin(user_id):
     status = 'granted' if user.is_admin else 'removed'
     flash(f'Admin status {status} for {user.username}', 'success')
     return redirect(url_for('admin_users'))
-
 @app.route('/admin/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 @admin_required
@@ -6119,7 +6135,6 @@ def update_feedback_status(feedback_id):
     db.session.commit()
     flash('Feedback updated successfully', 'success')
     return redirect(url_for('admin_feedback_detail', feedback_id=feedback_id))
-
 @app.route('/admin/training')
 @login_required
 @admin_required
@@ -6751,7 +6766,6 @@ def content_calendar():
     # Set the platform in session
     session['platform'] = 'ai_utility'
     return render_template('content_calendar.html', hide_right_sidebar=True)
-
 @app.cli.command("reset-db")
 def reset_db():
     """Reset the database tables."""
@@ -6861,6 +6875,13 @@ def user_dashboard():
     # Always use the new shell UI, whether admin or not
     return render_template('user_dashboard.html')
 
+@app.route('/mediamap/dashboard')
+@login_required
+@section_required('mediamap')
+def mediamap_dashboard():
+    """MediaMap dashboard for regular users (no Highlander chat)"""
+    return render_template('user_dashboard.html')
+
 @app.route('/my_chats')
 @login_required
 def my_chats():
@@ -6872,7 +6893,6 @@ def my_chats():
     # Get user's chats
     chats = Chat.query.filter_by(user_id=current_user.id).order_by(Chat.updated_at.desc()).all()
     return render_template('user_chats.html', chats=chats)
-
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -6891,12 +6911,28 @@ def login():
             user.last_login = datetime.now(timezone.utc)
             db.session.commit()
             
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
+            # Determine user's single allowed section
+            try:
+                from backend.models import UserSection
+            except ImportError:
+                from models import UserSection
+            user_section = UserSection.query.filter_by(user_id=user.id).first()
+            resolved_section = user_section.section if user_section else 'mediamap'
             
-            # Default to the new unified shell for everyone (admins can access Admin from there)
-            return redirect(url_for('user_dashboard'))
+            # Admin direct to Admin Map if user selected admin or next targets admin
+            requested_section = request.form.get('section')
+            next_page = request.args.get('next')
+            if (requested_section == 'admin' or (next_page and next_page.startswith('/admin'))) and getattr(user, 'is_admin', False):
+                session['section'] = 'admin'
+                return redirect(url_for('admin_map'))
+
+            # Otherwise route by stored section
+            if resolved_section == 'healthpin':
+                session['section'] = 'healthpin'
+                return redirect(url_for('doc_chatbot.doc_chat'))
+            else:
+                session['section'] = 'mediamap'
+                return redirect(url_for('mediamap_dashboard'))
         else:
             flash('Invalid username or password.', 'danger')
     
@@ -6910,6 +6946,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
+        section = request.form.get('section', 'mediamap')
         
         # Validate input
         if not all([username, email, password, confirm_password]):
@@ -6943,6 +6980,15 @@ def register():
             )
             
             db.session.add(new_user)
+            db.session.commit()
+            
+            # Assign allowed section to user
+            try:
+                from backend.models import UserSection
+            except ImportError:
+                from models import UserSection
+            allowed = UserSection(user_id=new_user.id, section=section if section in ['mediamap', 'healthpin'] else 'mediamap')
+            db.session.add(allowed)
             db.session.commit()
             
             flash('Registration successful! You can now log in.', 'success')
@@ -7508,7 +7554,6 @@ def list_training_uploads():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.route('/admin/training/connect-notion', methods=['POST'])
 @login_required
 @admin_required
@@ -7616,7 +7661,6 @@ def connect_notion():
             
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.route('/admin/training/real-collect-data', methods=['POST'])
 @login_required
 @admin_required

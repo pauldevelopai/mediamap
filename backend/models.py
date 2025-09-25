@@ -24,6 +24,7 @@ class User(UserMixin, db.Model):
     
     # Relationships
     analyses = db.relationship('MediaAnalysis', backref='user', lazy=True)
+    sections = db.relationship('UserSection', backref='user', lazy=True)
     @property
     def chats(self):
         from models import Chat
@@ -80,6 +81,16 @@ class Message(db.Model):
             'content': self.content,
             'created_at': self.created_at.isoformat()
         }
+
+class UserSection(db.Model):
+    __tablename__ = 'user_sections'
+    __table_args__ = (db.UniqueConstraint('user_id', name='_user_section_uc'),)
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    section = db.Column(db.String(50), nullable=False)  # 'mediamap' or 'healthpin'
+
+    def __repr__(self):
+        return f"<UserSection user_id={self.user_id} section={self.section}>"
 
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -94,6 +94,62 @@ def start_individual_agent(agent_name):
             'error': str(e)
         }), 500
 
+@agents_bp.route('/healthpin/scrape/doctors', methods=['POST'])
+@login_required
+def scrape_sa_doctors():
+    """Trigger HealthPIN agent to scrape South Africa doctors via OSM/Overpass."""
+    try:
+        limit = None
+        try:
+            data = request.get_json(silent=True) or {}
+            limit = data.get('limit')
+        except Exception:
+            pass
+        if 'healthpin' not in agent_manager.agents:
+            return jsonify({'success': False, 'error': 'HealthPIN agent not available'}), 404
+        agent = agent_manager.agents['healthpin']
+        if not hasattr(agent, 'scrape_doctors_south_africa'):
+            return jsonify({'success': False, 'error': 'Scrape method not available on agent'}), 400
+        # Simple progress callback that logs progress; could be extended to SSE/WebSocket
+        def progress_cb(pct: int, meta: dict):
+            try:
+                current_app.logger.info(f"[DoctorScrape] {pct}% {meta}")
+            except Exception:
+                pass
+        result = agent.scrape_doctors_south_africa(limit=limit, progress_cb=progress_cb)
+        return jsonify({'success': True, 'result': result}) if result.get('success') else (jsonify({'success': False, 'error': result.get('error', 'Unknown error')}), 500)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@agents_bp.route('/healthpin/doctor-directory/status')
+@login_required
+def doctor_directory_status():
+    """Return status for the HealthPIN Doctor Directory agent (counts)."""
+    try:
+        try:
+            from backend.healthpin.models import Doctor
+        except ImportError:
+            from healthpin.models import Doctor
+        total_doctors = Doctor.query.count()
+        return jsonify({'success': True, 'status': {'total_doctors': total_doctors}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@agents_bp.route('/healthpin/doctor-directory/clean', methods=['POST'])
+@login_required
+def doctor_directory_clean():
+    """Clean existing doctor directory data (normalize, dedupe)."""
+    try:
+        if 'healthpin' not in agent_manager.agents:
+            return jsonify({'success': False, 'error': 'HealthPIN agent not available'}), 404
+        agent = agent_manager.agents['healthpin']
+        if not hasattr(agent, 'clean_doctor_data'):
+            return jsonify({'success': False, 'error': 'Cleaning not supported'}), 400
+        result = agent.clean_doctor_data(dry_run=False)
+        return jsonify({'success': True, 'result': result}) if result.get('success') else (jsonify({'success': False, 'error': result.get('error', 'Unknown error')}), 500)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @agents_bp.route('/<agent_name>/stop', methods=['POST'])
 @login_required
 def stop_individual_agent(agent_name):
@@ -143,6 +199,21 @@ def run_agent_cycle(agent_name):
             'success': False,
             'error': str(e)
         }), 500
+
+@agents_bp.route('/mediamap/clean', methods=['POST'])
+@login_required
+def mediamap_clean_now():
+    """Run MediaMap data cleaning once."""
+    try:
+        if 'mediamap' not in agent_manager.agents:
+            return jsonify({'success': False, 'error': 'MediaMap agent not available'}), 404
+        agent = agent_manager.agents['mediamap']
+        if not hasattr(agent, 'clean_existing_data'):
+            return jsonify({'success': False, 'error': 'Cleaning not supported by agent'}), 400
+        result = agent.clean_existing_data(dry_run=False)
+        return jsonify({'success': True, 'result': result}) if result.get('success') else (jsonify({'success': False, 'error': result.get('error', 'Unknown error')}), 500)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @agents_bp.route('/<agent_name>/insights')
 @login_required
