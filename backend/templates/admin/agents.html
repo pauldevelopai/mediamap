@@ -181,55 +181,6 @@
         </div>
     </div>
     
-    <!-- What Agents Do Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-info-circle me-2"></i>
-                        What Do These Agents Do?
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-newspaper me-2"></i>MediaMap Agent</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Collects data from media industry RSS feeds</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Monitors journalism and media news sites</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Analyzes business models and revenue trends</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Generates insights about media industry patterns</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Provides business recommendations</li>
-                            </ul>
-                            <small class="text-muted">
-                                <strong>Data Sources:</strong> Nieman Lab, Poynter, Journalism.co.uk, MediaPost, O'Reilly Radar
-                            </small>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Collects healthcare industry data</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Monitors medical research and policy updates</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Analyzes clinical care trends</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Generates healthcare insights</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Provides clinical recommendations</li>
-                            </ul>
-                            <small class="text-muted">
-                                <strong>Data Sources:</strong> Healthcare news feeds, medical journals, policy updates
-                            </small>
-                        </div>
-                    </div>
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-lightbulb me-2"></i>
-                        <strong>How it works:</strong> Each agent can be started individually to begin running in the background, 
-                        collecting real data from RSS feeds and websites, analyzing it with AI, and storing insights in the database. 
-                        The agents learn from patterns and provide recommendations for your business.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Agent Tabs -->
     <div class="row mb-4">
@@ -245,11 +196,6 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="healthpin-tab" data-bs-toggle="tab" data-bs-target="#healthpin" type="button" role="tab">
                                 <i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="multiple-agents-tab" data-bs-toggle="tab" data-bs-target="#multiple-agents" type="button" role="tab">
-                                <i class="bi bi-diagram-3 me-2"></i>Multiple Agents
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -323,17 +269,17 @@
                                             <div class="activity-item">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span><strong>Current Activity</strong></span>
-                                                    <span id="mediamap-live-status" class="badge bg-secondary">Checking...</span>
+                                                    <span id="mediamap-live-status" class="badge bg-success">Active</span>
                                                 </div>
                                                 <div id="mediamap-current-activity" class="mt-2">
-                                                    <small class="text-muted">Initializing...</small>
+                                                    <small class="text-muted">Monitoring media industry trends and generating insights</small>
                                                 </div>
                                                 <div id="mediamap-next-action" class="mt-1">
-                                                    <small class="text-info">Next: Checking status...</small>
+                                                    <small class="text-info">Next: Data collection cycle in 30 minutes</small>
                                                 </div>
                                                 <div id="mediamap-progress" class="mt-2">
                                                     <div class="progress" style="height: 6px;">
-                                                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -586,78 +532,6 @@
                             </div>
                         </div>
                         
-                        <!-- Multiple Agents Management -->
-                        <div class="tab-pane fade" id="multiple-agents" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h5><i class="bi bi-newspaper me-2"></i>MediaMap Workflow Agents</h5>
-                                    <p class="text-muted">Manage multiple agents for MediaMap data collection and analysis</p>
-                                    
-                                    <div class="card mb-4">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <h6 class="mb-0">Active MediaMap Agents</h6>
-                                            <button class="btn btn-sm btn-primary" onclick="addAgentToWorkflow('mediamap')">
-                                                <i class="bi bi-plus"></i> Add Agent
-                                            </button>
-                                        </div>
-                                        <div class="card-body">
-                                            <div id="mediamap-agents-list">
-                                                <div class="agent-item mb-3 p-3 border rounded">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="mb-1">MediaMap Primary Agent</h6>
-                                                            <small class="text-muted">RSS feeds, news analysis, industry trends</small>
-                                                        </div>
-                                                        <div class="btn-group btn-group-sm">
-                                                            <button class="btn btn-outline-warning" onclick="editWorkflowAgent('mediamap', 'primary')">
-                                                                <i class="bi bi-pencil"></i>
-                                                            </button>
-                                                            <button class="btn btn-outline-danger" onclick="removeWorkflowAgent('mediamap', 'primary')">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <h5><i class="bi bi-heart-pulse me-2"></i>HealthPIN Workflow Agents</h5>
-                                    <p class="text-muted">Manage multiple agents for HealthPIN data collection and analysis</p>
-                                    
-                                    <div class="card mb-4">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <h6 class="mb-0">Active HealthPIN Agents</h6>
-                                            <button class="btn btn-sm btn-success" onclick="addAgentToWorkflow('healthpin')">
-                                                <i class="bi bi-plus"></i> Add Agent
-                                            </button>
-                                        </div>
-                                        <div class="card-body">
-                                            <div id="healthpin-agents-list">
-                                                <div class="agent-item mb-3 p-3 border rounded">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <h6 class="mb-1">HealthPIN Primary Agent</h6>
-                                                            <small class="text-muted">Medical research, clinical guidelines, healthcare policy</small>
-                                                        </div>
-                                                        <div class="btn-group btn-group-sm">
-                                                            <button class="btn btn-outline-warning" onclick="editWorkflowAgent('healthpin', 'primary')">
-                                                                <i class="bi bi-pencil"></i>
-                                                            </button>
-                                                            <button class="btn btn-outline-danger" onclick="removeWorkflowAgent('healthpin', 'primary')">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         
                         <!-- Add New Agent Tab -->
                         <div class="tab-pane fade" id="add-agent" role="tabpanel">
@@ -1054,20 +928,48 @@ function updateDashboard() {
     if (!dashboardData) return;
     
     // Update agent status
-    updateAgentStatus('mediamap', dashboardData.status.mediamap);
-    updateAgentStatus('healthpin', dashboardData.status.healthpin);
+    if (dashboardData.agents) {
+        updateAgentStatus('mediamap', dashboardData.agents.mediamap);
+        updateAgentStatus('healthpin', dashboardData.agents.healthpin);
+    }
     
-    // Update insights
-    updateInsights('mediamap', dashboardData.mediamap.insights);
-    updateInsights('healthpin', dashboardData.healthpin.insights);
+    // Update statistics
+    if (dashboardData.statistics) {
+        updateStatistics(dashboardData.statistics);
+    }
     
-    // Update recommendations
-    updateRecommendations('mediamap', dashboardData.mediamap.recommendations);
-    updateRecommendations('healthpin', dashboardData.healthpin.recommendations);
-    
-    // Update trends
-    updateTrends('mediamap', dashboardData.mediamap.trends);
-    updateTrends('healthpin', dashboardData.healthpin.trends);
+    // Update recent activity
+    if (dashboardData.recent_activity) {
+        updateRecentActivity(dashboardData.recent_activity);
+    }
+}
+
+// Update statistics display
+function updateStatistics(stats) {
+    // Update any statistics displays on the page
+    const statsElements = document.querySelectorAll('[data-stat]');
+    statsElements.forEach(element => {
+        const statType = element.getAttribute('data-stat');
+        if (stats[statType] !== undefined) {
+            element.textContent = stats[statType];
+        }
+    });
+}
+
+// Update recent activity
+function updateRecentActivity(activity) {
+    // Update recent activity displays
+    if (activity.highlander_chats && activity.highlander_chats.length > 0) {
+        const activityContainer = document.getElementById('recent-activity-container');
+        if (activityContainer) {
+            activityContainer.innerHTML = activity.highlander_chats.map(chat => `
+                <div class="activity-item mb-2">
+                    <small class="text-muted">${new Date(chat.created_at).toLocaleString()}</small>
+                    <div class="text-truncate">${chat.message}</div>
+                </div>
+            `).join('');
+        }
+    }
 }
 
 // Update agent status
@@ -1597,7 +1499,7 @@ function saveAgentChanges(agentName) {
     saveBtn.disabled = true;
     
     // Save to backend
-    fetch(`/api/agents/${agentName}/config`, {
+    fetch(`/admin/agents/${agentName}/config`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

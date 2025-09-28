@@ -95,11 +95,6 @@
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button" role="tab">
-                                    <i class="bi bi-kanban"></i> AI Projects
-                        </button>
-                    </li>
-                            <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="policies-tab" data-bs-toggle="tab" data-bs-target="#policies" type="button" role="tab">
                                     <i class="bi bi-shield-check"></i> AI Policies
                         </button>
@@ -512,89 +507,8 @@
                         </div>
                     </div>
 
-                    <!-- AI Projects Tab -->
-                    <div class="tab-pane fade" id="projects" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5><i class="bi bi-kanban"></i> AI Projects Management</h5>
-                            <div>
-                                <button class="btn btn-success me-2" onclick="showProjectModal()">
-                                    <i class="bi bi-plus-circle"></i> New Project
-                                </button>
-                                <button class="btn btn-info me-2" onclick="showProjectTemplates()">
-                                    <i class="bi bi-file-earmark-text"></i> Templates
-                                </button>
-                                <button class="btn btn-warning" onclick="exportProjects()">
-                                    <i class="bi bi-download"></i> Export
-                                    </button>
-                                </div>
-                            </div>
 
-                        <!-- Project Overview Cards -->
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card border-primary">
-                                    <div class="card-body text-center">
-                                        <h3 class="text-primary">{{ project_stats.total_projects or 0 }}</h3>
-                                        <p class="mb-0">Total Projects</p>
-                        </div>
-                    </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card border-success">
-                                    <div class="card-body text-center">
-                                        <h3 class="text-success">{{ project_stats.active_projects or 0 }}</h3>
-                                        <p class="mb-0">Active</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card border-warning">
-                                    <div class="card-body text-center">
-                                        <h3 class="text-warning">{{ project_stats.completed_projects or 0 }}</h3>
-                                        <p class="mb-0">Completed</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card border-info">
-                                    <div class="card-body text-center">
-                                        <h3 class="text-info">{{ project_stats.ai_projects or 0 }}</h3>
-                                        <p class="mb-0">AI Projects</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Project Filters -->
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label class="form-label">Status</label>
-                                        <select class="form-select" id="projectStatusFilter">
-                                            <option value="">All Statuses</option>
-                                            <option value="Planning">Planning</option>
-                                            <option value="Active">Active</option>
-                                            <option value="On Hold">On Hold</option>
-                                            <option value="Completed">Completed</option>
-                                            <option value="Cancelled">Cancelled</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Type</label>
-                                        <select class="form-select" id="projectTypeFilter">
-                                            <option value="">All Types</option>
-                                            <option value="AI Implementation">AI Implementation</option>
-                                            <option value="Strategy">Strategy</option>
-                                            <option value="Training">Training</option>
-                                            <option value="Research">Research</option>
-                                            <option value="Consulting">Consulting</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Client</label>
-                                        <select class="form-select" id="projectClientFilter">
-                                            <option value="">All Clients</option>
                                             {% for client in clients %}
                                                 <option value="{{ client.name }}">{{ client.name }}</option>
                                             {% endfor %}
@@ -1446,7 +1360,12 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="list-group" id="insights-list">
-                                            <!-- Insights will be loaded dynamically -->
+                                            <div class="text-center py-3">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading insights...</span>
+                                                </div>
+                                                <p class="mt-2 text-muted">Loading generated insights...</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2289,7 +2208,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Generate Newsroom Insight Article</h5>
+                <h5 class="modal-title">Generate AI Status Report</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -2301,27 +2220,31 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="challengeType" class="form-label">Challenge Type</label>
-                        <select class="form-control" id="challengeType" required>
-                            <option value="">Select Challenge Type</option>
-                            <option value="AI Implementation">AI Implementation</option>
+                        <label for="reportFocus" class="form-label">Report Focus Area (Optional)</label>
+                        <select class="form-control" id="challengeType">
+                            <option value="">Comprehensive AI Assessment (Default)</option>
+                            <option value="AI Implementation">AI Implementation Strategy</option>
                             <option value="Digital Transformation">Digital Transformation</option>
-                            <option value="Revenue Generation">Revenue Generation</option>
-                            <option value="Audience Engagement">Audience Engagement</option>
+                            <option value="Revenue Generation">AI Revenue Opportunities</option>
+                            <option value="Audience Engagement">AI-Powered Audience Engagement</option>
                             <option value="Technology Integration">Technology Integration</option>
-                            <option value="Staff Training">Staff Training</option>
-                            <option value="Content Strategy">Content Strategy</option>
-                            <option value="Competition">Competition</option>
+                            <option value="Staff Training">AI Training & Development</option>
+                            <option value="Content Strategy">AI Content Strategy</option>
+                            <option value="Competition">Competitive AI Analysis</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="articleTitle" class="form-label">Article Title (Optional)</label>
-                        <input type="text" class="form-control" id="articleTitle" placeholder="e.g., How [Newsroom] Overcame [Challenge]">
+                        <label for="articleTitle" class="form-label">Report Title (Optional)</label>
+                        <input type="text" class="form-control" id="articleTitle" placeholder="e.g., AI Status Report: [Newsroom Name]">
                         <small class="form-text text-muted">Leave blank to auto-generate title</small>
                     </div>
                     <div class="mb-3">
                         <label for="additionalContext" class="form-label">Additional Context (Optional)</label>
-                        <textarea class="form-control" id="additionalContext" rows="3" placeholder="Any specific details about the challenge or solution you'd like to include..."></textarea>
+                        <textarea class="form-control" id="additionalContext" rows="3" placeholder="Any specific AI initiatives, challenges, or focus areas you'd like the report to address..."></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>How it works:</strong> The system will analyze data from across your database to create a comprehensive AI status report with recommendations. Knowledge gaps will be identified and highlighted for follow-up.
                     </div>
                 </form>
                 <div id="generationProgress" class="d-none">
@@ -2338,7 +2261,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-success" id="generateInsightBtn" onclick="generateInsightArticle()">
-                    <i class="bi bi-magic"></i> Generate Article
+                    <i class="bi bi-file-earmark-text"></i> Generate AI Status Report
                 </button>
             </div>
         </div>
@@ -2358,6 +2281,20 @@
                     <div class="mb-3">
                         <label for="newsletterTopic" class="form-label">Newsletter Topic</label>
                         <input type="text" class="form-control" id="newsletterTopic" value="AI News and Tools" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date Range for Content</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label small">From Date</label>
+                                <input type="date" class="form-control" id="startDate" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label small">To Date</label>
+                                <input type="date" class="form-control" id="endDate" required>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Select the date range to pull news and insights from</small>
                     </div>
                     <div class="mb-3">
                         <label for="newsletterFocusAreas" class="form-label">Focus Areas</label>
@@ -2948,12 +2885,12 @@ function loadNewsrooms() {
 
 function generateInsightArticle() {
     const newsroomId = document.getElementById('newsroomSelect').value;
-    const challengeType = document.getElementById('challengeType').value;
-    const articleTitle = document.getElementById('articleTitle').value;
+    const reportFocus = document.getElementById('challengeType').value;
+    const reportTitle = document.getElementById('articleTitle').value;
     const additionalContext = document.getElementById('additionalContext').value;
     
-    if (!newsroomId || !challengeType) {
-        alert('Please select a newsroom and challenge type.');
+    if (!newsroomId) {
+        alert('Please select a newsroom to generate the AI status report.');
         return;
     }
     
@@ -2973,8 +2910,8 @@ function generateInsightArticle() {
         body: JSON.stringify({
             newsroom_id: newsroomId,
             newsroom_name: newsroomName,
-            challenge_type: challengeType,
-            article_title: articleTitle,
+            challenge_type: reportFocus,
+            article_title: reportTitle,
             additional_context: additionalContext
         })
     })
@@ -2994,7 +2931,7 @@ function generateInsightArticle() {
             // Reset form
             document.getElementById('generateInsightForm').reset();
             
-            alert('Insight article generated successfully!');
+            alert('AI Status Report generated successfully!');
         } else {
             alert('Error generating insight: ' + (data.error || 'Unknown error'));
         }
@@ -4149,18 +4086,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Load insights when insights tab is shown
-document.getElementById('insights-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadInsights();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const insightsTab = document.getElementById('insights-tab');
+    if (insightsTab) {
+        insightsTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadInsights();
+                loadAgentInsights();
+            }, 100);
+        });
+    }
+    
+    // Load clients when clients tab is shown
+    const clientsTab = document.getElementById('clients-tab');
+    if (clientsTab) {
+        clientsTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadClientsData();
+            }, 100);
+        });
+    }
+    
+    // Load research when research tab is shown
+    const researchTab = document.getElementById('research-tab');
+    if (researchTab) {
+        researchTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadResearchData();
+            }, 100);
+        });
+    }
+    
+    // Load people when people tab is shown
+    const peopleTab = document.getElementById('people-tab');
+    if (peopleTab) {
+        peopleTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadPeopleData();
+            }, 100);
+        });
+    }
 });
 
 // Load news when news tab is shown
-document.getElementById('news-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadNews();
-        loadSavedNews();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const newsTab = document.getElementById('news-tab');
+    if (newsTab) {
+        newsTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadNews();
+                loadSavedNews();
+            }, 100);
+        });
+    }
 });
 
 // Load research projects when research tab is shown
@@ -4171,18 +4149,397 @@ document.getElementById('research-tab').addEventListener('click', function() {
 });
 
 // Load newsletters when newsletter tab is shown
-document.getElementById('newsletter-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadNewsletters();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const newsletterTab = document.getElementById('newsletter-tab');
+    if (newsletterTab) {
+        newsletterTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadNewsletters();
+            }, 100);
+        });
+    }
 });
 
 // Load training workshops when training tab is shown
-document.getElementById('training-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadTrainingWorkshops();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const trainingTab = document.getElementById('training-tab');
+    if (trainingTab) {
+        trainingTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadTrainingWorkshops();
+            }, 100);
+        });
+    }
 });
+
+// Training Workshops functions
+function loadTrainingWorkshops() {
+    // For now, show a message that training workshops will be loaded
+    const workshopsList = document.getElementById('workshops-list');
+    if (workshopsList) {
+        workshopsList.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-mortarboard display-4"></i>
+                <p class="mt-3">Training Workshops functionality is being restored. Check back soon!</p>
+            </div>
+        `;
+    }
+}
+
+// Research Tab functions
+function loadResearchData() {
+    fetch('/admin/map/research-projects')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayResearchProjects(data.research_projects);
+                updateResearchStats(data.stats);
+            } else {
+                showNoResearchProjects();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading research data:', error);
+            showNoResearchProjects();
+        });
+}
+
+function displayResearchProjects(projects) {
+    const container = document.getElementById('research-projects-list');
+    if (!container) return;
+    
+    if (!projects || projects.length === 0) {
+        showNoResearchProjects();
+        return;
+    }
+    
+    container.innerHTML = projects.map(project => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title">
+                            <span class="badge bg-primary me-2">${project.category || 'Research'}</span>
+                            ${project.title}
+                        </h6>
+                        <p class="card-text text-muted">${project.description || 'No description available'}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Client:</strong> ${project.client_name || 'Internal'}<br>
+                                    <strong>Status:</strong> ${project.status || 'Active'}<br>
+                                    <strong>Priority:</strong> ${project.priority || 'Medium'}
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Start Date:</strong> ${new Date(project.start_date).toLocaleDateString()}<br>
+                                    <strong>End Date:</strong> ${project.end_date ? new Date(project.end_date).toLocaleDateString() : 'Ongoing'}<br>
+                                    <strong>Budget:</strong> $${project.budget || '0'}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewResearch(${project.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="updateResearch(${project.id})">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteResearch(${project.id})">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showNoResearchProjects() {
+    const container = document.getElementById('research-projects-list');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-search display-4"></i>
+            <p class="mt-3">No research projects yet. Start your first research project!</p>
+            <button class="btn btn-primary" onclick="uploadResearchReport()">
+                <i class="bi bi-upload"></i> Upload Report
+            </button>
+        </div>
+    `;
+}
+
+function updateResearchStats(stats) {
+    if (stats) {
+        const elements = {
+            'total-research': stats.total || 0,
+            'active-research': stats.active || 0,
+            'completed-research': stats.completed || 0,
+            'pending-research': stats.pending || 0
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+    }
+}
+
+function uploadResearchReport() {
+    alert('Upload Research Report functionality will be implemented soon!');
+}
+
+function scrapeResearch() {
+    alert('Scrape Research functionality will be implemented soon!');
+}
+
+// People Tab functions
+function loadPeopleData() {
+    fetch('/admin/map/people')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPeople(data.people);
+                updatePeopleStats(data.stats);
+            } else {
+                showNoPeople();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading people data:', error);
+            showNoPeople();
+        });
+}
+
+function displayPeople(people) {
+    const container = document.getElementById('people-list');
+    if (!container) return;
+    
+    if (!people || people.length === 0) {
+        showNoPeople();
+        return;
+    }
+    
+    container.innerHTML = people.map(person => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title">
+                            <span class="badge bg-primary me-2">${person.role || 'Contact'}</span>
+                            ${person.name}
+                        </h6>
+                        <p class="card-text text-muted">${person.organization || 'No organization'}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Email:</strong> ${person.email || 'No email'}<br>
+                                    <strong>Phone:</strong> ${person.phone || 'No phone'}<br>
+                                    <strong>Location:</strong> ${person.location || 'Unknown'}
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Industry:</strong> ${person.industry || 'Unknown'}<br>
+                                    <strong>Last Contact:</strong> ${person.last_contact ? new Date(person.last_contact).toLocaleDateString() : 'Never'}<br>
+                                    <strong>Status:</strong> ${person.status || 'Active'}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewPerson(${person.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="editPerson(${person.id})">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deletePerson(${person.id})">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showNoPeople() {
+    const container = document.getElementById('people-list');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-people display-4"></i>
+            <p class="mt-3">No people contacts yet. Add your first contact!</p>
+            <button class="btn btn-primary" onclick="addNewPerson()">
+                <i class="bi bi-plus-circle"></i> Add Person
+            </button>
+        </div>
+    `;
+}
+
+function updatePeopleStats(stats) {
+    if (stats) {
+        const elements = {
+            'total-people': stats.total || 0,
+            'media-contacts': stats.media || 0,
+            'tech-contacts': stats.tech || 0,
+            'government-contacts': stats.government || 0
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+    }
+}
+
+function addNewPerson() {
+    alert('Add New Person functionality will be implemented soon!');
+}
+
+function viewPerson(personId) {
+    alert(`Viewing Person ID: ${personId}. This will open a detailed view.`);
+}
+
+function editPerson(personId) {
+    alert(`Editing Person ID: ${personId}. This will open an edit form.`);
+}
+
+function deletePerson(personId) {
+    if (confirm('Are you sure you want to delete this person?')) {
+        alert(`Deleting Person ID: ${personId}. This will remove the person from the database.`);
+    }
+}
+
+// Newsletter Tab functions
+function loadNewsletters() {
+    fetch('/admin/map/newsletters')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayNewsletters(data.newsletters);
+                updateNewsletterStats(data.stats);
+            } else {
+                showNoNewsletters();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading newsletters:', error);
+            showNoNewsletters();
+        });
+}
+
+function displayNewsletters(newsletters) {
+    const container = document.getElementById('newsletters-list');
+    if (!container) return;
+    
+    if (!newsletters || newsletters.length === 0) {
+        showNoNewsletters();
+        return;
+    }
+    
+    container.innerHTML = newsletters.map(newsletter => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title">
+                            <span class="badge bg-primary me-2">${newsletter.category || 'Newsletter'}</span>
+                            ${newsletter.title}
+                        </h6>
+                        <p class="card-text text-muted">${newsletter.description || 'No description available'}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Status:</strong> ${newsletter.status || 'Draft'}<br>
+                                    <strong>Recipients:</strong> ${newsletter.recipient_count || '0'}<br>
+                                    <strong>Sent Date:</strong> ${newsletter.sent_date ? new Date(newsletter.sent_date).toLocaleDateString() : 'Not sent'}
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Open Rate:</strong> ${newsletter.open_rate || '0'}%<br>
+                                    <strong>Click Rate:</strong> ${newsletter.click_rate || '0'}%<br>
+                                    <strong>Created:</strong> ${new Date(newsletter.created_at).toLocaleDateString()}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewNewsletter(${newsletter.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="editNewsletter(${newsletter.id})">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="sendNewsletter(${newsletter.id})">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteNewsletter(${newsletter.id})">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showNoNewsletters() {
+    const container = document.getElementById('newsletters-list');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-envelope display-4"></i>
+            <p class="mt-3">No newsletters yet. Create your first newsletter!</p>
+            <button class="btn btn-primary" onclick="showGenerateNewsletterModal()">
+                <i class="bi bi-plus-circle"></i> Generate Newsletter
+            </button>
+        </div>
+    `;
+}
+
+function updateNewsletterStats(stats) {
+    if (stats) {
+        const elements = {
+            'total-newsletters': stats.total || 0,
+            'sent-newsletters': stats.sent || 0,
+            'draft-newsletters': stats.draft || 0,
+            'scheduled-newsletters': stats.scheduled || 0
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+    }
+}
+
+function viewNewsletter(newsletterId) {
+    alert(`Viewing Newsletter ID: ${newsletterId}. This will open a detailed view.`);
+}
+
+function editNewsletter(newsletterId) {
+    alert(`Editing Newsletter ID: ${newsletterId}. This will open an edit form.`);
+}
+
+function sendNewsletter(newsletterId) {
+    if (confirm('Are you sure you want to send this newsletter?')) {
+        alert(`Sending Newsletter ID: ${newsletterId}. This will send the newsletter to all subscribers.`);
+    }
+}
+
+function deleteNewsletter(newsletterId) {
+    if (confirm('Are you sure you want to delete this newsletter?')) {
+        alert(`Deleting Newsletter ID: ${newsletterId}. This will remove the newsletter from the database.`);
+    }
+}
 
 // Load AI tools when ai-tools tab is shown
 document.getElementById('ai-tools-tab').addEventListener('click', function() {
@@ -4207,6 +4564,13 @@ document.getElementById('discovery-tab').addEventListener('click', function() {
 
 // Newsletter Functions
 function showGenerateNewsletterModal() {
+    // Set default date range (last 7 days)
+    const today = new Date();
+    const lastWeek = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+    
+    document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+    document.getElementById('endDate').value = today.toISOString().split('T')[0];
+    
     const modal = new bootstrap.Modal(document.getElementById('generateNewsletterModal'));
     modal.show();
 }
@@ -4218,6 +4582,8 @@ function showUploadTrainingModal() {
 
 function generateNewsletter() {
     const topic = document.getElementById('newsletterTopic').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
     const focusAreas = [];
     
     // Get selected focus areas
@@ -4226,8 +4592,14 @@ function generateNewsletter() {
     if (document.getElementById('focusReports').checked) focusAreas.push('Reports');
     if (document.getElementById('focusUseCases').checked) focusAreas.push('Use Cases');
     
-    if (!topic || focusAreas.length === 0) {
-        alert('Please enter a topic and select at least one focus area.');
+    if (!topic || focusAreas.length === 0 || !startDate || !endDate) {
+        alert('Please enter a topic, select at least one focus area, and choose a date range.');
+        return;
+    }
+    
+    // Validate date range
+    if (new Date(startDate) > new Date(endDate)) {
+        alert('Start date must be before or equal to end date.');
         return;
     }
     
@@ -4242,6 +4614,8 @@ function generateNewsletter() {
         },
         body: JSON.stringify({
             topic: topic,
+            start_date: startDate,
+            end_date: endDate,
             focus_areas: focusAreas
         })
     })
@@ -4661,27 +5035,217 @@ function exportAIToolsData() {
 }
 
 // Load AI tools when tab is shown
-document.getElementById('ai-tools-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadAITools();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const aiToolsTab = document.getElementById('ai-tools-tab');
+    if (aiToolsTab) {
+        aiToolsTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadAITools();
+            }, 100);
+        });
+    }
 });
 
+// Load AI Tools function
+function loadAITools() {
+    fetch('/admin/map/ai-tools')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAITools(data.tools);
+                updateAIToolsStats(data.stats);
+            } else {
+                showNoAITools();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading AI tools:', error);
+            showNoAITools();
+        });
+}
+
+// Display AI Tools
+function displayAITools(tools) {
+    const container = document.getElementById('ai-tools-list');
+    
+    if (!tools || tools.length === 0) {
+        showNoAITools();
+        return;
+    }
+    
+    container.innerHTML = tools.map(tool => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title">
+                            <span class="badge bg-primary me-2">${tool.category || 'AI Tool'}</span>
+                            ${tool.name}
+                        </h6>
+                        <p class="card-text text-muted">${tool.description || 'No description available'}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Type:</strong> ${tool.type || 'Unknown'}<br>
+                                    <strong>Cost:</strong> ${tool.cost || 'Free'}<br>
+                                    <strong>Rating:</strong> ${tool.rating || 'N/A'}/5
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Use Cases:</strong> ${tool.use_cases || 'General'}<br>
+                                    <strong>Added:</strong> ${new Date(tool.created_at).toLocaleDateString()}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewAITool(${tool.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="editAITool(${tool.id})">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteAITool(${tool.id})">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Show no AI tools message
+function showNoAITools() {
+    const container = document.getElementById('ai-tools-list');
+    container.innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-tools display-4"></i>
+            <p class="mt-3">No AI tools yet. Add your first tool!</p>
+            <button class="btn btn-primary" onclick="showAddAIToolModal()">
+                <i class="bi bi-plus-circle"></i> Add AI Tool
+            </button>
+        </div>
+    `;
+}
+
+// Update AI Tools statistics
+function updateAIToolsStats(stats) {
+    if (stats) {
+        document.getElementById('total-ai-tools').textContent = stats.total || 0;
+        document.getElementById('free-tools').textContent = stats.free || 0;
+        document.getElementById('paid-tools').textContent = stats.paid || 0;
+        document.getElementById('recommended-tools').textContent = stats.recommended || 0;
+    }
+}
+
+// AI Tools action functions
+function showAddAIToolModal() {
+    alert('Add AI Tool modal will be implemented soon!');
+}
+
+function showAddRecommendationModal() {
+    alert('Add Recommendation modal will be implemented soon!');
+}
+
+function exportAIToolsData() {
+    alert('Export AI Tools data functionality will be implemented soon!');
+}
+
+function viewAITool(toolId) {
+    alert(`Viewing AI Tool ID: ${toolId}. This will open a detailed view.`);
+}
+
+function editAITool(toolId) {
+    alert(`Editing AI Tool ID: ${toolId}. This will open an edit form.`);
+}
+
+function deleteAITool(toolId) {
+    if (confirm('Are you sure you want to delete this AI tool?')) {
+        alert(`Deleting AI Tool ID: ${toolId}. This will remove the tool from the database.`);
+    }
+}
+
 // Load prototyping data when tab is shown
-document.getElementById('prototyping-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadPrototypingData();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const prototypingTab = document.getElementById('prototyping-tab');
+    if (prototypingTab) {
+        prototypingTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadPrototypingData();
+            }, 100);
+        });
+    }
 });
 
 // Load policies data when tab is shown
-document.getElementById('policies-tab').addEventListener('click', function() {
-    setTimeout(() => {
-        loadPoliciesData();
-    }, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    const policiesTab = document.getElementById('policies-tab');
+    if (policiesTab) {
+        policiesTab.addEventListener('click', function() {
+            setTimeout(() => {
+                loadPoliciesData();
+            }, 100);
+        });
+    }
 });
 
+// AI Policies functions
+function addNewPolicy() {
+    alert('Add New Policy functionality will be implemented soon!');
+}
+
+function importPolicies() {
+    alert('Import Policies functionality will be implemented soon!');
+}
+
+function exportPolicies() {
+    alert('Export Policies functionality will be implemented soon!');
+}
+
+function loadPoliciesData() {
+    // For now, show a message that policies will be loaded
+    const policiesList = document.getElementById('policies-list');
+    if (policiesList) {
+        policiesList.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    <i class="bi bi-shield-check"></i>
+                    <p class="mt-3">AI Policies functionality is being restored. Check back soon!</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// AI Prototyping functions
+function addNewPrototype() {
+    alert('Add New Prototype functionality will be implemented soon!');
+}
+
+function addPrototypeUpdate() {
+    alert('Add Prototype Update functionality will be implemented soon!');
+}
+
+function exportPrototypeData() {
+    alert('Export Prototype Data functionality will be implemented soon!');
+}
+
 function loadPrototypingData() {
+    // For now, show a message that prototyping data will be loaded
+    const prototypesList = document.getElementById('prototypes-list');
+    if (prototypesList) {
+        prototypesList.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-cpu display-4"></i>
+                <p class="mt-3">AI Prototyping functionality is being restored. Check back soon!</p>
+            </div>
+        `;
+    }
+}
+
+function loadPrototypingDataOld() {
     fetch('/admin/map/prototypes')
         .then(response => response.json())
         .then(data => {
@@ -7637,7 +8201,7 @@ function displayAgentInsights(insights) {
     }
     
     container.innerHTML = insights.map(insight => `
-        <div class="list-group-item">
+        <div class="list-group-item insight-item" style="cursor: pointer; transition: all 0.2s ease;" onclick="showInsightDetail(${insight.id})" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor=''">
             <div class="d-flex w-100 justify-content-between">
                 <h6 class="mb-1">
                     <span class="badge bg-primary me-2">${insight.type || 'Insight'}</span>
@@ -7659,6 +8223,11 @@ function displayAgentInsights(insights) {
                     </small>
                 </div>
             ` : ''}
+            <div class="mt-2">
+                <small class="text-primary">
+                    <i class="bi bi-eye me-1"></i>Click to view details
+                </small>
+            </div>
         </div>
     `).join('');
 }
@@ -7707,15 +8276,234 @@ function formatTimestamp(timestamp) {
     }
 }
 
-// Load agent insights when the insights tab is shown
-document.addEventListener('DOMContentLoaded', function() {
-    const insightsTab = document.getElementById('insights-tab');
-    if (insightsTab) {
-        insightsTab.addEventListener('shown.bs.tab', function() {
-            loadAgentInsights();
-        });
+// Insights tab loading is handled above in the main DOMContentLoaded event
+
+// Load generated insights
+async function loadInsights() {
+    console.log('Loading insights...');
+    try {
+        const response = await fetch('/admin/map/insights');
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Insights data:', data);
+        
+        if (data.success) {
+            displayInsights(data.insights);
+        } else {
+            console.log('No insights found or error:', data.error);
+            showNoInsights();
+        }
+    } catch (error) {
+        console.error('Error loading insights:', error);
+        showNoInsights();
     }
-});
+}
+
+// Display insights
+function displayInsights(insights) {
+    const container = document.getElementById('insights-list');
+    
+    if (!insights || insights.length === 0) {
+        showNoInsights();
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => `
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">
+                    <span class="badge bg-primary me-2">${insight.category || 'Insight'}</span>
+                    ${insight.title || 'Generated Insight'}
+                </h6>
+                <small class="text-muted">${new Date(insight.created_at).toLocaleDateString()}</small>
+            </div>
+            <div class="mb-1">
+                <p class="mb-1">${insight.content ? insight.content.substring(0, 200) + '...' : 'No content available'}</p>
+            </div>
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="viewInsightDetail(${insight.id})">
+                    <i class="bi bi-eye"></i> View Details
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="exportInsight(${insight.id})">
+                    <i class="bi bi-download"></i> Export
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Show no insights message
+function showNoInsights() {
+    const container = document.getElementById('insights-list');
+    container.innerHTML = `
+        <div class="text-center py-4">
+            <i class="bi bi-lightbulb text-muted" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">No insights generated yet.</p>
+            <p class="text-muted small">Click "Generate Insight" to create your first insight.</p>
+        </div>
+    `;
+}
+
+// Export insights function
+function exportInsights() {
+    alert('Export functionality will be implemented soon!');
+}
+
+// View insight detail function
+function viewInsightDetail(insightId) {
+    alert(`Viewing insight detail for ID: ${insightId}. This will open a detailed view.`);
+}
+
+// Export single insight function
+function exportInsight(insightId) {
+    alert(`Exporting insight ID: ${insightId}. This will download the insight.`);
+}
+
+// Show insight detail modal
+function showInsightDetail(insightId) {
+    // Show loading state
+    const modalBody = document.getElementById('insightDetailBody');
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading insight details...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading insight details...</p>
+        </div>
+    `;
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('insightDetailModal'));
+    modal.show();
+    
+    // Fetch insight details
+    fetch(`/admin/map/insights/${insightId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayInsightDetail(data.insight);
+            } else {
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Error loading insight details: ${data.error || 'Unknown error'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading insight details:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error loading insight details. Please try again.
+                </div>
+            `;
+        });
+}
+
+// Display insight detail in modal
+function displayInsightDetail(insight) {
+    const modalBody = document.getElementById('insightDetailBody');
+    
+    modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-3">
+                    <h5 class="mb-2">
+                        <span class="badge bg-primary me-2">${insight.type || 'Insight'}</span>
+                        ${insight.title || 'Insight Details'}
+                    </h5>
+                    <p class="text-muted mb-0">${formatTimestamp(insight.created_at)}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-lightbulb me-2"></i>Insight Content</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="mb-0">${insight.insight || insight.content || 'No content available'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-tag me-2"></i>Category</h6>
+                        <span class="badge bg-secondary">${insight.category || 'General'}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-graph-up me-2"></i>Confidence</h6>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" style="width: ${Math.round((insight.confidence || 0.5) * 100)}%">
+                                ${Math.round((insight.confidence || 0.5) * 100)}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="bi bi-link me-2"></i>Source</h6>
+                    <p class="mb-0">
+                        ${insight.source ? `<a href="${insight.source}" target="_blank" class="text-decoration-none">${insight.source}</a>` : 'MediaMap Agent'}
+                    </p>
+                </div>
+                
+                ${insight.metadata ? `
+                    <div class="mb-3">
+                        <h6><i class="bi bi-key me-2"></i>Keywords</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            ${(insight.metadata.keywords || []).map(keyword => 
+                                `<span class="badge bg-info">${keyword}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${insight.analysis ? `
+                    <div class="mb-3">
+                        <h6><i class="bi bi-search me-2"></i>Analysis</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-0">${insight.analysis}</p>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${insight.recommendations ? `
+                    <div class="mb-3">
+                        <h6><i class="bi bi-arrow-right-circle me-2"></i>Recommendations</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="mb-0">${insight.recommendations}</p>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
 </script>
+
+<!-- Insight Detail Modal -->
+<div class="modal fade" id="insightDetailModal" tabindex="-1" aria-labelledby="insightDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="insightDetailModalLabel">
+                    <i class="bi bi-lightbulb me-2"></i>Insight Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="insightDetailBody">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

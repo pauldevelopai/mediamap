@@ -137,30 +137,40 @@ class DocChatbotManager:
         """Call OpenAI API or HealthPIN model to generate AI response"""
         try:
             # Try to use HealthPIN model first
-            from backend.training.model_factory import get_healthpin_model_manager
+            try:
+                from backend.training.model_factory import get_healthpin_model_manager
+                
+                healthpin_manager = get_healthpin_model_manager()
+                
+                if healthpin_manager and healthpin_manager.is_model_loaded:
+                    # Use custom HealthPIN model
+                    response, source = healthpin_manager.generate_response(
+                        messages[-1]["content"] if messages else "Hello",
+                        conversation_history=messages[:-1] if len(messages) > 1 else []
+                    )
+                    return response
+            except Exception as model_error:
+                print(f"❌ HealthPIN model error: {model_error}")
             
-            healthpin_manager = get_healthpin_model_manager()
-            
-            if healthpin_manager.is_model_loaded:
-                # Use custom HealthPIN model
-                response = healthpin_manager.generate_response(
-                    messages[-1]["content"] if messages else "Hello",
-                    conversation_history=messages[:-1] if len(messages) > 1 else []
-                )
-                return response
-            else:
-                # Fallback to OpenAI
+            # Fallback to OpenAI
+            try:
                 import openai
                 from backend.app import client
                 
-                response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=messages,
-                    max_tokens=1000,
-                    temperature=0.7
-                )
-                
-                return response.choices[0].message.content
+                if client:
+                    response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=messages,
+                        max_tokens=1000,
+                        temperature=0.7
+                    )
+                    return response.choices[0].message.content
+                else:
+                    raise Exception("OpenAI client not available")
+                    
+            except Exception as openai_error:
+                print(f"❌ OpenAI API error in Doc chatbot: {openai_error}")
+                raise openai_error
             
         except Exception as e:
             print(f"❌ AI API error in Doc chatbot: {e}")
@@ -491,7 +501,16 @@ def doc_chat_message():
         conversation_history = data.get('conversation_history', [])
         
         # Generate response
-        result = doc_manager.generate_response(message, conversation_history)
+        try:
+            result = doc_manager.generate_response(message, conversation_history)
+        except Exception as e:
+            print(f"❌ Error in Doc manager generate_response: {e}")
+            # Fallback response
+            result = {
+                'response': "I apologize, but I'm experiencing technical difficulties. Please try again in a moment.",
+                'context_type': 'main',
+                'response_time_ms': 0
+            }
         
         # Save message to database
         chat_message = ChatMessage(

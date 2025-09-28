@@ -211,6 +211,50 @@
                 loginCard.style.opacity = '1';
                 loginCard.style.transform = 'translateY(0)';
             }, 100);
+
+            // Handle form submission with AJAX
+            const loginForm = document.querySelector('form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(loginForm);
+                    const submitButton = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitButton.innerHTML;
+                    
+                    // Show loading state
+                    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Signing In...';
+                    submitButton.disabled = true;
+                    
+                    try {
+                        const response = await fetch(loginForm.action, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // Redirect to the specified URL
+                            if (result.redirect) {
+                                window.location.href = result.redirect;
+                            } else {
+                                window.location.href = '/';
+                            }
+                        } else {
+                            // Show error message
+                            alert(result.error || 'Login failed. Please try again.');
+                            submitButton.innerHTML = originalText;
+                            submitButton.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        alert('An error occurred during login. Please try again.');
+                        submitButton.innerHTML = originalText;
+                        submitButton.disabled = false;
+                    }
+                });
+            }
         });
     </script>
 </body>

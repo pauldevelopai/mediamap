@@ -57,7 +57,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <h6><i class="bi bi-graph-up me-2"></i>Model Status</h6>
                                 <div id="mediamap-model-status">
                                     <div class="text-center py-3">
@@ -68,7 +68,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <h6><i class="bi bi-database me-2"></i>Training Data</h6>
                                 <div id="mediamap-training-data">
                                     <div class="text-center py-3">
@@ -76,6 +76,50 @@
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <p class="mt-2 mb-0 text-muted">Loading MediaMap training data...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="bi bi-collection me-2"></i>Data Sources</h6>
+                                <div id="mediamap-data-sources">
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-info-circle me-2"></i>Data Collection Sources:</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>RSS Feeds:</strong> News articles from media industry sources</li>
+                                            <li><strong>Database Records:</strong> User chats, analyses, and insights</li>
+                                            <li><strong>Notion Pages:</strong> Imported content from Notion databases</li>
+                                            <li><strong>Training Files:</strong> Manual training data files</li>
+                                            <li><strong>Chat History:</strong> User conversation history</li>
+                                        </ul>
+                                    </div>
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0 text-muted">Loading data sources...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6><i class="bi bi-eye me-2"></i>Collected Data Preview</h6>
+                                <div id="mediamap-data-preview">
+                                    <div class="alert alert-warning">
+                                        <h6><i class="bi bi-exclamation-triangle me-2"></i>Data Collection Process:</h6>
+                                        <ol class="mb-0">
+                                            <li><strong>RSS Feed Collection:</strong> Automated scraping of media industry news sources</li>
+                                            <li><strong>Database Mining:</strong> Extraction of insights from user interactions and analyses</li>
+                                            <li><strong>Content Processing:</strong> Cleaning and formatting of collected data</li>
+                                            <li><strong>Training Preparation:</strong> Converting data into training-ready formats</li>
+                                            <li><strong>Model Training:</strong> Using processed data to train AI models</li>
+                                        </ol>
+                                    </div>
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0 text-muted">Loading collected data preview...</p>
                                     </div>
                                 </div>
                             </div>
@@ -1493,6 +1537,184 @@ function displayTrainingHistory(summary, retrainAnalysis) {
     }
     
     div.innerHTML = html;
+}
+
+// Load data sources for a specific model
+async function loadDataSources(modelName) {
+    try {
+        const response = await fetch(`/admin/training/data-sources/${modelName}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDataSources(modelName, result.sources);
+        } else {
+            document.getElementById(`${modelName}-data-sources`).innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error loading data sources: ${result.error}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading data sources:', error);
+        document.getElementById(`${modelName}-data-sources`).innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Error loading data sources
+            </div>
+        `;
+    }
+}
+
+// Display data sources
+function displayDataSources(modelName, sources) {
+    const div = document.getElementById(`${modelName}-data-sources`);
+    
+    let html = '<div class="list-group">';
+    
+    sources.forEach(source => {
+        const sizeKB = Math.round(source.total_size / 1024);
+        const lastUpdated = source.last_updated ? new Date(source.last_updated * 1000).toLocaleDateString() : 'Never';
+        
+        html += `
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${source.name}</h6>
+                        <p class="mb-1 text-muted small">${source.description}</p>
+                        <small class="text-muted">
+                            ${source.file_count} files • ${sizeKB} KB • Updated: ${lastUpdated}
+                        </small>
+                    </div>
+                    <span class="badge bg-${source.file_count > 0 ? 'success' : 'secondary'}">
+                        ${source.file_count > 0 ? 'Active' : 'Empty'}
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    div.innerHTML = html;
+}
+
+// Load collected data preview for a specific model
+async function loadCollectedData(modelName) {
+    try {
+        const response = await fetch(`/admin/training/collected-data/${modelName}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            displayCollectedData(modelName, result.data);
+        } else {
+            document.getElementById(`${modelName}-data-preview`).innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error loading collected data: ${result.error}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading collected data:', error);
+        document.getElementById(`${modelName}-data-preview`).innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Error loading collected data
+            </div>
+        `;
+    }
+}
+
+// Display collected data preview
+function displayCollectedData(modelName, data) {
+    const div = document.getElementById(`${modelName}-data-preview`);
+    
+    const totalSizeMB = Math.round(data.total_size / (1024 * 1024) * 100) / 100;
+    
+    let html = `
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5 class="text-primary">${data.total_files}</h5>
+                        <small class="text-muted">Total Files</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5 class="text-success">${totalSizeMB} MB</h5>
+                        <small class="text-muted">Total Size</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5 class="text-info">${data.recent_files.length}</h5>
+                        <small class="text-muted">Recent Files</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    if (data.sample_content.length > 0) {
+        html += '<h6>Sample Content:</h6>';
+        html += '<div class="accordion" id="sampleContentAccordion">';
+        
+        data.sample_content.forEach((sample, index) => {
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading${index}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                            <i class="bi bi-file-${sample.type === 'json' ? 'code' : 'text'} me-2"></i>
+                            ${sample.title || sample.file}
+                        </button>
+                    </h2>
+                    <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#sampleContentAccordion">
+                        <div class="accordion-body">
+                            <pre class="bg-light p-3 rounded"><code>${sample.preview}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    } else {
+        html += `
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No training data collected yet. Click "Collect Data" to start gathering training data.
+            </div>
+        `;
+    }
+    
+    div.innerHTML = html;
+}
+
+// Enhanced model loading functions
+async function loadMediaMapModel() {
+    await loadModelStatus('mediamap');
+    await loadTrainingData('mediamap');
+    await loadDataSources('mediamap');
+    await loadCollectedData('mediamap');
+}
+
+async function loadHealthPINModel() {
+    await loadModelStatus('healthpin');
+    await loadTrainingData('healthpin');
+    await loadDataSources('healthpin');
+    await loadCollectedData('healthpin');
+}
+
+async function loadHighlanderModel() {
+    await loadModelStatus('highlander');
+    await loadTrainingData('highlander');
+    await loadDataSources('highlander');
+    await loadCollectedData('highlander');
 }
 </script>
 

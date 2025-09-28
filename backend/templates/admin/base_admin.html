@@ -69,7 +69,7 @@
                                 <i class="bi bi-geo-alt me-2"></i>
                                 MediaMap
                             </a>
-                            <a href="{{ url_for('admin_healthpin') }}" class="nav-link {% if request.endpoint == 'admin_healthpin' %}active{% endif %}">
+                            <a href="{{ url_for('healthpin.healthpin_dashboard') }}" class="nav-link {% if request.endpoint == 'healthpin.healthpin_dashboard' %}active{% endif %}">
                                 <i class="bi bi-heart-pulse me-2"></i>
                                 HealthPIN
                             </a>
@@ -117,12 +117,6 @@
                             </a>
                         </li>
                         <!-- Create Users link removed - now integrated into Users page -->
-            <li class="nav-item">
-                <a href="{{ url_for('healthpin.healthpin_dashboard') }}" class="nav-link {% if request.endpoint == 'healthpin.healthpin_dashboard' %}active{% endif %}">
-                    <i class="bi bi-heart-pulse me-2"></i>
-                    HealthPIN
-                </a>
-            </li>
                     </ul>
                     
                     <!-- Additional Tools Submenu -->

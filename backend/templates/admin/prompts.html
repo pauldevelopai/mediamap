@@ -52,6 +52,9 @@
                     <button class="btn btn-outline-primary btn-sm me-2" onclick="refreshPrompts()">
                         <i class="bi bi-arrow-clockwise"></i> Refresh
                     </button>
+                    <button class="btn btn-outline-warning btn-sm me-2" onclick="checkDuplicates()">
+                        <i class="bi bi-search"></i> Check Duplicates
+                    </button>
                     <button class="btn btn-primary btn-sm" onclick="showAddPromptModal()">
                         <i class="bi bi-plus-circle"></i> Add Prompt
                     </button>
@@ -59,8 +62,49 @@
             </div>
             <div class="card-body">
                 <p class="text-muted mb-0">
-                    Manage all AI prompts used throughout the application. View, edit, and track which LLM providers and models are being used for each prompt.
+                    Manage all AI prompts used throughout the application. View, edit, and track which LLM providers and models are being used for each prompt. Only real, actively used prompts are shown here.
                 </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Usage Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Active Prompt Usage
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Currently Used Prompts:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success me-2"></i><strong>HIGHLANDER_SYSTEM_PROMPT_ANALYSIS</strong> - Media analysis system</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i><strong>HIGHLANDER_SYSTEM_PROMPT_CHAT</strong> - Chat system</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i><strong>HIGHLANDER_SYSTEM_PROMPT_SYNTHESIS</strong> - Organization synthesis</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i><strong>HIGHLANDER_SYSTEM_PROMPT_MEDIA_BIZ</strong> - Business consultant</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i><strong>DOC_SYSTEM_PROMPT_MAIN</strong> - HealthPIN main system</li>
+                            <li><i class="bi bi-check-circle text-success me-2"></i><strong>Custom Model System Prompt</strong> - Custom model training</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Usage Locations:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-gear text-primary me-2"></i><strong>MediaMap Chat</strong> - Uses chat and analysis prompts</li>
+                            <li><i class="bi bi-heart-pulse text-success me-2"></i><strong>HealthPIN Doc</strong> - Uses medical system prompts</li>
+                            <li><i class="bi bi-robot text-info me-2"></i><strong>Highlander AI</strong> - Uses business consultant prompts</li>
+                            <li><i class="bi bi-cpu text-warning me-2"></i><strong>Model Training</strong> - Uses custom model prompts</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Only prompts marked as "Active" are loaded and used by the application. Inactive prompts are ignored.
+                </div>
             </div>
         </div>
     </div>
@@ -196,6 +240,24 @@
                 <!-- Description -->
                 {% if prompt.description %}
                 <p class="card-text text-muted small mb-2">{{ prompt.description }}</p>
+                {% else %}
+                <p class="card-text text-muted small mb-2">
+                    {% if 'HIGHLANDER_SYSTEM_PROMPT_ANALYSIS' in prompt.name %}
+                        <i class="bi bi-search me-1"></i>Used for media analysis and content evaluation
+                    {% elif 'HIGHLANDER_SYSTEM_PROMPT_CHAT' in prompt.name %}
+                        <i class="bi bi-chat-dots me-1"></i>Used for general chat interactions with Highlander AI
+                    {% elif 'HIGHLANDER_SYSTEM_PROMPT_SYNTHESIS' in prompt.name %}
+                        <i class="bi bi-diagram-3 me-1"></i>Used for organization data synthesis and analysis
+                    {% elif 'HIGHLANDER_SYSTEM_PROMPT_MEDIA_BIZ' in prompt.name %}
+                        <i class="bi bi-briefcase me-1"></i>Used for business consulting and media strategy advice
+                    {% elif 'DOC_SYSTEM_PROMPT' in prompt.name %}
+                        <i class="bi bi-heart-pulse me-1"></i>Used for HealthPIN medical assistant interactions
+                    {% elif 'Custom Model System Prompt' in prompt.name %}
+                        <i class="bi bi-cpu me-1"></i>Used for custom model training and fine-tuning
+                    {% else %}
+                        <i class="bi bi-question-circle me-1"></i>Custom prompt - check usage context for details
+                    {% endif %}
+                </p>
                 {% endif %}
                 
                 <!-- Badges -->
@@ -907,6 +969,44 @@ function loadPerformanceData() {
                 element.innerHTML = '<div class="small text-muted">Error loading data</div>';
             });
     });
+}
+
+// Check for duplicate prompts
+async function checkDuplicates() {
+    try {
+        const response = await fetch('/admin/prompts/check-duplicates');
+        const result = await response.json();
+        
+        if (result.success) {
+            if (result.total_duplicates === 0) {
+                alert('✅ No duplicate prompts found! All prompts are unique.');
+            } else {
+                let message = `⚠️ Found ${result.total_duplicates} duplicate(s):\n\n`;
+                
+                if (Object.keys(result.name_duplicates).length > 0) {
+                    message += 'Name Duplicates:\n';
+                    for (const [name, prompts] of Object.entries(result.name_duplicates)) {
+                        message += `- "${name}": ${prompts.map(p => `ID ${p.id} (v${p.version})`).join(', ')}\n`;
+                    }
+                    message += '\n';
+                }
+                
+                if (Object.keys(result.content_duplicates).length > 0) {
+                    message += 'Content Duplicates:\n';
+                    for (const [content, prompts] of Object.entries(result.content_duplicates)) {
+                        message += `- Content: "${content}"\n  Prompts: ${prompts.map(p => `${p.name} (ID ${p.id})`).join(', ')}\n`;
+                    }
+                }
+                
+                alert(message);
+            }
+        } else {
+            alert('Error checking for duplicates: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error checking duplicates:', error);
+        alert('Error checking for duplicates. Please try again.');
+    }
 }
 
 // Initialize on page load

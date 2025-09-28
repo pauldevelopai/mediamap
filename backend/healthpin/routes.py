@@ -716,7 +716,7 @@ def get_health_news():
 # DASHBOARD ROUTES
 # ============================================================================
 
-@healthpin_bp.route('/dashboard')
+@healthpin_bp.route('/')
 @login_required
 def healthpin_dashboard():
     """HealthPIN dashboard page with real system data"""
