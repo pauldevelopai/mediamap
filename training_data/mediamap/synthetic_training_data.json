@@ -1,0 +1,18 @@
+[
+  {
+    "input": "How can I improve my social media engagement rates?",
+    "output": "To improve social media engagement rates: 1) Post consistently at optimal times for your audience, 2) Create interactive content like polls and questions, 3) Use relevant hashtags and trending topics, 4) Respond promptly to comments and messages, 5) Share user-generated content, 6) Post high-quality visuals and videos, 7) Tell authentic stories that resonate with your brand values."
+  },
+  {
+    "input": "What's the best way to track marketing attribution?",
+    "output": "Effective marketing attribution tracking involves: 1) Implement UTM parameters for all campaigns, 2) Use multi-touch attribution models, 3) Set up conversion tracking across all channels, 4) Utilize marketing analytics platforms like Google Analytics 4, 5) Consider incrementality testing, 6) Track both online and offline conversions, 7) Regular attribution model validation and optimization."
+  },
+  {
+    "input": "How do I calculate customer lifetime value for my business?",
+    "output": "Calculate Customer Lifetime Value (CLV) using: CLV = (Average Purchase Value × Purchase Frequency × Customer Lifespan). For subscription businesses: CLV = (Monthly Recurring Revenue × Gross Margin %) / Monthly Churn Rate. Consider factors like acquisition costs, retention rates, and upselling opportunities to optimize CLV."
+  },
+  {
+    "input": "What are effective content marketing strategies for B2B companies?",
+    "output": "B2B content marketing strategies include: 1) Create educational whitepapers and case studies, 2) Develop thought leadership content, 3) Use LinkedIn for professional networking, 4) Host webinars and virtual events, 5) Optimize for search with industry keywords, 6) Create solution-focused content addressing pain points, 7) Leverage email marketing for nurturing leads."
+  }
+]

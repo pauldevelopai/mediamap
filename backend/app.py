@@ -179,6 +179,7 @@ template_dir = os.path.join(backend_dir, 'templates')
 static_dir = os.path.join(backend_dir, 'static')
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Create instance directory if it doesn't exist
 os.makedirs('instance', exist_ok=True)
@@ -6996,21 +6997,39 @@ def collect_training_data():
         model_name = data.get('model', 'highlander')
         
         # Model-specific data collection
-        if model_name == 'mediamap':
-            # Collect MediaMap specific data
-            message = f'MediaMap data collection initiated - collecting media industry data, business insights, and user conversations'
-        elif model_name == 'healthpin':
-            # Collect HealthPIN specific data
-            message = f'HealthPIN data collection initiated - collecting medical research, patient data, and healthcare conversations'
+        if model_name in ['mediamap', 'healthpin']:
+            # Use enhanced domain-specific data collection
+            from training.enhanced_domain_collector import collect_enhanced_domain_data
+            from training.training_validator import validate_training_data
+            from training.feedback_integration import integrate_feedback
+            from datetime import datetime
+            import os
+            
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            db_path = os.path.join(basedir, "instance", "media_analysis.db")
+            data_dir = os.path.join(basedir, 'training_data', model_name)
+            
+            # Enhanced data collection
+            stats = collect_enhanced_domain_data(model_name, db_path)
+            
+            # Validate training data quality
+            validation_report = validate_training_data(model_name, data_dir)
+            
+            # Integrate user feedback for continuous improvement
+            feedback_integration = integrate_feedback(model_name, db_path)
+            
+            return jsonify({
+                'success': True,
+                'message': f'{model_name.title()} enhanced data collection completed successfully!',
+                'model': model_name,
+                'stats': stats,
+                'validation': validation_report,
+                'feedback_integration': feedback_integration,
+                'collected_at': datetime.now().isoformat()
+            })
         else:  # highlander
             # Use the real data collection function for general data
             return real_collect_training_data()
-        
-        return jsonify({
-            'success': True,
-            'message': message,
-            'model': model_name
-        })
         
     except Exception as e:
         return jsonify({
@@ -7033,77 +7052,114 @@ def start_training():
         
         data = request.get_json()
         model_name = data.get('model', 'highlander')
-        from training.model_trainer import HighlanderModelTrainer
-        from training.training_history import get_training_history
         
-        # Check if there's enough new data to warrant training
-        import os
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        data_dir = os.path.join(basedir, 'training', 'training_data')
-        
-        history = get_training_history()
-        retrain_analysis = history.should_retrain(data_dir, min_new_data_threshold=5)
-        
-        if not retrain_analysis['should_retrain']:
+        # Use OpenAI fine-tuning for MediaMap and HealthPIN
+        if model_name in ['mediamap', 'healthpin']:
+            from training.openai_trainer import train_model
+            
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            data_dir = os.path.join(basedir, 'training_data', model_name)
+            
+            # Check if data exists
+            if not os.path.exists(data_dir):
+                return jsonify({
+                    'success': False,
+                    'error': f'No training data found for {model_name}. Please collect data first.'
+                }), 400
+            
+            # Start training in background
+            import threading
+            
+            def start_openai_training():
+                try:
+                    result = train_model(model_name, data_dir)
+                    logger.info(f"Training result for {model_name}: {result}")
+                except Exception as e:
+                    logger.error(f"Training error for {model_name}: {e}")
+            
+            training_thread = threading.Thread(target=start_openai_training, daemon=True)
+            training_thread.start()
+            
             return jsonify({
-                'success': False,
-                'error': f'Not enough new data to warrant training. {retrain_analysis["reason"]}'
-            }), 400
+                'success': True,
+                'message': f'{model_name.title()} model training started using OpenAI fine-tuning!',
+                'model': model_name,
+                'training_type': 'openai_fine_tuning'
+            })
         
-        # Start training in background
-        import threading
-        
-        def train_model():
+        else:  # highlander - use existing implementation
+            from training.model_trainer import HighlanderModelTrainer
+            from training.training_history import get_training_history
+            
+            # Check if there's enough new data to warrant training
             import os
             basedir = os.path.abspath(os.path.dirname(__file__))
-            config_path = os.path.join(basedir, 'training', 'training_config.yaml')
             data_dir = os.path.join(basedir, 'training', 'training_data')
-            output_dir = os.path.join(basedir, 'training', 'models')
             
-            trainer = HighlanderModelTrainer(
-                config_path=config_path,
-                data_dir=data_dir,
-                output_dir=output_dir
-            )
-            model_path = trainer.train_model()
+            history = get_training_history()
+            retrain_analysis = history.should_retrain(data_dir, min_new_data_threshold=5)
             
-            # Record the training session
-            training_data_path = os.path.join(data_dir, 'processed', 'training_dataset.json')
-            training_stats = {
-                'total_examples': retrain_analysis['new_data']['total_tokens'],
-                'new_conversations': retrain_analysis['new_data']['conversations'],
-                'new_pdfs': retrain_analysis['new_data']['pdfs'],
-                'new_research': retrain_analysis['new_data']['research_papers'],
-                'new_feedback': retrain_analysis['new_data']['feedback_entries']
-            }
+            if not retrain_analysis['should_retrain']:
+                return jsonify({
+                    'success': False,
+                    'error': f'Not enough new data to warrant training. {retrain_analysis["reason"]}'
+                }), 400
             
-            history.record_training_session(
-                training_data_path=training_data_path,
-                model_path=model_path,
-                training_stats=training_stats
-            )
+            # Start training in background
+            import threading
             
-            print(f"Training completed: {model_path}")
-        
-        training_thread = threading.Thread(target=train_model, daemon=True)
-        training_thread.start()
-        
-        # Ensure thread cleanup
-        def cleanup_thread():
-            try:
-                training_thread.join(timeout=1)
-            except:
-                pass
-        
-        import atexit
-        atexit.register(cleanup_thread)
-        
-        return jsonify({
-            'success': True,
-            'message': f'{model_name} model training started in background. {retrain_analysis["reason"]}',
-            'model': model_name,
-            'retrain_analysis': retrain_analysis
-        })
+            def train_model():
+                import os
+                basedir = os.path.abspath(os.path.dirname(__file__))
+                config_path = os.path.join(basedir, 'training', 'training_config.yaml')
+                data_dir = os.path.join(basedir, 'training', 'training_data')
+                output_dir = os.path.join(basedir, 'training', 'models')
+                
+                trainer = HighlanderModelTrainer(
+                    config_path=config_path,
+                    data_dir=data_dir,
+                    output_dir=output_dir
+                )
+                model_path = trainer.train_model()
+                
+                # Record the training session
+                training_data_path = os.path.join(data_dir, 'processed', 'training_dataset.json')
+                training_stats = {
+                    'total_examples': retrain_analysis['new_data']['total_tokens'],
+                    'new_conversations': retrain_analysis['new_data']['conversations'],
+                    'new_pdfs': retrain_analysis['new_data']['pdfs'],
+                    'new_research': retrain_analysis['new_data']['research_papers'],
+                    'new_feedback': retrain_analysis['new_data']['feedback_entries']
+                }
+                
+                history.record_training_session(
+                    training_data_path=training_data_path,
+                    model_path=model_path,
+                    training_stats=training_stats
+                )
+                
+                print(f"Training completed: {model_path}")
+            
+            training_thread = threading.Thread(target=train_model, daemon=True)
+            training_thread.start()
+            
+            # Ensure thread cleanup
+            def cleanup_thread():
+                try:
+                    training_thread.join(timeout=1)
+                except:
+                    pass
+            
+            import atexit
+            atexit.register(cleanup_thread)
+            
+            return jsonify({
+                'success': True,
+                'message': f'{model_name} model training started in background. {retrain_analysis["reason"]}',
+                'model': model_name,
+                'retrain_analysis': retrain_analysis,
+                'training_type': 'custom_transformer'
+            })
     except Exception as e:
         return jsonify({
             'success': False,
@@ -8087,14 +8143,27 @@ def upload_training_pdf():
         if not file.filename.lower().endswith('.pdf'):
             return jsonify({'success': False, 'error': 'File must be a PDF'}), 400
         
-        # Create training data directory if it doesn't exist
+        # Get model name and description
+        model_name = request.form.get('model', 'general')
+        description = request.form.get('description', '')
+        
+        # Create model-specific directory
         import os
         basedir = os.path.abspath(os.path.dirname(__file__))
-        pdf_dir = os.path.join(basedir, 'training', 'training_data', 'pdfs')
+        
+        if model_name in ['mediamap', 'healthpin']:
+            # Use the new training_data structure
+            pdf_dir = os.path.join(basedir, '..', 'training_data', model_name, 'pdfs')
+        else:
+            # Use the old structure for backward compatibility
+            pdf_dir = os.path.join(basedir, 'training', 'training_data', 'pdfs')
+        
         os.makedirs(pdf_dir, exist_ok=True)
         
         # Save the PDF file
-        filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        safe_filename = "".join(c for c in file.filename if c.isalnum() or c in (' ', '-', '_', '.')).rstrip()
+        filename = f"{timestamp}_{model_name}_{safe_filename}"
         filepath = os.path.join(pdf_dir, filename)
         file.save(filepath)
         
@@ -8115,11 +8184,14 @@ def upload_training_pdf():
             
             return jsonify({
                 'success': True,
-                'message': f'PDF uploaded and processed successfully: {filename}',
+                'message': f'PDF uploaded and processed successfully for {model_name}',
                 'filename': filename,
                 'text_filename': text_filename,
+                'model': model_name,
                 'pages': len(pdf_reader.pages),
-                'text_length': len(text_content)
+                'text_length': len(text_content),
+                'description': description,
+                'uploaded_at': datetime.now().isoformat()
             })
             
         except Exception as e:
@@ -8771,19 +8843,41 @@ def get_training_data():
         model_name = request.args.get('model', 'highlander')
         
         # Get model-specific training data
-        if model_name == 'mediamap':
-            # MediaMap specific data
-            from backend.models import Chat, Message
-            conversations = Chat.query.filter(Chat.title.contains('MediaMap')).count()
-            pdfs = 2  # Placeholder for MediaMap PDFs
-            research_papers = 1  # Placeholder for media research
+        if model_name in ['mediamap', 'healthpin']:
+            # Check if training data exists
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            data_dir = os.path.join(basedir, 'training_data', model_name)
             
-        elif model_name == 'healthpin':
-            # HealthPIN specific data
-            from backend.healthpin.models import Patient, HealthRecord
-            conversations = Patient.query.count()  # Patient consultations
-            pdfs = 1  # Placeholder for medical PDFs
-            research_papers = 2  # Placeholder for medical research
+            conversations = 0
+            pdfs = 0
+            research_papers = 0
+            
+            # Count conversations
+            conv_file = os.path.join(data_dir, 'conversations', 'all_conversations.json')
+            if os.path.exists(conv_file):
+                with open(conv_file, 'r') as f:
+                    conv_data = json.load(f)
+                    conversations = len(conv_data)
+            
+            # Count PDFs
+            pdf_dir = os.path.join(data_dir, 'pdfs')
+            if os.path.exists(pdf_dir):
+                pdfs = len([f for f in os.listdir(pdf_dir) if f.endswith('.txt')])
+            
+            # Count research
+            research_file = os.path.join(data_dir, 'research', f'{model_name}_research.json')
+            if os.path.exists(research_file):
+                with open(research_file, 'r') as f:
+                    research_data = json.load(f)
+                    research_papers = len(research_data)
+            
+            # Check for synthetic data
+            synthetic_file = os.path.join(data_dir, 'synthetic_training_data.json')
+            synthetic_examples = 0
+            if os.path.exists(synthetic_file):
+                with open(synthetic_file, 'r') as f:
+                    synthetic_data = json.load(f)
+                    synthetic_examples = len(synthetic_data)
             
         else:  # highlander
             # Highlander general data
@@ -8791,15 +8885,163 @@ def get_training_data():
             conversations = Chat.query.count()
             pdfs = 2
             research_papers = 1
+            synthetic_examples = 0
         
         return jsonify({
             'success': True,
             'model_name': model_name,
-            'total_examples': conversations + pdfs + research_papers,
+            'total_examples': conversations + pdfs + research_papers + synthetic_examples,
             'conversations': conversations,
             'pdfs': pdfs,
             'research_papers': research_papers,
-            'last_updated': '2025-01-21 20:27:00'
+            'synthetic_examples': synthetic_examples,
+            'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/validate-data', methods=['POST'])
+@login_required
+@admin_required
+def validate_training_data_endpoint():
+    """Validate training data quality"""
+    try:
+        data = request.get_json()
+        model_name = data.get('model', 'highlander')
+        
+        if model_name in ['mediamap', 'healthpin']:
+            from training.training_validator import validate_training_data
+            import os
+            
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            data_dir = os.path.join(basedir, 'training_data', model_name)
+            
+            validation_report = validate_training_data(model_name, data_dir)
+            
+            return jsonify({
+                'success': True,
+                'validation_report': validation_report,
+                'model': model_name
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Validation not available for {model_name}'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/feedback-integration', methods=['POST'])
+@login_required
+@admin_required
+def integrate_feedback_endpoint():
+    """Integrate user feedback for continuous learning"""
+    try:
+        data = request.get_json()
+        model_name = data.get('model', 'highlander')
+        
+        if model_name in ['mediamap', 'healthpin']:
+            from training.feedback_integration import integrate_feedback
+            import os
+            
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            db_path = os.path.join(basedir, "instance", "media_analysis.db")
+            
+            feedback_results = integrate_feedback(model_name, db_path)
+            
+            return jsonify({
+                'success': True,
+                'feedback_integration': feedback_results,
+                'model': model_name
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Feedback integration not available for {model_name}'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/performance-evaluation', methods=['POST'])
+@login_required
+@admin_required
+def evaluate_model_performance_endpoint():
+    """Evaluate model performance"""
+    try:
+        data = request.get_json()
+        model_name = data.get('model', 'highlander')
+        model_id = data.get('model_id')
+        
+        if not model_id:
+            return jsonify({
+                'success': False,
+                'error': 'Model ID is required for performance evaluation'
+            }), 400
+        
+        if model_name in ['mediamap', 'healthpin']:
+            from training.training_validator import evaluate_model_performance
+            import os
+            
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            data_dir = os.path.join(basedir, 'training_data', model_name)
+            
+            performance_report = evaluate_model_performance(model_name, model_id, data_dir)
+            
+            return jsonify({
+                'success': True,
+                'performance_report': performance_report,
+                'model': model_name,
+                'model_id': model_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Performance evaluation not available for {model_name}'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/training/model-status')
+@login_required
+@admin_required
+def get_model_status():
+    """Get model status for specific model"""
+    try:
+        model_name = request.args.get('model', 'highlander')
+        
+        if model_name in ['mediamap', 'healthpin']:
+            from training.openai_trainer import get_model_status
+            status = get_model_status(model_name)
+        else:
+            # Default status for highlander
+            status = {
+                'model_loaded': False,
+                'training_examples': 0,
+                'last_training': 'Never',
+                'accuracy': 'N/A',
+                'openai_available': True
+            }
+        
+        return jsonify({
+            'success': True,
+            'model_name': model_name,
+            **status
         })
         
     except Exception as e:
@@ -8816,7 +9058,27 @@ def get_training_progress():
     try:
         model_name = request.args.get('model', 'highlander')
         
-        # Simulate training progress (in real implementation, this would check actual training status)
+        if model_name in ['mediamap', 'healthpin']:
+            from training.openai_trainer import get_training_status
+            status = get_training_status(model_name)
+            
+            if status.get('success'):
+                return jsonify({
+                    'success': True,
+                    'model_name': model_name,
+                    'status': status.get('status', 'unknown'),
+                    'completed': status.get('completed', False),
+                    'progress': 100 if status.get('completed') else 50,
+                    'job_id': status.get('job_id'),
+                    'model_id': status.get('model_id')
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': status.get('error', 'Unknown error')
+                })
+        
+        # Simulate training progress for highlander
         import random
         progress = random.randint(0, 100)
         completed = progress >= 100

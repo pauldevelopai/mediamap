@@ -100,7 +100,7 @@
                             <div class="col-12">
                                 <h6><i class="bi bi-collection me-2"></i>Data Sources</h6>
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card border-primary">
                                             <div class="card-body text-center">
                                                 <i class="bi bi-newspaper fa-2x text-primary mb-2"></i>
@@ -109,7 +109,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card border-primary">
                                             <div class="card-body text-center">
                                                 <i class="bi bi-graph-up fa-2x text-primary mb-2"></i>
@@ -118,12 +118,63 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card border-primary">
                                             <div class="card-body text-center">
                                                 <i class="bi bi-people fa-2x text-primary mb-2"></i>
                                                 <h6>User Conversations</h6>
                                                 <small class="text-muted">MediaMap chat interactions</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border-primary">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-file-earmark-pdf fa-2x text-primary mb-2"></i>
+                                                <h6>PDF Documents</h6>
+                                                <small class="text-muted">Upload training PDFs</small>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-outline-primary btn-sm" onclick="showPDFUpload('mediamap')">
+                                                        <i class="bi bi-upload me-1"></i>Upload PDF
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PDF Upload Section -->
+                        <div class="row mt-4" id="mediamap-pdf-upload" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-upload me-2"></i>Upload PDF Documents for MediaMap Training</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="mediamap-pdf-form" enctype="multipart/form-data">
+                                            <div class="mb-3">
+                                                <label for="mediamap-pdf-file" class="form-label">Select PDF File(s)</label>
+                                                <input type="file" class="form-control" id="mediamap-pdf-file" name="pdf_file" accept=".pdf" multiple>
+                                                <div class="form-text">Upload PDF documents related to media, marketing, or business strategy.</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="mediamap-pdf-description" class="form-label">Description (Optional)</label>
+                                                <textarea class="form-control" id="mediamap-pdf-description" name="description" rows="2" placeholder="Brief description of the PDF content..."></textarea>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-upload me-1"></i>Upload PDF
+                                                </button>
+                                                <button type="button" class="btn btn-secondary" onclick="hidePDFUpload('mediamap')">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                        <div id="mediamap-upload-progress" class="mt-3" style="display: none;">
+                                            <div class="progress">
+                                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -195,7 +246,7 @@
                             <div class="col-12">
                                 <h6><i class="bi bi-collection me-2"></i>Data Sources</h6>
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card border-success">
                                             <div class="card-body text-center">
                                                 <i class="bi bi-heart-pulse fa-2x text-success mb-2"></i>
@@ -204,7 +255,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card border-success">
                                             <div class="card-body text-center">
                                                 <i class="bi bi-file-medical fa-2x text-success mb-2"></i>
@@ -213,12 +264,63 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="card border-success">
                                             <div class="card-body text-center">
                                                 <i class="bi bi-chat-dots fa-2x text-success mb-2"></i>
                                                 <h6>Doc Conversations</h6>
                                                 <small class="text-muted">Healthcare chat interactions</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border-success">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-file-earmark-pdf fa-2x text-success mb-2"></i>
+                                                <h6>Medical PDFs</h6>
+                                                <small class="text-muted">Upload medical documents</small>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-outline-success btn-sm" onclick="showPDFUpload('healthpin')">
+                                                        <i class="bi bi-upload me-1"></i>Upload PDF
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PDF Upload Section -->
+                        <div class="row mt-4" id="healthpin-pdf-upload" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-success">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0"><i class="bi bi-upload me-2"></i>Upload PDF Documents for HealthPIN Training</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="healthpin-pdf-form" enctype="multipart/form-data">
+                                            <div class="mb-3">
+                                                <label for="healthpin-pdf-file" class="form-label">Select PDF File(s)</label>
+                                                <input type="file" class="form-control" id="healthpin-pdf-file" name="pdf_file" accept=".pdf" multiple>
+                                                <div class="form-text">Upload PDF documents related to healthcare, medical research, or clinical guidelines.</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="healthpin-pdf-description" class="form-label">Description (Optional)</label>
+                                                <textarea class="form-control" id="healthpin-pdf-description" name="description" rows="2" placeholder="Brief description of the medical PDF content..."></textarea>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="bi bi-upload me-1"></i>Upload PDF
+                                                </button>
+                                                <button type="button" class="btn btn-secondary" onclick="hidePDFUpload('healthpin')">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                        <div id="healthpin-upload-progress" class="mt-3" style="display: none;">
+                                            <div class="progress">
+                                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -710,5 +812,124 @@ function createToastContainer() {
     document.body.appendChild(container);
     return container;
 }
+
+// PDF Upload Functions
+function showPDFUpload(modelName) {
+    const uploadSection = document.getElementById(`${modelName}-pdf-upload`);
+    if (uploadSection) {
+        uploadSection.style.display = 'block';
+        uploadSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function hidePDFUpload(modelName) {
+    const uploadSection = document.getElementById(`${modelName}-pdf-upload`);
+    if (uploadSection) {
+        uploadSection.style.display = 'none';
+        // Reset form
+        const form = document.getElementById(`${modelName}-pdf-form`);
+        if (form) {
+            form.reset();
+        }
+    }
+}
+
+async function uploadPDF(modelName, formData) {
+    const progressDiv = document.getElementById(`${modelName}-upload-progress`);
+    const progressBar = progressDiv.querySelector('.progress-bar');
+    
+    try {
+        progressDiv.style.display = 'block';
+        progressBar.style.width = '10%';
+        
+        const response = await fetch('/admin/training/upload-pdf', {
+            method: 'POST',
+            body: formData
+        });
+        
+        progressBar.style.width = '90%';
+        
+        const result = await response.json();
+        
+        progressBar.style.width = '100%';
+        
+        if (result.success) {
+            showToast(`PDF uploaded successfully for ${modelName}!`, 'success');
+            
+            // Hide upload section and reset form
+            setTimeout(() => {
+                hidePDFUpload(modelName);
+                progressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+            }, 1000);
+            
+            // Refresh training data
+            await loadTrainingData(modelName);
+            
+        } else {
+            throw new Error(result.error || 'Upload failed');
+        }
+        
+    } catch (error) {
+        progressDiv.style.display = 'none';
+        progressBar.style.width = '0%';
+        showToast(`Error uploading PDF: ${error.message}`, 'error');
+    }
+}
+
+// Initialize PDF upload forms
+document.addEventListener('DOMContentLoaded', function() {
+    // MediaMap PDF form
+    const mediamapForm = document.getElementById('mediamap-pdf-form');
+    if (mediamapForm) {
+        mediamapForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('mediamap-pdf-file');
+            const descriptionInput = document.getElementById('mediamap-pdf-description');
+            
+            if (!fileInput.files.length) {
+                showToast('Please select at least one PDF file', 'error');
+                return;
+            }
+            
+            // Process each file
+            for (const file of fileInput.files) {
+                const formData = new FormData();
+                formData.append('pdf_file', file);
+                formData.append('description', descriptionInput.value);
+                formData.append('model', 'mediamap');
+                
+                await uploadPDF('mediamap', formData);
+            }
+        });
+    }
+    
+    // HealthPIN PDF form
+    const healthpinForm = document.getElementById('healthpin-pdf-form');
+    if (healthpinForm) {
+        healthpinForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('healthpin-pdf-file');
+            const descriptionInput = document.getElementById('healthpin-pdf-description');
+            
+            if (!fileInput.files.length) {
+                showToast('Please select at least one PDF file', 'error');
+                return;
+            }
+            
+            // Process each file
+            for (const file of fileInput.files) {
+                const formData = new FormData();
+                formData.append('pdf_file', file);
+                formData.append('description', descriptionInput.value);
+                formData.append('model', 'healthpin');
+                
+                await uploadPDF('healthpin', formData);
+            }
+        });
+    }
+});
 </script>
 {% endblock %}

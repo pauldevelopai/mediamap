@@ -1,0 +1,167 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}MediaMap | MediaMap{% endblock %}
+
+{% block header %}MediaMap{% endblock %}
+
+{% block extra_css %}
+<style>
+.border-purple {
+    border-left: 4px solid #6f42c1 !important;
+}
+.text-purple {
+    color: #6f42c1 !important;
+}
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+.btn-outline-purple {
+    color: #6f42c1;
+    border-color: #6f42c1;
+}
+.btn-outline-purple:hover {
+    color: #fff;
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Clean Bootstrap Tab System -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="mainTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="organizations-tab" data-bs-toggle="tab" data-bs-target="#organizations" type="button" role="tab">
+                                <i class="bi bi-building"></i> Organizations
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients" type="button" role="tab">
+                                <i class="bi bi-people"></i> Clients
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="research-tab" data-bs-toggle="tab" data-bs-target="#research" type="button" role="tab">
+                                <i class="bi bi-search"></i> Research
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="discovery-tab" data-bs-toggle="tab" data-bs-target="#discovery" type="button" role="tab">
+                                <i class="bi bi-search-heart"></i> Organization Discovery
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="people-tab" data-bs-toggle="tab" data-bs-target="#people" type="button" role="tab">
+                                <i class="bi bi-person"></i> People
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="mainTabContent">
+                        
+                        <!-- Organizations Tab -->
+                        <div class="tab-pane fade show active" id="organizations" role="tabpanel">
+                            <div class="container-fluid">
+                                <h4><i class="bi bi-building"></i> Organizations</h4>
+                                <p class="text-muted">Manage your organizations and newsrooms here.</p>
+                                <div class="alert alert-success">
+                                    <strong>✅ Organizations tab is working!</strong> This is a clean Bootstrap implementation.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clients Tab -->
+                        <div class="tab-pane fade" id="clients" role="tabpanel">
+                            <div class="container-fluid">
+                                <h4><i class="bi bi-people"></i> Clients</h4>
+                                <p class="text-muted">Manage your consulting clients here.</p>
+                                <div class="alert alert-success">
+                                    <strong>✅ Clients tab is working!</strong> This is a clean Bootstrap implementation.
+                                </div>
+                                
+                                <!-- Client Statistics -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <div class="card border-primary">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-primary">Media Companies</h6>
+                                                <h4 class="text-primary">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border-success">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-success">Tech Startups</h6>
+                                                <h4 class="text-success">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border-warning">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-warning">Non-Profits</h6>
+                                                <h4 class="text-warning">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card border-info">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-info">Government</h6>
+                                                <h4 class="text-info">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Research Tab -->
+                        <div class="tab-pane fade" id="research" role="tabpanel">
+                            <div class="container-fluid">
+                                <h4><i class="bi bi-search"></i> Research</h4>
+                                <p class="text-muted">Manage your research projects here.</p>
+                                <div class="alert alert-success">
+                                    <strong>✅ Research tab is working!</strong> This is a clean Bootstrap implementation.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Discovery Tab -->
+                        <div class="tab-pane fade" id="discovery" role="tabpanel">
+                            <div class="container-fluid">
+                                <h4><i class="bi bi-search-heart"></i> Organization Discovery</h4>
+                                <p class="text-muted">Discover new organizations using AI-powered search.</p>
+                                <div class="alert alert-success">
+                                    <strong>✅ Organization Discovery tab is working!</strong> This is a clean Bootstrap implementation.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- People Tab -->
+                        <div class="tab-pane fade" id="people" role="tabpanel">
+                            <div class="container-fluid">
+                                <h4><i class="bi bi-person"></i> People</h4>
+                                <p class="text-muted">Manage your contacts and people here.</p>
+                                <div class="alert alert-success">
+                                    <strong>✅ People tab is working!</strong> This is a clean Bootstrap implementation.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

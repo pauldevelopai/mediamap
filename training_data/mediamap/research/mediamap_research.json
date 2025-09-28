@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What are the key metrics for measuring digital marketing ROI?",
+    "answer": "Key digital marketing ROI metrics include: Cost Per Acquisition (CPA), Customer Lifetime Value (CLV), Return on Ad Spend (ROAS), Click-Through Rate (CTR), Conversion Rate, and Attribution modeling across touchpoints."
+  },
+  {
+    "question": "How do you optimize content for different social media platforms?",
+    "answer": "Platform optimization involves: Instagram - visual storytelling with hashtags; LinkedIn - professional insights and industry content; Twitter - real-time engagement and trending topics; Facebook - community building and detailed targeting; TikTok - short-form creative content with trending sounds."
+  },
+  {
+    "question": "What are effective strategies for brand awareness campaigns?",
+    "answer": "Effective brand awareness strategies include: consistent visual identity across channels, influencer partnerships, content marketing, social media engagement, PR initiatives, event marketing, and targeted advertising with broad reach objectives."
+  },
+  {
+    "question": "How do you measure campaign effectiveness across multiple channels?",
+    "answer": "Multi-channel campaign measurement requires: unified tracking with UTM parameters, cross-device attribution modeling, marketing mix modeling, incrementality testing, and integrated analytics platforms that provide holistic performance views."
+  },
+  {
+    "question": "What are best practices for audience segmentation?",
+    "answer": "Audience segmentation best practices include: demographic analysis, behavioral tracking, psychographic profiling, purchase history analysis, engagement patterns, lookalike modeling, and dynamic segmentation based on real-time data."
+  }
+]
