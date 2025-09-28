@@ -1,0 +1,24 @@
+{
+  "model_name": "mediamap",
+  "collection_date": "2025-09-28T23:47:52.962197",
+  "data_sources": {
+    "real_conversations": 0,
+    "highlander_conversations": 17,
+    "healthpin_conversations": 0,
+    "pdfs": 0,
+    "research_papers": 0,
+    "feedback_entries": 0,
+    "augmented_examples": 0
+  },
+  "quality_metrics": {
+    "total_examples": 17,
+    "quality_score": 1.0,
+    "quality_filtered": 0,
+    "duplicates_removed": 0
+  },
+  "recommendations": [
+    "Consider collecting more training examples (target: 100+ examples)",
+    "Add more real user conversations from the database",
+    "Implement user feedback collection for continuous improvement"
+  ]
+}

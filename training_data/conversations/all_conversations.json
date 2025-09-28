@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "chat_id": 1,
+    "user_id": "1",
+    "username": "admin",
+    "title": "Hello, can you help me with media analysis?",
+    "created_at": "2025-09-24 13:17:57.554737",
+    "fact_sheet": null,
+    "strategies": null,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello, can you help me with media analysis?",
+        "timestamp": "2025-09-24 13:17:57.557001"
+      },
+      {
+        "role": "user",
+        "content": "Hello, can you help me with media analysis?",
+        "timestamp": "2025-09-24 13:19:52.393137"
+      }
+    ]
+  }
+]

@@ -6810,7 +6810,10 @@ def update_feedback_status(feedback_id):
 @admin_required
 def admin_training():
     """Admin page for AI model training management"""
-    return render_template('admin/training_enhanced.html')
+    # Force template reload for debugging
+    from flask import current_app
+    current_app.jinja_env.cache = {}
+    return render_template('admin/training.html')
 
 # ===== Implementation Plans =====
 @app.route('/admin/plans')
@@ -7348,29 +7351,28 @@ def model_status():
     try:
         model_name = request.args.get('model', 'highlander')
         
-        try:
-            from backend.training.model_factory import get_mediamap_model_manager
-            from backend.training.training_history import get_training_history
-        except ImportError:
-            return jsonify({
-                'success': False,
-                'error': 'Training module not available'
-            }), 500
+        # Simple fallback status for all models
+        status = {
+            'model_loaded': False,
+            'training_examples': 0,
+            'last_training': 'Never',
+            'accuracy': 'N/A',
+            'openai_available': bool(os.getenv('OPENAI_API_KEY'))
+        }
         
-        manager = get_mediamap_model_manager()
-        model_info = manager.get_model_info()
-        performance_metrics = manager.get_performance_metrics()
-        
-        # Get training history
-        history = get_training_history()
-        training_summary = history.get_training_summary()
+        # Try to get enhanced status for mediamap/healthpin
+        if model_name in ['mediamap', 'healthpin']:
+            try:
+                from backend.training.openai_trainer import get_model_status
+                enhanced_status = get_model_status(model_name)
+                status.update(enhanced_status)
+            except Exception as e:
+                print(f"Could not get enhanced status for {model_name}: {e}")
         
         return jsonify({
             'success': True,
             'model_name': model_name,
-            'model_info': model_info,
-            'performance_metrics': performance_metrics,
-            'training_summary': training_summary
+            **status
         })
     except Exception as e:
         return jsonify({
@@ -8846,7 +8848,7 @@ def get_training_data():
         if model_name in ['mediamap', 'healthpin']:
             # Check if training data exists
             basedir = os.path.abspath(os.path.dirname(__file__))
-            data_dir = os.path.join(basedir, 'training_data', model_name)
+            data_dir = os.path.join(basedir, '..', 'training_data', model_name)
             
             conversations = 0
             pdfs = 0
@@ -9017,17 +9019,28 @@ def evaluate_model_performance_endpoint():
             'error': str(e)
         }), 500
 
-@app.route('/admin/training/model-status')
+@app.route('/admin/training/model-status-new')
 @login_required
 @admin_required
-def get_model_status():
+def get_model_status_new():
     """Get model status for specific model"""
     try:
         model_name = request.args.get('model', 'highlander')
         
         if model_name in ['mediamap', 'healthpin']:
-            from training.openai_trainer import get_model_status
-            status = get_model_status(model_name)
+            try:
+                from backend.training.openai_trainer import get_model_status
+                status = get_model_status(model_name)
+            except ImportError as ie:
+                # Fallback if openai_trainer is not available
+                status = {
+                    'model_loaded': False,
+                    'training_examples': 0,
+                    'last_training': 'Never',
+                    'accuracy': 'N/A',
+                    'openai_available': bool(os.getenv('OPENAI_API_KEY')),
+                    'error': f'OpenAI trainer not available: {str(ie)}'
+                }
         else:
             # Default status for highlander
             status = {
@@ -9035,7 +9048,7 @@ def get_model_status():
                 'training_examples': 0,
                 'last_training': 'Never',
                 'accuracy': 'N/A',
-                'openai_available': True
+                'openai_available': bool(os.getenv('OPENAI_API_KEY'))
             }
         
         return jsonify({

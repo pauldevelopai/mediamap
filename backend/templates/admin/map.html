@@ -351,99 +351,972 @@
 
                         <!-- Research Tab -->
                         <div class="tab-pane fade" id="research" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-search"></i> Research</h4>
-                                <p class="text-muted">Manage your research projects here.</p>
-                                <div class="alert alert-success">
-                                    <strong>✅ Research tab is working!</strong> This is a clean Bootstrap implementation.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-journal-text"></i> Research Projects</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="addNewResearchProject()">
+                                        <i class="bi bi-plus-circle"></i> New Research Project
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="uploadResearchReport()">
+                                        <i class="bi bi-upload"></i> Upload Report
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Research Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Active Projects</h6>
+                                            <h4 class="text-info" id="active-research-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Completed</h6>
+                                            <h4 class="text-success" id="completed-research-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-warning">In Review</h6>
+                                            <h4 class="text-warning" id="review-research-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Total Projects</h6>
+                                            <h4 class="text-primary" id="total-research-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Research Projects Table -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Research Projects</h6>
+                                        <div class="input-group" style="width: 300px;">
+                                            <input type="text" class="form-control" id="researchSearch" placeholder="Search projects...">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="searchResearch()">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Project Title</th>
+                                                    <th>Type</th>
+                                                    <th>Status</th>
+                                                    <th>Progress</th>
+                                                    <th>Due Date</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="research-table-body">
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted">
+                                                        <i class="bi bi-journal-text" style="font-size: 2rem;"></i>
+                                                        <p class="mt-2">No research projects yet. Create your first research project!</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Organization Discovery Tab -->
                         <div class="tab-pane fade" id="discovery" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-search-heart"></i> Organization Discovery</h4>
-                                <p class="text-muted">Discover new organizations using AI-powered search.</p>
-                                <div class="alert alert-success">
-                                    <strong>✅ Organization Discovery tab is working!</strong> This is a clean Bootstrap implementation.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-search-heart"></i> Organization Discovery</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="startDiscoveryScan()">
+                                        <i class="bi bi-play-circle"></i> Start Discovery Scan
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Discovery Controls -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card border-primary">
+                                        <div class="card-header">
+                                            <h6 class="mb-0"><i class="bi bi-search"></i> Search Parameters</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="searchKeywords" class="form-label">Keywords</label>
+                                                <input type="text" class="form-control" id="searchKeywords" 
+                                                       placeholder="e.g., AI adoption, digital transformation, media innovation">
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label for="searchSector" class="form-label">Sector</label>
+                                                    <select class="form-select" id="searchSector">
+                                                        <option value="">All Sectors</option>
+                                                        <option value="Media">Media</option>
+                                                        <option value="Communications">Communications</option>
+                                                        <option value="Technology">Technology</option>
+                                                        <option value="Consulting">Consulting</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="searchRegion" class="form-label">Region</label>
+                                                    <select class="form-select" id="searchRegion">
+                                                        <option value="">All Regions</option>
+                                                        <option value="North America">North America</option>
+                                                        <option value="Europe">Europe</option>
+                                                        <option value="Asia Pacific">Asia Pacific</option>
+                                                        <option value="Latin America">Latin America</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-primary w-100 mt-3" onclick="searchOrganizations()">
+                                                <i class="bi bi-search"></i> Search Organizations
+                                            </button>
+                                            <button class="btn btn-outline-secondary w-100 mt-2" onclick="clearDiscoveryResults()">
+                                                <i class="bi bi-x-circle"></i> Clear Results
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-header">
+                                            <h6 class="mb-0"><i class="bi bi-robot"></i> AI-Powered Discovery</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="aiPrompt" class="form-label">AI Discovery Prompt</label>
+                                                <textarea class="form-control" id="aiPrompt" rows="3" 
+                                                          placeholder="Describe the type of organizations you want to discover...">Find media organizations and communications agencies that are actively adopting AI tools and digital transformation strategies. Focus on companies with recent AI initiatives, innovation programs, or technology partnerships.</textarea>
+                                            </div>
+                                            <button class="btn btn-success w-100" onclick="aiDiscovery()">
+                                                <i class="bi bi-magic"></i> AI Discovery
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Discovery Results -->
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-list-ul"></i> Discovery Results</h6>
+                                    <div>
+                                        <span class="badge bg-primary me-2" id="discoveryCount">0</span>
+                                        <button class="btn btn-sm btn-outline-success me-2" onclick="refreshDiscoveryResults()">
+                                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="exportDiscoveryResults()">
+                                            <i class="bi bi-download"></i> Export
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="discoveryResultsTable">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th><input type="checkbox" id="selectAllOrgs" onchange="toggleAllOrganizations()"></th>
+                                                    <th>Organization</th>
+                                                    <th>Source</th>
+                                                    <th>Relevance Score</th>
+                                                    <th>AI Signals</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="discoveryResultsBody">
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted">
+                                                        <i class="bi bi-search-heart"></i>
+                                                        <p class="mt-2">No discovery results yet. Start a search or AI discovery to find new organizations.</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- People Tab -->
                         <div class="tab-pane fade" id="people" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-person"></i> People</h4>
-                                <p class="text-muted">Manage your contacts and people here.</p>
-                                <div class="alert alert-success">
-                                    <strong>✅ People tab is working!</strong> This is a clean Bootstrap implementation.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-people"></i> People Management</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="addNewPerson()">
+                                        <i class="bi bi-person-plus"></i> Add Person
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="importContacts()">
+                                        <i class="bi bi-upload"></i> Import Contacts
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- People Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Total People</h6>
+                                            <h4 class="text-primary" id="total-people-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Active Contacts</h6>
+                                            <h4 class="text-success" id="active-people-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Organizations</h6>
+                                            <h4 class="text-info" id="people-orgs-count">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- People Table -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">All People</h6>
+                                        <div class="input-group" style="width: 300px;">
+                                            <input type="text" class="form-control" id="peopleSearch" placeholder="Search people...">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="searchPeople()">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Role</th>
+                                                    <th>Organization</th>
+                                                    <th>Expertise</th>
+                                                    <th>Contact</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="people-table-body">
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted">
+                                                        <i class="bi bi-people" style="font-size: 2rem;"></i>
+                                                        <p class="mt-2">No people added yet. Add your first contact!</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- AI Policies Tab -->
                         <div class="tab-pane fade" id="ai-policies" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-shield-check"></i> AI Policies</h4>
-                                <p class="text-muted">Manage AI policies and governance frameworks.</p>
-                                <div class="alert alert-info">
-                                    <strong>🔧 AI Policies tab ready!</strong> Functionality will be added next.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-shield-check"></i> AI Policies & Governance</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="createNewPolicy()">
+                                        <i class="bi bi-plus-circle"></i> New Policy
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="importPolicyTemplate()">
+                                        <i class="bi bi-upload"></i> Import Template
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Policy Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Active Policies</h6>
+                                            <h4 class="text-primary" id="active-policies">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-warning">Under Review</h6>
+                                            <h4 class="text-warning" id="review-policies">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Compliance Rate</h6>
+                                            <h4 class="text-success" id="compliance-rate">0%</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Last Updated</h6>
+                                            <h4 class="text-info" id="last-updated">-</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Policy Categories -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-primary h-100" onclick="filterPolicies('ethics')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-heart text-primary" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">AI Ethics</h6>
+                                            <p class="small text-muted">Ethical guidelines and principles</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success h-100" onclick="filterPolicies('data')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-database text-success" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Data Governance</h6>
+                                            <p class="small text-muted">Data privacy and security policies</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning h-100" onclick="filterPolicies('usage')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-gear text-warning" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Usage Guidelines</h6>
+                                            <p class="small text-muted">AI tool usage and best practices</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Policies Table -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Policy Documents</h6>
+                                        <div class="input-group" style="width: 300px;">
+                                            <input type="text" class="form-control" id="policySearch" placeholder="Search policies...">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="searchPolicies()">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Policy Name</th>
+                                                    <th>Category</th>
+                                                    <th>Version</th>
+                                                    <th>Status</th>
+                                                    <th>Last Updated</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="policies-table-body">
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted">
+                                                        <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+                                                        <p class="mt-2">No policies created yet. Create your first AI policy!</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- AI Prototyping Tab -->
                         <div class="tab-pane fade" id="ai-prototyping" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-cpu"></i> AI Prototyping</h4>
-                                <p class="text-muted">Prototype and test AI solutions.</p>
-                                <div class="alert alert-info">
-                                    <strong>🔧 AI Prototyping tab ready!</strong> Functionality will be added next.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-cpu"></i> AI Prototyping Lab</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="createNewPrototype()">
+                                        <i class="bi bi-plus-circle"></i> New Prototype
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="importPrototype()">
+                                        <i class="bi bi-upload"></i> Import Project
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Prototype Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Active Prototypes</h6>
+                                            <h4 class="text-primary" id="active-prototypes">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Completed</h6>
+                                            <h4 class="text-success" id="completed-prototypes">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-warning">In Testing</h6>
+                                            <h4 class="text-warning" id="testing-prototypes">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Success Rate</h6>
+                                            <h4 class="text-info" id="success-rate">0%</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prototype Categories -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-primary h-100" onclick="filterPrototypes('nlp')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-chat-text text-primary" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">NLP & Text</h6>
+                                            <p class="small text-muted">Natural language processing prototypes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success h-100" onclick="filterPrototypes('vision')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-eye text-success" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Computer Vision</h6>
+                                            <p class="small text-muted">Image and video analysis prototypes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning h-100" onclick="filterPrototypes('automation')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-robot text-warning" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Automation</h6>
+                                            <p class="small text-muted">Workflow and process automation</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prototypes Table -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Prototype Projects</h6>
+                                        <div class="input-group" style="width: 300px;">
+                                            <input type="text" class="form-control" id="prototypeSearch" placeholder="Search prototypes...">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="searchPrototypes()">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Project Name</th>
+                                                    <th>Type</th>
+                                                    <th>Status</th>
+                                                    <th>Progress</th>
+                                                    <th>Last Updated</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="prototypes-table-body">
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted">
+                                                        <i class="bi bi-cpu" style="font-size: 2rem;"></i>
+                                                        <p class="mt-2">No prototypes created yet. Start your first AI prototype!</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- AI News Tab -->
                         <div class="tab-pane fade" id="ai-news" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-newspaper"></i> AI News</h4>
-                                <p class="text-muted">Latest AI news and industry updates.</p>
-                                <div class="alert alert-info">
-                                    <strong>🔧 AI News tab ready!</strong> Functionality will be added next.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-newspaper"></i> AI News & Updates</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="refreshNews()">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh News
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="saveNewsArticle()">
+                                        <i class="bi bi-bookmark"></i> Save Article
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- News Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Today's Articles</h6>
+                                            <h4 class="text-primary" id="today-articles">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Saved Articles</h6>
+                                            <h4 class="text-success" id="saved-articles">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-warning">Trending Topics</h6>
+                                            <h4 class="text-warning" id="trending-topics">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Sources</h6>
+                                            <h4 class="text-info" id="news-sources">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- News Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <select class="form-select" id="newsCategory" onchange="filterNews()">
+                                        <option value="">All Categories</option>
+                                        <option value="ai-research">AI Research</option>
+                                        <option value="industry-news">Industry News</option>
+                                        <option value="product-launches">Product Launches</option>
+                                        <option value="funding">Funding & Investments</option>
+                                        <option value="regulations">Regulations</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="newsSource" onchange="filterNews()">
+                                        <option value="">All Sources</option>
+                                        <option value="techcrunch">TechCrunch</option>
+                                        <option value="venturebeat">VentureBeat</option>
+                                        <option value="arxiv">ArXiv</option>
+                                        <option value="mit-news">MIT News</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="newsSearch" placeholder="Search news..." onkeyup="searchNews()">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" onclick="clearNewsFilters()">
+                                        <i class="bi bi-x-circle"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- News Articles Grid -->
+                            <div class="row" id="news-grid">
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="bi bi-newspaper" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">Loading AI News...</h5>
+                                    <p>Fetching the latest AI news and updates for you!</p>
+                                    <button class="btn btn-primary" onclick="refreshNews()">
+                                        <i class="bi bi-arrow-clockwise"></i> Load News
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Create AI Content Tab -->
                         <div class="tab-pane fade" id="create-ai-content" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-magic"></i> Create AI Content</h4>
-                                <p class="text-muted">Generate AI-powered content and materials.</p>
-                                <div class="alert alert-info">
-                                    <strong>🔧 Create AI Content tab ready!</strong> Functionality will be added next.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-magic"></i> AI Content Generator</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="showContentTemplates()">
+                                        <i class="bi bi-file-earmark-text"></i> Templates
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="saveContentDraft()">
+                                        <i class="bi bi-save"></i> Save Draft
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Content Generation Options -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-primary h-100" onclick="selectContentType('article')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-file-earmark-text text-primary" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Articles & Blogs</h6>
+                                            <p class="small text-muted">Generate articles, blog posts, and written content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success h-100" onclick="selectContentType('social')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-share text-success" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Social Media</h6>
+                                            <p class="small text-muted">Create posts, captions, and social content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning h-100" onclick="selectContentType('presentation')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-easel text-warning" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Presentations</h6>
+                                            <p class="small text-muted">Generate slides, outlines, and presentation content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info h-100" onclick="selectContentType('email')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-envelope text-info" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Email & Marketing</h6>
+                                            <p class="small text-muted">Create emails, newsletters, and marketing copy</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Content Generation Form -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="bi bi-magic"></i> Generate Content</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="contentType" class="form-label">Content Type</label>
+                                                <select class="form-select" id="contentType">
+                                                    <option value="">Select Content Type</option>
+                                                    <option value="article">Article/Blog Post</option>
+                                                    <option value="social-post">Social Media Post</option>
+                                                    <option value="email">Email</option>
+                                                    <option value="presentation">Presentation Outline</option>
+                                                    <option value="press-release">Press Release</option>
+                                                    <option value="newsletter">Newsletter</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="contentTone" class="form-label">Tone & Style</label>
+                                                <select class="form-select" id="contentTone">
+                                                    <option value="professional">Professional</option>
+                                                    <option value="casual">Casual</option>
+                                                    <option value="formal">Formal</option>
+                                                    <option value="creative">Creative</option>
+                                                    <option value="technical">Technical</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="contentLength" class="form-label">Length</label>
+                                                <select class="form-select" id="contentLength">
+                                                    <option value="short">Short (100-300 words)</option>
+                                                    <option value="medium">Medium (300-800 words)</option>
+                                                    <option value="long">Long (800+ words)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="contentPrompt" class="form-label">Content Prompt</label>
+                                                <textarea class="form-control" id="contentPrompt" rows="8" 
+                                                          placeholder="Describe what you want to create. Be specific about the topic, key points, target audience, and any requirements...">Write an article about the latest trends in AI adoption for media organizations. Focus on practical implementation strategies and include real-world examples.</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-outline-secondary" onclick="clearContentForm()">
+                                            <i class="bi bi-x-circle"></i> Clear
+                                        </button>
+                                        <button class="btn btn-primary" onclick="generateContent()">
+                                            <i class="bi bi-magic"></i> Generate Content
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Generated Content Display -->
+                            <div class="card mt-4" id="generatedContentCard" style="display: none;">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-file-earmark-check"></i> Generated Content</h6>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="copyContent()">
+                                            <i class="bi bi-clipboard"></i> Copy
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success" onclick="downloadContent()">
+                                            <i class="bi bi-download"></i> Download
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="generatedContentDisplay" class="border rounded p-3" style="min-height: 200px; background-color: #f8f9fa;">
+                                        <!-- Generated content will appear here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Training Workshops Tab -->
                         <div class="tab-pane fade" id="training-workshops" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-mortarboard"></i> Training Workshops</h4>
-                                <p class="text-muted">Manage AI training workshops and sessions.</p>
-                                <div class="alert alert-info">
-                                    <strong>🔧 Training Workshops tab ready!</strong> Functionality will be added next.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-mortarboard"></i> Training Workshops</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="scheduleWorkshop()">
+                                        <i class="bi bi-plus-circle"></i> Schedule Workshop
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="createTrainingMaterial()">
+                                        <i class="bi bi-file-earmark-plus"></i> Create Material
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Workshop Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Upcoming Workshops</h6>
+                                            <h4 class="text-primary" id="upcoming-workshops">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Completed</h6>
+                                            <h4 class="text-success" id="completed-workshops">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Total Attendees</h6>
+                                            <h4 class="text-info" id="total-attendees">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-warning">Training Hours</h6>
+                                            <h4 class="text-warning" id="training-hours">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Workshop Categories -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-primary h-100" onclick="filterWorkshops('ai-basics')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-cpu text-primary" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">AI Fundamentals</h6>
+                                            <p class="small text-muted">Basic AI concepts and applications</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success h-100" onclick="filterWorkshops('media-ai')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-broadcast text-success" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">AI for Media</h6>
+                                            <p class="small text-muted">AI tools for journalism and media</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning h-100" onclick="filterWorkshops('advanced')">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-gear text-warning" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2">Advanced Topics</h6>
+                                            <p class="small text-muted">Deep learning, ethics, and implementation</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Workshops Table -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Scheduled Workshops</h6>
+                                        <div class="input-group" style="width: 300px;">
+                                            <input type="text" class="form-control" id="workshopSearch" placeholder="Search workshops...">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="searchWorkshops()">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Workshop Title</th>
+                                                    <th>Category</th>
+                                                    <th>Date & Time</th>
+                                                    <th>Duration</th>
+                                                    <th>Attendees</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="workshops-table-body">
+                                                <tr>
+                                                    <td colspan="7" class="text-center text-muted">
+                                                        <i class="bi bi-mortarboard" style="font-size: 2rem;"></i>
+                                                        <p class="mt-2">No workshops scheduled yet. Schedule your first workshop!</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- AI Tools Tab -->
                         <div class="tab-pane fade" id="ai-tools" role="tabpanel">
-                            <div class="container-fluid">
-                                <h4><i class="bi bi-tools"></i> AI Tools</h4>
-                                <p class="text-muted">Discover and manage AI tools and platforms.</p>
-                                <div class="alert alert-info">
-                                    <strong>🔧 AI Tools tab ready!</strong> Functionality will be added next.
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="bi bi-tools"></i> AI Tools Directory</h5>
+                                <div>
+                                    <button class="btn btn-success me-2" onclick="addNewTool()">
+                                        <i class="bi bi-plus-circle"></i> Add Tool
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="importTools()">
+                                        <i class="bi bi-upload"></i> Import Tools
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- AI Tools Statistics -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-primary">Total Tools</h6>
+                                            <h4 class="text-primary" id="total-tools">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-success">Free Tools</h6>
+                                            <h4 class="text-success" id="free-tools">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-warning">Premium Tools</h6>
+                                            <h4 class="text-warning" id="premium-tools">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-info">Categories</h6>
+                                            <h4 class="text-info" id="tool-categories">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tool Categories Filter -->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <select class="form-select" id="categoryFilter" onchange="filterTools()">
+                                        <option value="">All Categories</option>
+                                        <option value="content-generation">Content Generation</option>
+                                        <option value="data-analysis">Data Analysis</option>
+                                        <option value="automation">Automation</option>
+                                        <option value="design">Design</option>
+                                        <option value="coding">Coding</option>
+                                        <option value="research">Research</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="pricingFilter" onchange="filterTools()">
+                                        <option value="">All Pricing</option>
+                                        <option value="free">Free</option>
+                                        <option value="freemium">Freemium</option>
+                                        <option value="premium">Premium</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="toolSearch" placeholder="Search tools..." onkeyup="searchTools()">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                        <i class="bi bi-x-circle"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- AI Tools Grid -->
+                            <div class="row" id="tools-grid">
+                                <div class="col-12 text-center text-muted py-5">
+                                    <i class="bi bi-tools" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">No AI Tools Yet</h5>
+                                    <p>Add your first AI tool to get started!</p>
+                                    <button class="btn btn-primary" onclick="addNewTool()">
+                                        <i class="bi bi-plus-circle"></i> Add First Tool
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -520,6 +1393,527 @@ function deleteClient(clientId, clientName) {
 function searchClients() {
     const searchTerm = document.getElementById('clientSearch').value;
     alert('Search clients functionality - Term: ' + searchTerm);
+}
+
+// Organization Management Functions
+function addNewOrganization() {
+    alert('Add new organization functionality');
+}
+
+function showTagManager() {
+    alert('Tag manager functionality');
+}
+
+function viewOrganization(orgId) {
+    alert('View organization functionality - ID: ' + orgId);
+}
+
+function editOrganization(orgId) {
+    alert('Edit organization functionality - ID: ' + orgId);
+}
+
+function analyzeOrganization(orgId) {
+    alert('Analyze organization functionality - ID: ' + orgId);
+}
+
+function searchOrganizations() {
+    const searchTerm = document.getElementById('orgSearch').value;
+    alert('Search organizations functionality - Term: ' + searchTerm);
+}
+
+// Organization Discovery Functions
+function startDiscoveryScan() {
+    const keywords = document.getElementById('searchKeywords').value;
+    const sector = document.getElementById('searchSector').value;
+    const region = document.getElementById('searchRegion').value;
+    
+    if (!keywords.trim()) {
+        alert('Please enter keywords for the discovery scan');
+        return;
+    }
+    
+    // Show loading state
+    const scanButton = document.querySelector('button[onclick="startDiscoveryScan()"]');
+    const originalText = scanButton.innerHTML;
+    scanButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Scanning...';
+    scanButton.disabled = true;
+    
+    // Prepare search data
+    const searchData = {
+        keywords: keywords,
+        sector: sector,
+        region: region
+    };
+    
+    // Call backend discovery endpoint
+    fetch('/admin/map/discover', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayDiscoveryResults(data.organizations);
+            document.getElementById('discoveryCount').textContent = data.organizations.length;
+            alert('Discovery scan completed! Found ' + data.organizations.length + ' organizations.');
+        } else {
+            alert('Discovery scan failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Discovery scan failed: Network error');
+    })
+    .finally(() => {
+        // Restore button state
+        scanButton.innerHTML = originalText;
+        scanButton.disabled = false;
+    });
+}
+
+function aiDiscovery() {
+    const prompt = document.getElementById('aiPrompt').value;
+    
+    if (!prompt.trim()) {
+        alert('Please enter an AI discovery prompt');
+        return;
+    }
+    
+    // Show loading state
+    const aiButton = document.querySelector('button[onclick="aiDiscovery()"]');
+    const originalText = aiButton.innerHTML;
+    aiButton.innerHTML = '<i class="bi bi-hourglass-split"></i> AI Discovering...';
+    aiButton.disabled = true;
+    
+    // Call discovery endpoint with AI prompt
+    fetch('/admin/map/discover', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            keywords: prompt,
+            ai_discovery: true 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayDiscoveryResults(data.organizations);
+            document.getElementById('discoveryCount').textContent = data.organizations.length;
+            alert('AI Discovery completed! Found ' + data.organizations.length + ' organizations.');
+        } else {
+            alert('AI Discovery failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('AI Discovery failed: Network error');
+    })
+    .finally(() => {
+        // Restore button state
+        aiButton.innerHTML = originalText;
+        aiButton.disabled = false;
+    });
+}
+
+function displayDiscoveryResults(organizations) {
+    const tbody = document.getElementById('discoveryResultsBody');
+    
+    if (!organizations || organizations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    <i class="bi bi-search-heart"></i>
+                    <p class="mt-2">No organizations found. Try different search parameters.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = organizations.map(org => `
+        <tr>
+            <td><input type="checkbox" class="form-check-input" value="${org.id || org.name}"></td>
+            <td>
+                <strong>${org.name}</strong>
+                <br><small class="text-muted">${org.website || 'No website'}</small>
+            </td>
+            <td><span class="badge bg-info">${org.source || 'Discovery'}</span></td>
+            <td>
+                <div class="progress" style="width: 60px;">
+                    <div class="progress-bar bg-success" style="width: ${org.relevance_score || 85}%"></div>
+                </div>
+                <small>${org.relevance_score || 85}%</small>
+            </td>
+            <td>
+                ${org.ai_signals ? org.ai_signals.map(signal => 
+                    `<span class="badge bg-primary me-1">${signal}</span>`
+                ).join('') : '<span class="text-muted">None detected</span>'}
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="viewDiscoveredOrg('${org.id || org.name}')">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-success" onclick="addToAIMAP('${org.id || org.name}')">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function viewDiscoveredOrg(orgId) {
+    alert('View discovered organization: ' + orgId);
+}
+
+function addToAIMAP(orgId) {
+    if (confirm('Add this organization to AIMAP database?')) {
+        alert('Adding organization to AIMAP: ' + orgId);
+    }
+}
+
+function clearDiscoveryResults() {
+    document.getElementById('discoveryResultsBody').innerHTML = `
+        <tr>
+            <td colspan="6" class="text-center text-muted">
+                <i class="bi bi-search-heart"></i>
+                <p class="mt-2">No discovery results yet. Start a search or AI discovery to find new organizations.</p>
+            </td>
+        </tr>
+    `;
+    document.getElementById('discoveryCount').textContent = '0';
+}
+
+function refreshDiscoveryResults() {
+    alert('Refreshing discovery results...');
+}
+
+function exportDiscoveryResults() {
+    alert('Exporting discovery results...');
+}
+
+function toggleAllOrganizations() {
+    const selectAll = document.getElementById('selectAllOrgs');
+    const checkboxes = document.querySelectorAll('#discoveryResultsTable tbody input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+// AI Tools Functions
+function addNewTool() {
+    alert('Add new AI tool functionality');
+}
+
+function importTools() {
+    alert('Import AI tools functionality');
+}
+
+function filterTools() {
+    const category = document.getElementById('categoryFilter').value;
+    const pricing = document.getElementById('pricingFilter').value;
+    alert('Filter tools by category: ' + category + ', pricing: ' + pricing);
+}
+
+function searchTools() {
+    const searchTerm = document.getElementById('toolSearch').value;
+    alert('Search tools: ' + searchTerm);
+}
+
+function clearFilters() {
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('pricingFilter').value = '';
+    document.getElementById('toolSearch').value = '';
+    alert('Filters cleared');
+}
+
+// Research Functions
+function addNewResearchProject() {
+    alert('Add new research project functionality');
+}
+
+function uploadResearchReport() {
+    alert('Upload research report functionality');
+}
+
+function searchResearch() {
+    const searchTerm = document.getElementById('researchSearch').value;
+    alert('Search research projects: ' + searchTerm);
+}
+
+// People Functions
+function addNewPerson() {
+    alert('Add new person functionality');
+}
+
+function importContacts() {
+    alert('Import contacts functionality');
+}
+
+function searchPeople() {
+    const searchTerm = document.getElementById('peopleSearch').value;
+    alert('Search people: ' + searchTerm);
+}
+
+// AI News Functions
+function refreshNews() {
+    const button = document.querySelector('button[onclick="refreshNews()"]');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
+    button.disabled = true;
+    
+    // Call news API
+    fetch('/admin/map/get-news')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayNews(data.articles);
+            updateNewsStats(data.stats);
+        } else {
+            alert('Failed to load news: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to load news: Network error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function displayNews(articles) {
+    const grid = document.getElementById('news-grid');
+    
+    if (!articles || articles.length === 0) {
+        grid.innerHTML = `
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-newspaper" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">No News Articles</h5>
+                <p>No AI news articles found. Try refreshing or check your news sources.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = articles.map(article => `
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title">${article.title}</h6>
+                    <p class="card-text text-muted small">${article.summary || article.description || 'No summary available'}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">${article.source}</small>
+                        <small class="text-muted">${new Date(article.published_at).toLocaleDateString()}</small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100">
+                        <a href="${article.url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i> Read
+                        </a>
+                        <button class="btn btn-outline-success btn-sm" onclick="saveArticle('${article.id}')">
+                            <i class="bi bi-bookmark"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateNewsStats(stats) {
+    if (stats) {
+        document.getElementById('today-articles').textContent = stats.today || 0;
+        document.getElementById('saved-articles').textContent = stats.saved || 0;
+        document.getElementById('trending-topics').textContent = stats.trending || 0;
+        document.getElementById('news-sources').textContent = stats.sources || 0;
+    }
+}
+
+function saveNewsArticle() {
+    alert('Save news article functionality');
+}
+
+function saveArticle(articleId) {
+    alert('Save article: ' + articleId);
+}
+
+function filterNews() {
+    const category = document.getElementById('newsCategory').value;
+    const source = document.getElementById('newsSource').value;
+    alert('Filter news by category: ' + category + ', source: ' + source);
+}
+
+function searchNews() {
+    const searchTerm = document.getElementById('newsSearch').value;
+    alert('Search news: ' + searchTerm);
+}
+
+function clearNewsFilters() {
+    document.getElementById('newsCategory').value = '';
+    document.getElementById('newsSource').value = '';
+    document.getElementById('newsSearch').value = '';
+    alert('News filters cleared');
+}
+
+// Create AI Content Functions
+function selectContentType(type) {
+    document.getElementById('contentType').value = type;
+    alert('Selected content type: ' + type);
+}
+
+function showContentTemplates() {
+    alert('Show content templates functionality');
+}
+
+function saveContentDraft() {
+    alert('Save content draft functionality');
+}
+
+function generateContent() {
+    const button = document.querySelector('button[onclick="generateContent()"]');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+    button.disabled = true;
+    
+    const contentType = document.getElementById('contentType').value;
+    const contentTone = document.getElementById('contentTone').value;
+    const contentLength = document.getElementById('contentLength').value;
+    const contentPrompt = document.getElementById('contentPrompt').value;
+    
+    if (!contentType || !contentPrompt.trim()) {
+        alert('Please select a content type and provide a prompt');
+        button.innerHTML = originalText;
+        button.disabled = false;
+        return;
+    }
+    
+    // Call content generation API
+    fetch('/admin/map/generate-content', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: contentType,
+            tone: contentTone,
+            length: contentLength,
+            prompt: contentPrompt
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayGeneratedContent(data.content);
+        } else {
+            alert('Failed to generate content: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to generate content: Network error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function displayGeneratedContent(content) {
+    const card = document.getElementById('generatedContentCard');
+    const display = document.getElementById('generatedContentDisplay');
+    
+    display.innerHTML = content.replace(/\n/g, '<br>');
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth' });
+}
+
+function clearContentForm() {
+    document.getElementById('contentType').value = '';
+    document.getElementById('contentTone').value = 'professional';
+    document.getElementById('contentLength').value = 'medium';
+    document.getElementById('contentPrompt').value = '';
+    document.getElementById('generatedContentCard').style.display = 'none';
+}
+
+function copyContent() {
+    const content = document.getElementById('generatedContentDisplay').innerText;
+    navigator.clipboard.writeText(content).then(() => {
+        alert('Content copied to clipboard!');
+    });
+}
+
+function downloadContent() {
+    const content = document.getElementById('generatedContentDisplay').innerText;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'generated-content.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Training Workshops Functions
+function scheduleWorkshop() {
+    alert('Schedule workshop functionality');
+}
+
+function createTrainingMaterial() {
+    alert('Create training material functionality');
+}
+
+function filterWorkshops(category) {
+    alert('Filter workshops by category: ' + category);
+}
+
+function searchWorkshops() {
+    const searchTerm = document.getElementById('workshopSearch').value;
+    alert('Search workshops: ' + searchTerm);
+}
+
+// AI Policies Functions
+function createNewPolicy() {
+    alert('Create new policy functionality');
+}
+
+function importPolicyTemplate() {
+    alert('Import policy template functionality');
+}
+
+function filterPolicies(category) {
+    alert('Filter policies by category: ' + category);
+}
+
+function searchPolicies() {
+    const searchTerm = document.getElementById('policySearch').value;
+    alert('Search policies: ' + searchTerm);
+}
+
+// AI Prototyping Functions
+function createNewPrototype() {
+    alert('Create new prototype functionality');
+}
+
+function importPrototype() {
+    alert('Import prototype functionality');
+}
+
+function filterPrototypes(category) {
+    alert('Filter prototypes by category: ' + category);
+}
+
+function searchPrototypes() {
+    const searchTerm = document.getElementById('prototypeSearch').value;
+    alert('Search prototypes: ' + searchTerm);
 }
 </script>
 

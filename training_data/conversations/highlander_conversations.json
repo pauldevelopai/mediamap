@@ -268,5 +268,95 @@
       }
     ],
     "context": "{\"client_count\": 1, \"newsroom_count\": 1, \"research_count\": 0, \"user_count\": 2, \"chat_count\": 14, \"total_organisations\": 2, \"media_organisations\": 2, \"communications_organisations\": 0, \"recent_clients\": [\"IMS (Industry: media, Tags: None)\"], \"recent_organisations\": [\"The Daily Chronicle (Sector: Media, Tags: AI Candidate,Discovery Import,News Analysis)\", \"Community News Network (Sector: Media, Tags: AI Candidate,Discovery Import,Local Media Scan)\"], \"context\": \"business_consultation\", \"openai_model\": \"gpt-4\", \"tokens_used\": 68}"
+  },
+  {
+    "conversation_id": "highlander_16",
+    "user_id": 1,
+    "username": "admin",
+    "created_at": "2025-09-24 10:27:39.722507",
+    "category": "Business Strategy",
+    "messages": [
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you today with your business needs?"
+      }
+    ],
+    "context": "{\"client_count\": 1, \"newsroom_count\": 1, \"research_count\": 0, \"user_count\": 2, \"chat_count\": 15, \"total_organisations\": 2, \"media_organisations\": 2, \"communications_organisations\": 0, \"recent_clients\": [\"IMS (Industry: media, Tags: None)\"], \"recent_organisations\": [\"The Daily Chronicle (Sector: Media, Tags: AI Candidate,Discovery Import,News Analysis)\", \"Community News Network (Sector: Media, Tags: AI Candidate,Discovery Import,Local Media Scan)\"], \"context\": \"business_consultation\", \"openai_model\": \"gpt-4\", \"tokens_used\": 11}"
+  },
+  {
+    "conversation_id": "highlander_17",
+    "user_id": 1,
+    "username": "admin",
+    "created_at": "2025-09-28 19:01:00.532656",
+    "category": "Business Strategy",
+    "messages": [
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you with your business today?"
+      }
+    ],
+    "context": "{\"client_count\": 1, \"newsroom_count\": 1, \"research_count\": 0, \"user_count\": 2, \"chat_count\": 16, \"total_organisations\": 2, \"media_organisations\": 2, \"communications_organisations\": 0, \"recent_clients\": [\"IMS (Industry: media, Tags: None)\"], \"recent_organisations\": [\"The Daily Chronicle (Sector: Media, Tags: AI Candidate,Discovery Import,News Analysis)\", \"Community News Network (Sector: Media, Tags: AI Candidate,Discovery Import,Local Media Scan)\"], \"context\": \"business_consultation\", \"openai_model\": \"gpt-4\", \"tokens_used\": 10}"
+  },
+  {
+    "conversation_id": "highlander_18",
+    "user_id": 1,
+    "username": "admin",
+    "created_at": "2025-09-28 19:13:15.466573",
+    "category": "Business Strategy",
+    "messages": [
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you with your business today?"
+      }
+    ],
+    "context": "{\"client_count\": 1, \"newsroom_count\": 1, \"research_count\": 0, \"user_count\": 2, \"chat_count\": 17, \"total_organisations\": 2, \"media_organisations\": 2, \"communications_organisations\": 0, \"recent_clients\": [\"IMS (Industry: media, Tags: None)\"], \"recent_organisations\": [\"The Daily Chronicle (Sector: Media, Tags: AI Candidate,Discovery Import,News Analysis)\", \"Community News Network (Sector: Media, Tags: AI Candidate,Discovery Import,Local Media Scan)\"], \"context\": \"business_consultation\", \"openai_model\": \"gpt-4\", \"tokens_used\": 10}"
+  },
+  {
+    "conversation_id": "highlander_19",
+    "user_id": 1,
+    "username": "admin",
+    "created_at": "2025-09-28 19:14:09.740536",
+    "category": "Business Strategy",
+    "messages": [
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you with your business needs today?"
+      }
+    ],
+    "context": "{\"client_count\": 1, \"newsroom_count\": 1, \"research_count\": 0, \"user_count\": 2, \"chat_count\": 18, \"total_organisations\": 2, \"media_organisations\": 2, \"communications_organisations\": 0, \"recent_clients\": [\"IMS (Industry: media, Tags: None)\"], \"recent_organisations\": [\"The Daily Chronicle (Sector: Media, Tags: AI Candidate,Discovery Import,News Analysis)\", \"Community News Network (Sector: Media, Tags: AI Candidate,Discovery Import,Local Media Scan)\"], \"context\": \"business_consultation\", \"openai_model\": \"gpt-4\", \"tokens_used\": 11}"
+  },
+  {
+    "conversation_id": "highlander_20",
+    "user_id": 1,
+    "username": "admin",
+    "created_at": "2025-09-28 20:49:03.779029",
+    "category": "Business Strategy",
+    "messages": [
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you today with your business needs?"
+      }
+    ],
+    "context": "{\"client_count\": 1, \"newsroom_count\": 1, \"research_count\": 0, \"user_count\": 2, \"chat_count\": 19, \"total_organisations\": 2, \"media_organisations\": 2, \"communications_organisations\": 0, \"recent_clients\": [\"IMS (Industry: media, Tags: None)\"], \"recent_organisations\": [\"The Daily Chronicle (Sector: Media, Tags: AI Candidate,Discovery Import,News Analysis)\", \"Community News Network (Sector: Media, Tags: AI Candidate,Discovery Import,Local Media Scan)\"], \"context\": \"business_consultation\", \"openai_model\": \"gpt-4\", \"tokens_used\": 11}"
   }
 ]

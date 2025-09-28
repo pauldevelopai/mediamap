@@ -1,0 +1,41 @@
+[
+  {
+    "type": "usage_pattern",
+    "session_id": "2025-09-13T10-06-44-692Z-3v0yms8ir",
+    "message_count": 3,
+    "avg_message_length": 26.333333333333332,
+    "engagement_score": 0.3,
+    "last_interaction": "2025-09-13 10:07:24.921100",
+    "source": "usage_analysis",
+    "processed_at": "2025-09-28T23:47:52.969499",
+    "sentiment": "negative",
+    "actionable": false,
+    "priority": 0.0
+  },
+  {
+    "type": "usage_pattern",
+    "session_id": "2025-09-11T14-42-45-153Z-cq16rx2l2",
+    "message_count": 4,
+    "avg_message_length": 24.25,
+    "engagement_score": 0.4,
+    "last_interaction": "2025-09-11 14:43:42.579293",
+    "source": "usage_analysis",
+    "processed_at": "2025-09-28T23:47:52.969511",
+    "sentiment": "negative",
+    "actionable": false,
+    "priority": 0.0
+  },
+  {
+    "type": "usage_pattern",
+    "session_id": "2025-09-11T11-48-37-672Z-0kjbh36dc",
+    "message_count": 2,
+    "avg_message_length": 11.0,
+    "engagement_score": 0.2,
+    "last_interaction": "2025-09-11 11:49:05.261964",
+    "source": "usage_analysis",
+    "processed_at": "2025-09-28T23:47:52.969516",
+    "sentiment": "negative",
+    "actionable": false,
+    "priority": 0.0
+  }
+]

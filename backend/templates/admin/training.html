@@ -131,6 +131,9 @@
                                     <button class="btn btn-outline-primary btn-sm" onclick="collectMediaMapData()">
                                         <i class="bi bi-download me-1"></i>Collect Data
                                     </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="showPDFUpload('mediamap')">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>Upload PDF
+                                    </button>
                                     <button class="btn btn-outline-success btn-sm" onclick="trainMediaMapModel()">
                                         <i class="bi bi-play-circle me-1"></i>Train Model
                                     </button>
@@ -189,6 +192,9 @@
                                 <div class="btn-group" role="group">
                                     <button class="btn btn-outline-success btn-sm" onclick="collectHealthPINData()">
                                         <i class="bi bi-download me-1"></i>Collect Data
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="showPDFUpload('healthpin')">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>Upload PDF
                                     </button>
                                     <button class="btn btn-outline-success btn-sm" onclick="trainHealthPINModel()">
                                         <i class="bi bi-play-circle me-1"></i>Train Model
@@ -615,18 +621,281 @@
     </div>
 </div>
 
+<!-- PDF Upload Modals -->
+<div class="modal fade" id="pdfUploadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Upload PDF Documents
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="pdf-upload-form" enctype="multipart/form-data">
+                    <input type="hidden" id="upload-model-name" name="model" value="">
+                    <div class="mb-3">
+                        <label for="pdf-files" class="form-label">Select PDF File(s)</label>
+                        <input type="file" class="form-control" id="pdf-files" name="pdf_file" accept=".pdf" multiple>
+                        <div class="form-text">Upload PDF documents for training data. Multiple files can be selected.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pdf-description" class="form-label">Description (Optional)</label>
+                        <textarea class="form-control" id="pdf-description" name="description" rows="2" placeholder="Brief description of the PDF content..."></textarea>
+                    </div>
+                    <div id="upload-progress" class="mb-3" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted mt-1">Uploading and processing PDF...</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="uploadPDFs()">
+                    <i class="bi bi-upload me-1"></i>Upload PDF(s)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Load initial status
 document.addEventListener('DOMContentLoaded', function() {
-    loadTrainingStatus();
-    loadModelStatus();
-    loadTrainingHistory();
+    loadAllModelData();
     
     // Set up auto-refresh every 30 seconds
-    setInterval(loadTrainingStatus, 30000);
-    setInterval(loadModelStatus, 30000);
-    setInterval(loadTrainingHistory, 30000);
+    setInterval(loadAllModelData, 30000);
 });
+
+// Load all model data
+async function loadAllModelData() {
+    await loadMediaMapModel();
+    await loadHealthPINModel();
+    await loadHighlanderModel();
+}
+
+// Individual model loading functions
+async function loadModelStatus(modelName) {
+    try {
+        const response = await fetch(`/admin/training/model-status?model=${modelName}`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const statusDiv = document.getElementById(`${modelName}-model-status`);
+        if (!statusDiv) return;
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                statusDiv.innerHTML = generateModelStatusHTML(data);
+            } else {
+                statusDiv.innerHTML = generateDefaultModelStatusHTML(modelName);
+            }
+        } else {
+            console.error(`HTTP ${response.status}: ${response.statusText}`);
+            statusDiv.innerHTML = generateDefaultModelStatusHTML(modelName);
+        }
+    } catch (error) {
+        console.error(`Error loading ${modelName} model status:`, error);
+        const statusDiv = document.getElementById(`${modelName}-model-status`);
+        if (statusDiv) {
+            statusDiv.innerHTML = generateDefaultModelStatusHTML(modelName);
+        }
+    }
+}
+
+async function loadTrainingData(modelName) {
+    try {
+        const response = await fetch(`/admin/training/training-data?model=${modelName}`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const dataDiv = document.getElementById(`${modelName}-training-data`);
+        if (!dataDiv) return;
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                dataDiv.innerHTML = generateTrainingDataHTML(data);
+            } else {
+                dataDiv.innerHTML = generateDefaultTrainingDataHTML(modelName);
+            }
+        } else {
+            console.error(`HTTP ${response.status}: ${response.statusText}`);
+            dataDiv.innerHTML = generateDefaultTrainingDataHTML(modelName);
+        }
+    } catch (error) {
+        console.error(`Error loading ${modelName} training data:`, error);
+        const dataDiv = document.getElementById(`${modelName}-training-data`);
+        if (dataDiv) {
+            dataDiv.innerHTML = generateDefaultTrainingDataHTML(modelName);
+        }
+    }
+}
+
+async function loadDataSources(modelName) {
+    try {
+        const sourcesDiv = document.getElementById(`${modelName}-data-sources`);
+        if (sourcesDiv) {
+            // Remove loading spinner
+            const spinner = sourcesDiv.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.parentElement.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error(`Error loading ${modelName} data sources:`, error);
+    }
+}
+
+async function loadCollectedData(modelName) {
+    try {
+        const response = await fetch(`/admin/training/collected-data/${modelName}`);
+        const data = await response.json();
+        
+        // Update collected data preview if it exists
+        const previewDiv = document.getElementById('collected-data-preview');
+        if (previewDiv && data.success) {
+            // Remove loading spinner
+            const spinner = previewDiv.querySelector('.spinner-border');
+            if (spinner) {
+                spinner.parentElement.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error(`Error loading ${modelName} collected data:`, error);
+    }
+}
+
+function generateModelStatusHTML(data) {
+    const statusColor = data.model_loaded ? 'success' : 'secondary';
+    const statusText = data.model_loaded ? 'Loaded' : 'Not Loaded';
+    
+    return `
+        <div class="model-status-card p-3 bg-light rounded">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-${statusColor}">${statusText}</span>
+                <small class="text-muted">${data.last_training || 'Never'}</small>
+            </div>
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="h5 mb-0">${data.training_examples || 0}</div>
+                    <small class="text-muted">Examples</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">${data.accuracy || 'N/A'}</div>
+                    <small class="text-muted">Accuracy</small>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">
+                    ${data.openai_available ? '✅ OpenAI Available' : '❌ OpenAI Unavailable'}
+                </small>
+            </div>
+        </div>
+    `;
+}
+
+function generateTrainingDataHTML(data) {
+    return `
+        <div class="training-data-card p-3 bg-light rounded">
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="h5 mb-0">${data.total_examples || 0}</div>
+                    <small class="text-muted">Total Examples</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">${data.conversations || 0}</div>
+                    <small class="text-muted">Conversations</small>
+                </div>
+            </div>
+            <div class="row text-center mt-2">
+                <div class="col-6">
+                    <div class="h5 mb-0">${data.pdfs || 0}</div>
+                    <small class="text-muted">PDFs</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">${data.research_papers || 0}</div>
+                    <small class="text-muted">Research</small>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">
+                    Last updated: ${data.last_updated || 'Never'}
+                </small>
+            </div>
+        </div>
+    `;
+}
+
+function generateDefaultModelStatusHTML(modelName) {
+    return `
+        <div class="model-status-card p-3 bg-light rounded">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary">Not Loaded</span>
+                <small class="text-muted">Never</small>
+            </div>
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="h5 mb-0">0</div>
+                    <small class="text-muted">Examples</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">N/A</div>
+                    <small class="text-muted">Accuracy</small>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">
+                    ⚠️ No ${modelName} model data available
+                </small>
+            </div>
+        </div>
+    `;
+}
+
+function generateDefaultTrainingDataHTML(modelName) {
+    return `
+        <div class="training-data-card p-3 bg-light rounded">
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="h5 mb-0">0</div>
+                    <small class="text-muted">Total Examples</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">0</div>
+                    <small class="text-muted">Conversations</small>
+                </div>
+            </div>
+            <div class="row text-center mt-2">
+                <div class="col-6">
+                    <div class="h5 mb-0">0</div>
+                    <small class="text-muted">PDFs</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">0</div>
+                    <small class="text-muted">Research</small>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">
+                    Ready to collect ${modelName} training data
+                </small>
+            </div>
+        </div>
+    `;
+}
 
 // App Data Collection
 document.getElementById('collect-app-data-btn').addEventListener('click', async function() {
@@ -1715,6 +1984,114 @@ async function loadHighlanderModel() {
     await loadTrainingData('highlander');
     await loadDataSources('highlander');
     await loadCollectedData('highlander');
+}
+
+// PDF Upload Functions
+function showPDFUpload(modelName) {
+    document.getElementById('upload-model-name').value = modelName;
+    const modal = new bootstrap.Modal(document.getElementById('pdfUploadModal'));
+    modal.show();
+    
+    // Update modal title based on model
+    const title = document.querySelector('#pdfUploadModal .modal-title');
+    if (modelName === 'mediamap') {
+        title.innerHTML = '<i class="bi bi-file-earmark-pdf me-2"></i>Upload MediaMap PDF Documents';
+    } else if (modelName === 'healthpin') {
+        title.innerHTML = '<i class="bi bi-file-earmark-pdf me-2"></i>Upload HealthPIN PDF Documents';
+    }
+}
+
+async function uploadPDFs() {
+    const fileInput = document.getElementById('pdf-files');
+    const descriptionInput = document.getElementById('pdf-description');
+    const modelName = document.getElementById('upload-model-name').value;
+    const progressDiv = document.getElementById('upload-progress');
+    const progressBar = progressDiv.querySelector('.progress-bar');
+    
+    if (!fileInput.files.length) {
+        showToast('Please select at least one PDF file', 'error');
+        return;
+    }
+    
+    // Show progress
+    progressDiv.style.display = 'block';
+    progressBar.style.width = '10%';
+    
+    try {
+        // Process each file
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const file = fileInput.files[i];
+            const formData = new FormData();
+            formData.append('pdf_file', file);
+            formData.append('description', descriptionInput.value);
+            formData.append('model', modelName);
+            
+            progressBar.style.width = `${20 + (i * 60 / fileInput.files.length)}%`;
+            
+            const response = await fetch('/admin/training/upload-pdf', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || 'Upload failed');
+            }
+            
+            showToast(`PDF "${file.name}" uploaded successfully!`, 'success');
+        }
+        
+        progressBar.style.width = '100%';
+        
+        // Close modal and reset form
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('pdfUploadModal'));
+            modal.hide();
+            document.getElementById('pdf-upload-form').reset();
+            progressDiv.style.display = 'none';
+            progressBar.style.width = '0%';
+        }, 1000);
+        
+        // Refresh training data
+        loadTrainingStatus();
+        
+    } catch (error) {
+        progressDiv.style.display = 'none';
+        progressBar.style.width = '0%';
+        showToast(`Error uploading PDF: ${error.message}`, 'error');
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1055';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        toastContainer.removeChild(toast);
+    });
 }
 </script>
 

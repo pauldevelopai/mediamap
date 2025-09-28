@@ -1,0 +1,8 @@
+{
+  "title": "Measuring the performance of our models on real-world tasks",
+  "summary": "OpenAI introduces GDPval, a new evaluation that measures model performance on real-world economically valuable tasks across 44 occupations.",
+  "link": "https://openai.com/index/gdpval",
+  "published": "Thu, 25 Sep 2025 09:00:00 GMT",
+  "source": "OpenAI Blog",
+  "type": "blog_post"
+}
