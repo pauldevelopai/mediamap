@@ -1,0 +1,809 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}AI Insights Dashboard - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .insight-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    
+    .insight-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .insight-card.mediamap {
+        border-left-color: #28a745;
+    }
+    
+    .insight-card.healthpin {
+        border-left-color: #dc3545;
+    }
+    
+    .insight-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .badge-mediamap {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-healthpin {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .badge-confidence {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+    
+    .report-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .metric-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 5px;
+    }
+    
+    .metric-label {
+        font-size: 14px;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+    
+    .progress-ring {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 10px;
+    }
+    
+    .progress-ring circle {
+        fill: transparent;
+        stroke: #e9ecef;
+        stroke-width: 4;
+    }
+    
+    .progress-ring .progress {
+        stroke: #28a745;
+        stroke-dasharray: 157;
+        stroke-dashoffset: 157;
+        transition: stroke-dashoffset 0.5s ease;
+    }
+    
+    .filter-tabs .nav-link {
+        border-radius: 20px;
+        margin-right: 10px;
+        border: 2px solid transparent;
+    }
+    
+    .filter-tabs .nav-link.active {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    
+    .insight-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 4px;
+        height: 20px;
+        margin-bottom: 10px;
+    }
+    
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .report-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .export-options {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="report-header">
+                <h1><i class="bi bi-lightbulb me-3"></i>AI Insights Dashboard</h1>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Metrics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="total-insights">-</div>
+                <div class="metric-label">Total Insights</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="mediamap-insights">-</div>
+                <div class="metric-label">MediaMap Insights</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="healthpin-insights">-</div>
+                <div class="metric-label">HealthPIN Insights</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value" id="avg-confidence">-</div>
+                <div class="metric-label">Avg Confidence</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Generation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Generate Insight Reports</h5>
+                    <div class="export-options">
+                        <button class="btn btn-primary" onclick="generateReport('mediamap')">
+                            <i class="bi bi-newspaper"></i> MediaMap Report
+                        </button>
+                        <button class="btn btn-danger" onclick="generateReport('healthpin')">
+                            <i class="bi bi-heart-pulse"></i> HealthPIN Report
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Report Configuration</h6>
+                            <div class="mb-3">
+                                <label for="report-period" class="form-label">Time Period</label>
+                                <select class="form-select" id="report-period">
+                                    <option value="7">Last 7 days</option>
+                                    <option value="30" selected>Last 30 days</option>
+                                    <option value="90">Last 90 days</option>
+                                    <option value="365">Last year</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="report-format" class="form-label">Export Format</label>
+                                <select class="form-select" id="report-format">
+                                    <option value="pdf">PDF Document</option>
+                                    <option value="html">HTML Report</option>
+                                    <option value="json">JSON Data</option>
+                                    <option value="csv">CSV Export</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Include Sections</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-summary" checked>
+                                <label class="form-check-label" for="include-summary">Executive Summary</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-insights" checked>
+                                <label class="form-check-label" for="include-insights">Detailed Insights</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-trends" checked>
+                                <label class="form-check-label" for="include-trends">Trend Analysis</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-recommendations" checked>
+                                <label class="form-check-label" for="include-recommendations">Recommendations</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-charts">
+                                <label class="form-check-label" for="include-charts">Charts & Visualizations</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="report-progress" class="mt-3" style="display: none;">
+                        <div class="progress">
+                            <div id="report-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small id="report-progress-label" class="text-muted d-block mt-1">Preparing report...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-pills filter-tabs" id="insightTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-insights" type="button" role="tab">
+                        <i class="bi bi-collection me-2"></i>All Insights
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="mediamap-tab" data-bs-toggle="pill" data-bs-target="#mediamap-insights-tab" type="button" role="tab">
+                        <i class="bi bi-newspaper me-2"></i>MediaMap
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="healthpin-tab" data-bs-toggle="pill" data-bs-target="#healthpin-insights-tab" type="button" role="tab">
+                        <i class="bi bi-heart-pulse me-2"></i>HealthPIN
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="trends-tab" data-bs-toggle="pill" data-bs-target="#trends-analysis" type="button" role="tab">
+                        <i class="bi bi-graph-up me-2"></i>Trends
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Tab Content -->
+    <div class="tab-content" id="insightTabContent">
+        <!-- All Insights Tab -->
+        <div class="tab-pane fade show active" id="all-insights" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Recent Insights</h5>
+                        <button class="btn btn-outline-primary" onclick="refreshInsights()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="all-insights-list">
+                        <!-- Loading skeleton -->
+                        <div class="loading-skeleton"></div>
+                        <div class="loading-skeleton"></div>
+                        <div class="loading-skeleton"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MediaMap Insights Tab -->
+        <div class="tab-pane fade" id="mediamap-insights-tab" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>MediaMap Agent Insights</h5>
+                        <button class="btn btn-success" onclick="generateMediaMapInsight()">
+                            <i class="bi bi-plus-circle"></i> Generate New Insight
+                        </button>
+                    </div>
+                    <div id="mediamap-insights-list">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HealthPIN Insights Tab -->
+        <div class="tab-pane fade" id="healthpin-insights-tab" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>HealthPIN Agent Insights</h5>
+                        <button class="btn btn-danger" onclick="generateHealthPINInsight()">
+                            <i class="bi bi-plus-circle"></i> Generate New Insight
+                        </button>
+                    </div>
+                    <div id="healthpin-insights-list">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trends Analysis Tab -->
+        <div class="tab-pane fade" id="trends-analysis" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>MediaMap Trends</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="mediamap-trends-list">
+                                <!-- Content loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-activity me-2"></i>HealthPIN Trends</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="healthpin-trends-list">
+                                <!-- Content loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insight Detail Modal -->
+<div class="modal fade" id="insightDetailModal" tabindex="-1" aria-labelledby="insightDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="insightDetailModalLabel">Insight Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="insightDetailContent">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="exportCurrentInsight()">
+                    <i class="bi bi-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let currentInsights = [];
+let currentInsightId = null;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadInsights();
+    loadMetrics();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadInsights, 30000);
+});
+
+// Load all insights
+async function loadInsights() {
+    try {
+        const [mediamapResponse, healthpinResponse] = await Promise.all([
+            fetch('/api/agents/mediamap/insights', { credentials: 'include' }),
+            fetch('/api/agents/healthpin/insights', { credentials: 'include' })
+        ]);
+        
+        const mediamapData = await mediamapResponse.json();
+        const healthpinData = await healthpinResponse.json();
+        
+        const allInsights = [];
+        
+        if (mediamapData.success) {
+            mediamapData.insights.forEach(insight => {
+                insight.source_agent = 'mediamap';
+                allInsights.push(insight);
+            });
+        }
+        
+        if (healthpinData.success) {
+            healthpinData.insights.forEach(insight => {
+                insight.source_agent = 'healthpin';
+                allInsights.push(insight);
+            });
+        }
+        
+        // Sort by timestamp (newest first)
+        allInsights.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+        
+        currentInsights = allInsights;
+        displayAllInsights(allInsights);
+        displayMediaMapInsights(mediamapData.insights || []);
+        displayHealthPINInsights(healthpinData.insights || []);
+        
+    } catch (error) {
+        console.error('Error loading insights:', error);
+        showError('Failed to load insights');
+    }
+}
+
+// Load metrics
+async function loadMetrics() {
+    try {
+        const response = await fetch('/api/agents/dashboard', { credentials: 'include' });
+        const data = await response.json();
+        
+        if (data.success) {
+            updateMetrics(data.dashboard);
+        }
+    } catch (error) {
+        console.error('Error loading metrics:', error);
+    }
+}
+
+// Update metrics display
+function updateMetrics(dashboard) {
+    const mediamapInsights = dashboard.mediamap?.insights?.length || 0;
+    const healthpinInsights = dashboard.healthpin?.insights?.length || 0;
+    const totalInsights = mediamapInsights + healthpinInsights;
+    
+    document.getElementById('total-insights').textContent = totalInsights;
+    document.getElementById('mediamap-insights').textContent = mediamapInsights;
+    document.getElementById('healthpin-insights').textContent = healthpinInsights;
+    
+    // Calculate average confidence
+    let totalConfidence = 0;
+    let count = 0;
+    
+    currentInsights.forEach(insight => {
+        if (insight.confidence) {
+            totalConfidence += insight.confidence;
+            count++;
+        }
+    });
+    
+    const avgConfidence = count > 0 ? (totalConfidence / count * 100).toFixed(1) + '%' : 'N/A';
+    document.getElementById('avg-confidence').textContent = avgConfidence;
+}
+
+// Display all insights
+function displayAllInsights(insights) {
+    const container = document.getElementById('all-insights-list');
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-lightbulb text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">No insights available</h5>
+                <p class="text-muted">Generate new insights from MediaMap or HealthPIN agents</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => createInsightCard(insight)).join('');
+}
+
+// Display MediaMap insights
+function displayMediaMapInsights(insights) {
+    const container = document.getElementById('mediamap-insights-list');
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-newspaper text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">No MediaMap insights</h5>
+                <button class="btn btn-success" onclick="generateMediaMapInsight()">
+                    <i class="bi bi-plus-circle"></i> Generate First Insight
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => {
+        insight.source_agent = 'mediamap';
+        return createInsightCard(insight);
+    }).join('');
+}
+
+// Display HealthPIN insights
+function displayHealthPINInsights(insights) {
+    const container = document.getElementById('healthpin-insights-list');
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-heart-pulse text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">No HealthPIN insights</h5>
+                <button class="btn btn-danger" onclick="generateHealthPINInsight()">
+                    <i class="bi bi-plus-circle"></i> Generate First Insight
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => {
+        insight.source_agent = 'healthpin';
+        return createInsightCard(insight);
+    }).join('');
+}
+
+// Create insight card HTML
+function createInsightCard(insight) {
+    const sourceClass = insight.source_agent || 'general';
+    const badgeClass = sourceClass === 'mediamap' ? 'badge-mediamap' : 'badge-healthpin';
+    const confidence = insight.confidence ? Math.round(insight.confidence * 100) : 'N/A';
+    const timestamp = insight.timestamp ? new Date(insight.timestamp).toLocaleString() : 'Unknown';
+    
+    return `
+        <div class="insight-card ${sourceClass}" onclick="viewInsightDetail('${insight.id || Math.random()}')">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="insight-badge ${badgeClass}">${sourceClass.toUpperCase()}</span>
+                    <span class="insight-badge badge-confidence ms-2">${confidence}% confidence</span>
+                </div>
+                <small class="text-muted">${timestamp}</small>
+            </div>
+            <h6 class="mb-2">${insight.type || 'Insight'}</h6>
+            <p class="mb-3">${insight.insight || insight.content || 'No content available'}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <strong>Category:</strong> ${insight.category || 'General'}
+                </small>
+                <div class="insight-actions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewInsightDetail('${insight.id || Math.random()}')">
+                        <i class="bi bi-eye"></i> View
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); exportInsight('${insight.id || Math.random()}')">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Generate report
+async function generateReport(type) {
+    const period = document.getElementById('report-period').value;
+    const format = document.getElementById('report-format').value;
+    const progress = document.getElementById('report-progress');
+    const progressBar = document.getElementById('report-progress-bar');
+    const progressLabel = document.getElementById('report-progress-label');
+    
+    try {
+        progress.style.display = 'block';
+        progressBar.style.width = '20%';
+        progressLabel.textContent = 'Gathering insights...';
+        
+        const response = await fetch('/admin/insights/generate-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                type: type,
+                period: parseInt(period),
+                format: format,
+                include_summary: document.getElementById('include-summary').checked,
+                include_insights: document.getElementById('include-insights').checked,
+                include_trends: document.getElementById('include-trends').checked,
+                include_recommendations: document.getElementById('include-recommendations').checked,
+                include_charts: document.getElementById('include-charts').checked
+            })
+        });
+        
+        progressBar.style.width = '70%';
+        progressLabel.textContent = 'Generating report...';
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            progressBar.style.width = '100%';
+            progressLabel.textContent = 'Report generated successfully!';
+            
+            // Download the report
+            if (data.download_url) {
+                window.open(data.download_url, '_blank');
+            }
+            
+            showAlert('Report generated successfully!', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to generate report');
+        }
+        
+    } catch (error) {
+        console.error('Error generating report:', error);
+        showAlert('Failed to generate report: ' + error.message, 'danger');
+    } finally {
+        setTimeout(() => {
+            progress.style.display = 'none';
+            progressBar.style.width = '0%';
+        }, 2000);
+    }
+}
+
+// Generate new insights
+async function generateMediaMapInsight() {
+    try {
+        showAlert('Generating new MediaMap insight...', 'info');
+        
+        const response = await fetch('/api/agents/mediamap/generate-insight', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('MediaMap insight generated successfully!', 'success');
+            loadInsights(); // Refresh the insights
+        } else {
+            throw new Error(data.error || 'Failed to generate insight');
+        }
+    } catch (error) {
+        console.error('Error generating MediaMap insight:', error);
+        showAlert('Failed to generate MediaMap insight: ' + error.message, 'danger');
+    }
+}
+
+async function generateHealthPINInsight() {
+    try {
+        showAlert('Generating new HealthPIN insight...', 'info');
+        
+        const response = await fetch('/api/agents/healthpin/generate-insight', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('HealthPIN insight generated successfully!', 'success');
+            loadInsights(); // Refresh the insights
+        } else {
+            throw new Error(data.error || 'Failed to generate insight');
+        }
+    } catch (error) {
+        console.error('Error generating HealthPIN insight:', error);
+        showAlert('Failed to generate HealthPIN insight: ' + error.message, 'danger');
+    }
+}
+
+// View insight detail
+function viewInsightDetail(insightId) {
+    currentInsightId = insightId;
+    const insight = currentInsights.find(i => (i.id || Math.random().toString()) === insightId);
+    
+    if (!insight) {
+        showAlert('Insight not found', 'warning');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('insightDetailModal'));
+    const content = document.getElementById('insightDetailContent');
+    
+    content.innerHTML = `
+        <div class="mb-3">
+            <span class="badge bg-${insight.source_agent === 'mediamap' ? 'success' : 'danger'} me-2">
+                ${(insight.source_agent || 'unknown').toUpperCase()}
+            </span>
+            <span class="badge bg-info">
+                ${insight.confidence ? Math.round(insight.confidence * 100) + '% confidence' : 'N/A'}
+            </span>
+        </div>
+        <h5>${insight.type || 'Insight'}</h5>
+        <p class="text-muted mb-3">
+            <strong>Category:</strong> ${insight.category || 'General'} | 
+            <strong>Generated:</strong> ${insight.timestamp ? new Date(insight.timestamp).toLocaleString() : 'Unknown'}
+        </p>
+        <div class="mb-4">
+            <h6>Content</h6>
+            <p>${insight.insight || insight.content || 'No content available'}</p>
+        </div>
+        ${insight.metadata ? `
+            <div class="mb-4">
+                <h6>Metadata</h6>
+                <pre class="bg-light p-3 rounded"><code>${JSON.stringify(insight.metadata, null, 2)}</code></pre>
+            </div>
+        ` : ''}
+        ${insight.source ? `
+            <div class="mb-4">
+                <h6>Source</h6>
+                <p><small class="text-muted">${insight.source}</small></p>
+            </div>
+        ` : ''}
+    `;
+    
+    modal.show();
+}
+
+// Export insight
+function exportInsight(insightId) {
+    const insight = currentInsights.find(i => (i.id || Math.random().toString()) === insightId);
+    
+    if (!insight) {
+        showAlert('Insight not found', 'warning');
+        return;
+    }
+    
+    const dataStr = JSON.stringify(insight, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `insight-${insight.source_agent || 'unknown'}-${Date.now()}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    showAlert('Insight exported successfully!', 'success');
+}
+
+// Export current insight from modal
+function exportCurrentInsight() {
+    if (currentInsightId) {
+        exportInsight(currentInsightId);
+    }
+}
+
+// Refresh insights
+function refreshInsights() {
+    showAlert('Refreshing insights...', 'info');
+    loadInsights();
+    loadMetrics();
+}
+
+// Utility functions
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function showError(message) {
+    showAlert(message, 'danger');
+}
+</script>
+{% endblock %}

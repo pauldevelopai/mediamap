@@ -389,6 +389,80 @@ def get_mediamap_recommendations():
             'error': str(e)
         }), 500
 
+@agents_bp.route('/mediamap/generate-insight', methods=['POST'])
+@login_required
+def generate_mediamap_insight():
+    """Generate a new MediaMap insight"""
+    try:
+        if 'mediamap' not in agent_manager.agents:
+            return jsonify({
+                'success': False,
+                'error': 'MediaMap agent not available'
+            }), 404
+        
+        agent = agent_manager.agents['mediamap']
+        
+        # Run a learning cycle to generate new insights
+        success = agent.run_learning_cycle()
+        
+        if success:
+            # Get the latest insights
+            insights = agent.get_insights(limit=1)
+            
+            return jsonify({
+                'success': True,
+                'message': 'MediaMap insight generated successfully',
+                'insight': insights[0] if insights else None
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate MediaMap insight'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@agents_bp.route('/healthpin/generate-insight', methods=['POST'])
+@login_required
+def generate_healthpin_insight():
+    """Generate a new HealthPIN insight"""
+    try:
+        if 'healthpin' not in agent_manager.agents:
+            return jsonify({
+                'success': False,
+                'error': 'HealthPIN agent not available'
+            }), 404
+        
+        agent = agent_manager.agents['healthpin']
+        
+        # Run a learning cycle to generate new insights
+        success = agent.run_learning_cycle()
+        
+        if success:
+            # Get the latest insights
+            insights = agent.get_insights(limit=1)
+            
+            return jsonify({
+                'success': True,
+                'message': 'HealthPIN insight generated successfully',
+                'insight': insights[0] if insights else None
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to generate HealthPIN insight'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @agents_bp.route('/healthpin/recommendations')
 @login_required
 def get_healthpin_recommendations():
@@ -539,6 +613,8 @@ def get_agents_dashboard():
         }), 500
 
 # ChatGPT Agent API Routes
+
+
 @agents_bp.route('/chatgpt/capabilities')
 @login_required
 def get_chatgpt_capabilities():
@@ -793,7 +869,7 @@ def get_analysis_template(template_name):
 # Real-time Monitoring Routes
 @agents_bp.route('/monitoring/live-status')
 @login_required
-def get_live_status():
+def get_live_status_legacy():
     """Get real-time agent status and activity"""
     try:
         # Get current agent status

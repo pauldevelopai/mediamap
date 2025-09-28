@@ -8,7 +8,21 @@ import time
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, session
 from flask_login import login_required, current_user
-from backend.app import section_required
+# Import section_required locally to avoid circular import
+from functools import wraps
+from flask import session, redirect, url_for, flash
+
+def section_required(required_section):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            current_section = session.get('section')
+            if current_section != required_section:
+                flash(f'You need to be in the {required_section} section to access this feature.', 'warning')
+                return redirect(url_for('user_dashboard'))
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 from backend.models import db, ChatMessage, User, PromptTemplate
 from prompt_manager import get_prompt as get_prompt_from_db
 from prompt_version_manager import performance_tracker

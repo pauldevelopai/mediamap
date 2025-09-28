@@ -55,9 +55,9 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="insights-tab" data-bs-toggle="tab" data-bs-target="#insights" type="button" role="tab">
-                            <i class="bi bi-lightbulb"></i> Insights
-                        </button>
+                        <a href="{{ url_for('admin_insights') }}" class="nav-link" style="border: 2px dashed #007bff; color: #007bff;">
+                            <i class="bi bi-lightbulb"></i> Insights <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">
@@ -103,6 +103,8 @@
             </div>
             <div class="card-body">
                 <div class="tab-content" id="businessMapTabContent">
+                
+                <!-- COMPLETELY NEW TAB SYSTEM -->
                     <!-- Organizations Tab (Merged AIMAP + Newsrooms) -->
                     <div class="tab-pane fade show active" id="organizations" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -525,7 +527,7 @@
                         <!-- Projects Table -->
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="mb-0">All Projects</h6>
+                                <h6 class="mb-0">All People</h6>
             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -595,16 +597,15 @@
                                             {% else %}
                                                 <tr>
                                                     <td colspan="7" class="text-center text-muted">
-                                                        <i class="bi bi-kanban"></i> No projects created yet. Start your first AI project above!
+                                                        <!-- People data will be loaded dynamically by JavaScript -->
                                                     </td>
                                                 </tr>
                                             {% endif %}
                                         </tbody>
                                     </table>
                                 </div>
-        </div>
-    </div>
-</div>
+                        </div>
+                    </div>
 
                     <!-- Organization Discovery Tab -->
                     <div class="tab-pane fade" id="discovery" role="tabpanel">
@@ -1126,8 +1127,54 @@
                         </div>
                     </div>
 
-                    <!-- Clients Tab -->
+                    <!-- NEW SIMPLE CLIENTS TAB -->
                     <div class="tab-pane fade" id="clients" role="tabpanel">
+                        <div class="container-fluid">
+                            <h3>✅ CLIENTS TAB WORKING!</h3>
+                            <div class="alert alert-success">
+                                <h4>🎉 Success! This is the Clients tab content.</h4>
+                                <p>If you can see this, the Clients tab is working properly.</p>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Client List</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Client Name</th>
+                                                <th>Industry</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Media Innovation Lab</strong></td>
+                                                <td>Technology</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td><button class="btn btn-primary btn-sm">View</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Digital News Corp</strong></td>
+                                                <td>Media</td>
+                                                <td><span class="badge bg-warning">Proposal</span></td>
+                                                <td><button class="btn btn-primary btn-sm">View</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>AI Research Foundation</strong></td>
+                                                <td>Non-Profit</td>
+                                                <td><span class="badge bg-info">Completed</span></td>
+                                                <td><button class="btn btn-primary btn-sm">View</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5><i class="bi bi-building"></i> Clients</h5>
                             <button class="btn btn-primary" onclick="addNewClient()">
@@ -1185,19 +1232,27 @@
                                     </tr>
                                 </thead>
                                 <tbody id="clients-table-body">
-                                    {% if total_clients == 0 %}
+                                    <!-- SIMPLE TEST: Static client data -->
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">
-                                            <i class="bi bi-inbox"></i>
-                                            <p class="mt-2">No clients found. Start by adding your first consulting client.</p>
-                                            <button class="btn btn-primary btn-sm" onclick="addNewClient()">
-                                                <i class="bi bi-plus-circle"></i> Add Your First Client
-                                            </button>
+                                        <td><strong>Test Client 1</strong></td>
+                                        <td>Technology</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>AI Consulting</td>
+                                        <td>2024-01-15</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">View</button>
                                         </td>
                                     </tr>
-                                    {% else %}
-                                    <!-- Real client data will be loaded dynamically -->
-                                    {% endif %}
+                                    <tr>
+                                        <td><strong>Test Client 2</strong></td>
+                                        <td>Media</td>
+                                        <td><span class="badge bg-warning">Proposal</span></td>
+                                        <td>Content Strategy</td>
+                                        <td>2024-01-10</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">View</button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1263,9 +1318,12 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="list-group" id="research-reports-list">
-                                            <div class="text-center text-muted py-4">
-                                                <i class="bi bi-file-earmark-text display-4"></i>
-                                                <p class="mt-3">No research projects yet. Upload your first research report!</p>
+                                            <!-- Research data will be loaded dynamically by JavaScript -->
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading research...</span>
+                                                </div>
+                                                <p class="mt-2 text-muted">Loading research reports...</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1293,22 +1351,19 @@
                         </div>
                     </div>
 
-                    <!-- Insights Tab -->
+                    <!-- Insights Redirect Notice -->
                     <div class="tab-pane fade" id="insights" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5><i class="bi bi-lightbulb"></i> Generated Insights</h5>
-                            <div>
-                                <button class="btn btn-success me-2" onclick="showGenerateInsightModal()">
-                                    <i class="bi bi-magic"></i> Generate Insight
-                                </button>
-                                <button class="btn btn-primary" onclick="exportInsights()">
-                                    <i class="bi bi-download"></i> Export All
-                                </button>
-                            </div>
+                        <div class="text-center py-5">
+                            <i class="bi bi-lightbulb text-primary" style="font-size: 4rem;"></i>
+                            <h3 class="mt-3">Insights Have Moved!</h3>
+                            <p class="text-muted mb-4">The Insights feature now has its own dedicated page with enhanced functionality.</p>
+                            <a href="{{ url_for('admin_insights') }}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-lightbulb me-2"></i>Go to Insights Dashboard
+                            </a>
                         </div>
+                    </div>
 
-                        <!-- Insights Overview -->
-                        <div class="row mb-4">
+                    <!-- Keep this placeholder for any remaining content -->
                             <div class="col-md-3 mb-2">
                                 <div class="card border-primary">
                                     <div class="card-body text-center">
@@ -1360,11 +1415,34 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="list-group" id="insights-list">
-                                            <div class="text-center py-3">
-                                                <div class="spinner-border text-primary" role="status">
-                                                    <span class="visually-hidden">Loading insights...</span>
+                                            <!-- SIMPLE TEST: Static insights data -->
+                                            <div class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">
+                                                        <span class="badge bg-primary me-2">AI Strategy</span>
+                                                        Test Insight: Media AI Trends
+                                                    </h6>
+                                                    <small>Today</small>
                                                 </div>
-                                                <p class="mt-2 text-muted">Loading generated insights...</p>
+                                                <p class="mb-1">This is a test insight to verify the Insights tab is working properly.</p>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-sm btn-outline-primary">View Details</button>
+                                                    <button class="btn btn-sm btn-outline-success">Export</button>
+                                                </div>
+                                            </div>
+                                            <div class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">
+                                                        <span class="badge bg-success me-2">Technology</span>
+                                                        Test Insight: Content Automation
+                                                    </h6>
+                                                    <small>Yesterday</small>
+                                                </div>
+                                                <p class="mb-1">Another test insight to verify the tab content is displaying correctly.</p>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-sm btn-outline-primary">View Details</button>
+                                                    <button class="btn btn-sm btn-outline-success">Export</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -2758,16 +2836,16 @@ function loadClientsData() {
                             <td>${client.last_contact || 'Never'}</td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="viewClient(${client.id})">
+                                    <button class="btn btn-outline-primary" onclick="viewClient(${client.id})" title="View Client">
                                         <i class="bi bi-eye"></i>
                                     </button>
-                                    <button class="btn btn-outline-success" onclick="editClient(${client.id})">
+                                    <button class="btn btn-outline-success" onclick="editClient(${client.id})" title="Edit Client">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-outline-info" onclick="generateInsights(${client.id})">
+                                    <button class="btn btn-outline-info" onclick="generateInsights(${client.id})" title="Generate Insights">
                                         <i class="bi bi-lightbulb"></i>
                                     </button>
-                                    <button class="btn btn-outline-danger" onclick="deleteClient(${client.id})">
+                                    <button class="btn btn-outline-danger" onclick="deleteClient(${client.id})" title="Delete Client">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -4044,8 +4122,16 @@ function updateChatStats() {
                 return chatDate === today;
             }).length;
             
-            document.getElementById('total-chats').textContent = totalChats;
-            document.getElementById('today-chats').textContent = todayChats;
+            // Only update if elements exist
+            const totalChatsElement = document.getElementById('total-chats');
+            const todayChatsElement = document.getElementById('today-chats');
+            
+            if (totalChatsElement) {
+                totalChatsElement.textContent = totalChats;
+            }
+            if (todayChatsElement) {
+                todayChatsElement.textContent = todayChats;
+            }
         }
     })
     .catch(error => {
@@ -4087,44 +4173,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load insights when insights tab is shown
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Setting up tab event listeners...');
+    
     const insightsTab = document.getElementById('insights-tab');
     if (insightsTab) {
-        insightsTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadInsights();
-                loadAgentInsights();
-            }, 100);
+        console.log('Found insights tab, adding event listener');
+        insightsTab.addEventListener('shown.bs.tab', function() {
+            console.log('Insights tab shown, loading data...');
+            loadInsights();
+            loadAgentInsights();
         });
     }
     
     // Load clients when clients tab is shown
     const clientsTab = document.getElementById('clients-tab');
     if (clientsTab) {
-        clientsTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadClientsData();
-            }, 100);
+        console.log('Found clients tab, adding event listener');
+        clientsTab.addEventListener('shown.bs.tab', function() {
+            console.log('Clients tab shown, loading data...');
+            loadClientsData();
         });
     }
     
     // Load research when research tab is shown
     const researchTab = document.getElementById('research-tab');
     if (researchTab) {
-        researchTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadResearchData();
-            }, 100);
+        console.log('Found research tab, adding event listener');
+        researchTab.addEventListener('shown.bs.tab', function() {
+            console.log('Research tab shown, loading data...');
+            loadResearchData();
         });
     }
     
     // Load people when people tab is shown
     const peopleTab = document.getElementById('people-tab');
     if (peopleTab) {
-        peopleTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadPeopleData();
-            }, 100);
+        console.log('Found people tab, adding event listener');
+        peopleTab.addEventListener('shown.bs.tab', function() {
+            console.log('People tab shown, loading data...');
+            loadPeopleData();
         });
+    }
+    
+    // Also load data for the initially active tab
+    const activeTab = document.querySelector('.nav-link.active');
+    if (activeTab) {
+        console.log('Found active tab:', activeTab.id);
+        // Load data for whichever tab is initially active
+        setTimeout(() => {
+            if (activeTab.id === 'insights-tab') {
+                loadInsights();
+                loadAgentInsights();
+            } else if (activeTab.id === 'clients-tab') {
+                loadClientsData();
+            } else if (activeTab.id === 'research-tab') {
+                loadResearchData();
+            } else if (activeTab.id === 'people-tab') {
+                loadPeopleData();
+            }
+        }, 100);
     }
 });
 
@@ -4133,10 +4240,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const newsTab = document.getElementById('news-tab');
     if (newsTab) {
         newsTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadNews();
-                loadSavedNews();
-            }, 100);
+    setTimeout(() => {
+        loadNews();
+        loadSavedNews();
+    }, 100);
         });
     }
 });
@@ -4153,9 +4260,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const newsletterTab = document.getElementById('newsletter-tab');
     if (newsletterTab) {
         newsletterTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadNewsletters();
-            }, 100);
+    setTimeout(() => {
+        loadNewsletters();
+    }, 100);
         });
     }
 });
@@ -4165,89 +4272,79 @@ document.addEventListener('DOMContentLoaded', function() {
     const trainingTab = document.getElementById('training-tab');
     if (trainingTab) {
         trainingTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadTrainingWorkshops();
-            }, 100);
+    setTimeout(() => {
+        loadTrainingWorkshops();
+    }, 100);
         });
     }
 });
 
 // Training Workshops functions
 function loadTrainingWorkshops() {
-    // For now, show a message that training workshops will be loaded
-    const workshopsList = document.getElementById('workshops-list');
-    if (workshopsList) {
-        workshopsList.innerHTML = `
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-mortarboard display-4"></i>
-                <p class="mt-3">Training Workshops functionality is being restored. Check back soon!</p>
-            </div>
-        `;
-    }
-}
-
-// Research Tab functions
-function loadResearchData() {
-    fetch('/admin/map/research-projects')
+    // Load real training workshops data
+    fetch('/admin/map/training-workshops')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                displayResearchProjects(data.research_projects);
-                updateResearchStats(data.stats);
+                displayTrainingWorkshops(data.workshops);
+                updateTrainingStats(data.stats);
             } else {
-                showNoResearchProjects();
+                showNoTrainingWorkshops();
             }
         })
         .catch(error => {
-            console.error('Error loading research data:', error);
-            showNoResearchProjects();
+            console.error('Error loading training workshops:', error);
+            showNoTrainingWorkshops();
         });
 }
 
-function displayResearchProjects(projects) {
-    const container = document.getElementById('research-projects-list');
+function displayTrainingWorkshops(workshops) {
+    const container = document.getElementById('workshops-list');
     if (!container) return;
     
-    if (!projects || projects.length === 0) {
-        showNoResearchProjects();
+    if (!workshops || workshops.length === 0) {
+        showNoTrainingWorkshops();
         return;
     }
     
-    container.innerHTML = projects.map(project => `
+    container.innerHTML = workshops.map(workshop => `
         <div class="card mb-3">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h6 class="card-title">
-                            <span class="badge bg-primary me-2">${project.category || 'Research'}</span>
-                            ${project.title}
+                            <span class="badge bg-primary me-2">${workshop.category || 'Workshop'}</span>
+                            ${workshop.title}
                         </h6>
-                        <p class="card-text text-muted">${project.description || 'No description available'}</p>
+                        <p class="card-text text-muted">${workshop.description || 'No description available'}</p>
                         <div class="row">
                             <div class="col-md-6">
                                 <small class="text-muted">
-                                    <strong>Client:</strong> ${project.client_name || 'Internal'}<br>
-                                    <strong>Status:</strong> ${project.status || 'Active'}<br>
-                                    <strong>Priority:</strong> ${project.priority || 'Medium'}
+                                    <strong>Duration:</strong> ${workshop.duration || '2 hours'}<br>
+                                    <strong>Level:</strong> ${workshop.level || 'Beginner'}<br>
+                                    <strong>Participants:</strong> ${workshop.participants || '0'}/${workshop.max_participants || '20'}
                                 </small>
                             </div>
                             <div class="col-md-6">
                                 <small class="text-muted">
-                                    <strong>Start Date:</strong> ${new Date(project.start_date).toLocaleDateString()}<br>
-                                    <strong>End Date:</strong> ${project.end_date ? new Date(project.end_date).toLocaleDateString() : 'Ongoing'}<br>
-                                    <strong>Budget:</strong> $${project.budget || '0'}
+                                    <strong>Date:</strong> ${new Date(workshop.date).toLocaleDateString()}<br>
+                                    <strong>Location:</strong> ${workshop.location || 'Online'}<br>
+                                    <strong>Status:</strong> ${workshop.status || 'Scheduled'}
                                 </small>
                             </div>
                         </div>
                     </div>
                     <div class="btn-group-vertical">
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewResearch(${project.id})">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewWorkshop(${workshop.id})">
                             <i class="bi bi-eye"></i> View
                         </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="updateResearch(${project.id})">
+                        <button class="btn btn-sm btn-outline-success" onclick="editWorkshop(${workshop.id})">
                             <i class="bi bi-pencil"></i> Edit
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteResearch(${project.id})">
+                        <button class="btn btn-sm btn-outline-info" onclick="registerWorkshop(${workshop.id})">
+                            <i class="bi bi-person-plus"></i> Register
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteWorkshop(${workshop.id})">
                             <i class="bi bi-trash"></i> Delete
                         </button>
                     </div>
@@ -4257,28 +4354,28 @@ function displayResearchProjects(projects) {
     `).join('');
 }
 
-function showNoResearchProjects() {
-    const container = document.getElementById('research-projects-list');
+function showNoTrainingWorkshops() {
+    const container = document.getElementById('workshops-list');
     if (!container) return;
     
     container.innerHTML = `
         <div class="text-center text-muted py-4">
-            <i class="bi bi-search display-4"></i>
-            <p class="mt-3">No research projects yet. Start your first research project!</p>
-            <button class="btn btn-primary" onclick="uploadResearchReport()">
-                <i class="bi bi-upload"></i> Upload Report
+            <i class="bi bi-mortarboard display-4"></i>
+            <p class="mt-3">No training workshops yet. Create your first workshop!</p>
+            <button class="btn btn-primary" onclick="addNewWorkshop()">
+                <i class="bi bi-plus-circle"></i> Add Workshop
             </button>
         </div>
     `;
 }
 
-function updateResearchStats(stats) {
+function updateTrainingStats(stats) {
     if (stats) {
         const elements = {
-            'total-research': stats.total || 0,
-            'active-research': stats.active || 0,
-            'completed-research': stats.completed || 0,
-            'pending-research': stats.pending || 0
+            'total-workshops': stats.total || 0,
+            'upcoming-workshops': stats.upcoming || 0,
+            'completed-workshops': stats.completed || 0,
+            'registered-participants': stats.participants || 0
         };
         
         Object.entries(elements).forEach(([id, value]) => {
@@ -4288,12 +4385,110 @@ function updateResearchStats(stats) {
     }
 }
 
+function addNewWorkshop() {
+    alert('Add New Workshop functionality will be implemented soon!');
+}
+
+function viewWorkshop(workshopId) {
+    alert(`Viewing Workshop ID: ${workshopId}. This will open a detailed view.`);
+}
+
+function editWorkshop(workshopId) {
+    alert(`Editing Workshop ID: ${workshopId}. This will open an edit form.`);
+}
+
+function registerWorkshop(workshopId) {
+    alert(`Registering for Workshop ID: ${workshopId}. This will open a registration form.`);
+}
+
+function deleteWorkshop(workshopId) {
+    if (confirm('Are you sure you want to delete this workshop?')) {
+        alert(`Deleting Workshop ID: ${workshopId}. This will remove the workshop from the database.`);
+    }
+}
+
+// Research Tab functions
+function loadResearchData() {
+    fetch('/admin/map/research-projects')
+        .then(response => response.json())
+        .then(data => {
+            const researchReportsList = document.getElementById('research-reports-list');
+            
+            if (data.research_projects && data.research_projects.length > 0) {
+                let researchHtml = '';
+                data.research_projects.forEach(project => {
+                    const createdDate = new Date(project.created_at).toLocaleDateString();
+                    const badgeClass = getResearchBadgeClass(project.category);
+                    
+                    researchHtml += `
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <span class="badge ${badgeClass} me-2">${project.category || 'Research'}</span>
+                                    ${project.title}
+                                </h6>
+                                <small>${createdDate}</small>
+                            </div>
+                            <p class="mb-1">${project.description || 'No description available'}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Client: ${project.client_name || 'Internal'} | Status: ${project.status || 'Active'}</small>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="viewResearch(${project.id})">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                    <button class="btn btn-outline-success" onclick="downloadResearch(${project.id})">
+                                        <i class="bi bi-download"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                researchReportsList.innerHTML = researchHtml;
+            } else {
+                researchReportsList.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-file-earmark-text display-4"></i>
+                        <p class="mt-3">No research projects yet. Upload your first research report!</p>
+                        <button class="btn btn-primary" onclick="uploadResearchReport()">
+                            <i class="bi bi-upload"></i> Upload Report
+                        </button>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading research projects:', error);
+            const researchReportsList = document.getElementById('research-reports-list');
+            researchReportsList.innerHTML = '<div class="text-center text-danger py-4">Error loading research projects. Please try again.</div>';
+        });
+}
+
+function getResearchBadgeClass(category) {
+    switch (category) {
+        case 'AI Implementation': return 'bg-primary';
+        case 'Newsroom AI': return 'bg-success';
+        case 'Technology Trends': return 'bg-warning';
+        case 'Industry Reports': return 'bg-info';
+        default: return 'bg-secondary';
+    }
+}
+
 function uploadResearchReport() {
     alert('Upload Research Report functionality will be implemented soon!');
 }
 
 function scrapeResearch() {
     alert('Scrape Research functionality will be implemented soon!');
+}
+
+function viewResearch(projectId) {
+    alert(`Viewing Research Project ID: ${projectId}. This will open a detailed view.`);
+}
+
+function downloadResearch(projectId) {
+    alert(`Downloading Research Project ID: ${projectId}. This will download the report.`);
 }
 
 // People Tab functions
@@ -5039,9 +5234,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const aiToolsTab = document.getElementById('ai-tools-tab');
     if (aiToolsTab) {
         aiToolsTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadAITools();
-            }, 100);
+    setTimeout(() => {
+        loadAITools();
+    }, 100);
         });
     }
 });
@@ -5133,10 +5328,19 @@ function showNoAITools() {
 // Update AI Tools statistics
 function updateAIToolsStats(stats) {
     if (stats) {
-        document.getElementById('total-ai-tools').textContent = stats.total || 0;
-        document.getElementById('free-tools').textContent = stats.free || 0;
-        document.getElementById('paid-tools').textContent = stats.paid || 0;
-        document.getElementById('recommended-tools').textContent = stats.recommended || 0;
+        const elements = {
+            'total-ai-tools': stats.total || 0,
+            'free-tools': stats.free || 0,
+            'paid-tools': stats.paid || 0,
+            'recommended-tools': stats.recommended || 0
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
     }
 }
 
@@ -5172,9 +5376,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const prototypingTab = document.getElementById('prototyping-tab');
     if (prototypingTab) {
         prototypingTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadPrototypingData();
-            }, 100);
+    setTimeout(() => {
+        loadPrototypingData();
+    }, 100);
         });
     }
 });
@@ -5184,9 +5388,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const policiesTab = document.getElementById('policies-tab');
     if (policiesTab) {
         policiesTab.addEventListener('click', function() {
-            setTimeout(() => {
-                loadPoliciesData();
-            }, 100);
+    setTimeout(() => {
+        loadPoliciesData();
+    }, 100);
         });
     }
 });
@@ -5205,17 +5409,96 @@ function exportPolicies() {
 }
 
 function loadPoliciesData() {
-    // For now, show a message that policies will be loaded
-    const policiesList = document.getElementById('policies-list');
-    if (policiesList) {
-        policiesList.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center text-muted">
-                    <i class="bi bi-shield-check"></i>
-                    <p class="mt-3">AI Policies functionality is being restored. Check back soon!</p>
-                </td>
-            </tr>
-        `;
+    // Load real AI policies data
+    fetch('/admin/map/ai-policies')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPolicies(data.policies);
+                updatePolicyStats(data.stats);
+            } else {
+                showNoPolicies();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading policies data:', error);
+            showNoPolicies();
+        });
+}
+
+function displayPolicies(policies) {
+    const tbody = document.querySelector('#policies-list');
+    if (!tbody) return;
+    
+    if (!policies || policies.length === 0) {
+        showNoPolicies();
+        return;
+    }
+    
+    tbody.innerHTML = policies.map(policy => `
+        <tr>
+            <td>
+                <strong>${policy.name}</strong>
+                <br><small class="text-muted">${policy.description || 'No description'}</small>
+            </td>
+            <td><span class="badge bg-primary">${policy.category || 'General'}</span></td>
+            <td><span class="badge bg-${policy.status === 'Active' ? 'success' : policy.status === 'Pending' ? 'warning' : 'secondary'}">${policy.status || 'Draft'}</span></td>
+            <td>${policy.last_updated ? new Date(policy.last_updated).toLocaleDateString() : 'Never'}</td>
+            <td>v${policy.version || '1.0'}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="viewPolicy(${policy.id})" title="View Policy">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-success" onclick="editPolicy(${policy.id})" title="Edit Policy">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deletePolicy(${policy.id})" title="Delete Policy">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function showNoPolicies() {
+    const tbody = document.querySelector('#policies-list');
+    if (!tbody) return;
+    
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="6" class="text-center text-muted">
+                <i class="bi bi-shield-check"></i>
+                <p class="mt-3">No AI policies yet. Add your first policy!</p>
+                <button class="btn btn-primary btn-sm" onclick="addNewPolicy()">
+                    <i class="bi bi-plus-circle"></i> Add Policy
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
+function updatePolicyStats(stats) {
+    if (stats) {
+        document.getElementById('total-policies').textContent = stats.total || 0;
+        document.getElementById('active-policies').textContent = stats.active || 0;
+        document.getElementById('pending-policies').textContent = stats.pending || 0;
+        document.getElementById('updated-policies').textContent = stats.updated || 0;
+    }
+}
+
+function viewPolicy(policyId) {
+    alert(`Viewing Policy ID: ${policyId}. This will open a detailed view.`);
+}
+
+function editPolicy(policyId) {
+    alert(`Editing Policy ID: ${policyId}. This will open an edit form.`);
+}
+
+function deletePolicy(policyId) {
+    if (confirm('Are you sure you want to delete this policy?')) {
+        alert(`Deleting Policy ID: ${policyId}. This will remove the policy from the database.`);
     }
 }
 
@@ -5233,15 +5516,125 @@ function exportPrototypeData() {
 }
 
 function loadPrototypingData() {
-    // For now, show a message that prototyping data will be loaded
-    const prototypesList = document.getElementById('prototypes-list');
-    if (prototypesList) {
-        prototypesList.innerHTML = `
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-cpu display-4"></i>
-                <p class="mt-3">AI Prototyping functionality is being restored. Check back soon!</p>
+    // Load real AI prototyping data
+    fetch('/admin/map/prototypes')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayPrototypes(data.prototypes);
+                updatePrototypeStats(data.stats);
+            } else {
+                showNoPrototypes();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading prototyping data:', error);
+            showNoPrototypes();
+        });
+}
+
+function displayPrototypes(prototypes) {
+    const container = document.getElementById('prototypes-list');
+    if (!container) return;
+    
+    if (!prototypes || prototypes.length === 0) {
+        showNoPrototypes();
+        return;
+    }
+    
+    container.innerHTML = prototypes.map(prototype => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title">
+                            <span class="badge bg-primary me-2">${prototype.category || 'Prototype'}</span>
+                            ${prototype.name}
+                        </h6>
+                        <p class="card-text text-muted">${prototype.description || 'No description available'}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Status:</strong> ${prototype.status || 'In Development'}<br>
+                                    <strong>Technology:</strong> ${prototype.technology || 'Unknown'}<br>
+                                    <strong>Progress:</strong> ${prototype.progress || '0'}%
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Start Date:</strong> ${new Date(prototype.start_date).toLocaleDateString()}<br>
+                                    <strong>Last Update:</strong> ${prototype.last_update ? new Date(prototype.last_update).toLocaleDateString() : 'Never'}<br>
+                                    <strong>Team Size:</strong> ${prototype.team_size || '1'} members
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewPrototype(${prototype.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="editPrototype(${prototype.id})">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="updatePrototype(${prototype.id})">
+                            <i class="bi bi-arrow-clockwise"></i> Update
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deletePrototype(${prototype.id})">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
             </div>
-        `;
+        </div>
+    `).join('');
+}
+
+function showNoPrototypes() {
+    const container = document.getElementById('prototypes-list');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-cpu display-4"></i>
+            <p class="mt-3">No AI prototypes yet. Start your first prototype!</p>
+            <button class="btn btn-primary" onclick="addNewPrototype()">
+                <i class="bi bi-plus-circle"></i> Add Prototype
+            </button>
+        </div>
+    `;
+}
+
+function updatePrototypeStats(stats) {
+    if (stats) {
+        const elements = {
+            'total-prototypes': stats.total || 0,
+            'active-prototypes': stats.active || 0,
+            'completed-prototypes': stats.completed || 0,
+            'in-development-prototypes': stats.in_development || 0
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        });
+    }
+}
+
+function viewPrototype(prototypeId) {
+    alert(`Viewing Prototype ID: ${prototypeId}. This will open a detailed view.`);
+}
+
+function editPrototype(prototypeId) {
+    alert(`Editing Prototype ID: ${prototypeId}. This will open an edit form.`);
+}
+
+function updatePrototype(prototypeId) {
+    alert(`Updating Prototype ID: ${prototypeId}. This will add a new update.`);
+}
+
+function deletePrototype(prototypeId) {
+    if (confirm('Are you sure you want to delete this prototype?')) {
+        alert(`Deleting Prototype ID: ${prototypeId}. This will remove the prototype from the database.`);
     }
 }
 
@@ -6103,8 +6496,8 @@ function deleteAITool(toolId) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="clientName" class="form-label">Client Name *</label>
-                                <input type="text" class="form-control" id="clientName" required>
+                                <label for="clientName2" class="form-label">Client Name *</label>
+                                <input type="text" class="form-control" id="clientName2" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -6131,14 +6524,14 @@ function deleteAITool(toolId) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="clientWebsite" class="form-label">Website</label>
-                                <input type="url" class="form-control" id="clientWebsite">
+                                <label for="clientWebsite2" class="form-label">Website</label>
+                                <input type="url" class="form-control" id="clientWebsite2">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="clientIndustry" class="form-label">Industry</label>
-                                <select class="form-select" id="clientIndustry">
+                                <label for="clientIndustry2" class="form-label">Industry</label>
+                                <select class="form-select" id="clientIndustry2">
                                     <option value="">Select Industry</option>
                                     <option value="Media">Media</option>
                                     <option value="Technology">Technology</option>
@@ -6267,8 +6660,8 @@ function deleteAITool(toolId) {
                                 <textarea class="form-control" id="clientSuccessMetrics" rows="3" placeholder="How will success be measured?"></textarea>
                             </div>
                             <div class="mb-3">
-                                <label for="clientNotes" class="form-label">Additional Notes</label>
-                                <textarea class="form-control" id="clientNotes" rows="3" placeholder="Any additional information..."></textarea>
+                                <label for="clientNotes2" class="form-label">Additional Notes</label>
+                                <textarea class="form-control" id="clientNotes2" rows="3" placeholder="Any additional information..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -8302,6 +8695,54 @@ async function loadInsights() {
 // Display insights
 function displayInsights(insights) {
     const container = document.getElementById('insights-list');
+    if (!container) return;
+    
+    if (!insights || insights.length === 0) {
+        showNoInsights();
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => `
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">
+                    <span class="badge bg-primary me-2">${insight.category || 'Insight'}</span>
+                    ${insight.title || 'Generated Insight'}
+                </h6>
+                <small class="text-muted">${new Date(insight.created_at).toLocaleDateString()}</small>
+            </div>
+            <div class="mb-1">
+                <p class="mb-1">${insight.content ? insight.content.substring(0, 200) + '...' : 'No content available'}</p>
+            </div>
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="viewInsightDetail(${insight.id})">
+                    <i class="bi bi-eye"></i> View Details
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="exportInsight(${insight.id})">
+                    <i class="bi bi-download"></i> Export
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Show no insights message
+function showNoInsights() {
+    const container = document.getElementById('insights-list');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="text-center py-4">
+            <i class="bi bi-lightbulb text-muted" style="font-size: 2rem;"></i>
+            <p class="mt-2 text-muted">No insights generated yet.</p>
+            <p class="text-muted small">Click "Generate Insight" to create your first insight.</p>
+        </div>
+    `;
+}
+
+// Display insights
+function displayInsights(insights) {
+    const container = document.getElementById('insights-list');
     
     if (!insights || insights.length === 0) {
         showNoInsights();
@@ -8505,5 +8946,57 @@ function displayInsightDetail(insight) {
         </div>
     </div>
 </div>
+
+<script>
+// Force correct tab content loading
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Setting up forced tab behavior...');
+    
+    // Override Bootstrap tab behavior to force correct content
+    const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+    console.log('Found tab buttons:', tabButtons.length);
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('data-bs-target');
+            console.log('Tab clicked:', targetId);
+            
+            // Force hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Force show the correct tab pane
+            const targetPane = document.querySelector(targetId);
+            if (targetPane) {
+                setTimeout(() => {
+                    targetPane.classList.add('show', 'active');
+                    
+                    // Load data based on tab
+                    if (targetId === '#clients') {
+                        console.log('Loading clients data...');
+                        if (typeof loadClientsData === 'function') {
+                            loadClientsData();
+                        }
+                    } else if (targetId === '#insights') {
+                        console.log('Loading insights data...');
+                        if (typeof loadInsights === 'function') {
+                            loadInsights();
+                        }
+                        if (typeof loadAgentInsights === 'function') {
+                            loadAgentInsights();
+                        }
+                    } else if (targetId === '#research') {
+                        console.log('Loading research data...');
+                        if (typeof loadResearchData === 'function') {
+                            loadResearchData();
+                        }
+                    }
+                }, 50);
+            }
+        });
+    });
+});
+</script>
 
 {% endblock %}

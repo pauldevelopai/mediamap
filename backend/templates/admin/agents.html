@@ -160,6 +160,78 @@
         font-size: 14px;
         opacity: 0.9;
     }
+    
+    /* Real-time monitoring animations */
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Enhanced progress bars */
+    .progress-bar-animated {
+        animation: progress-bar-stripes 1s linear infinite;
+    }
+    
+    @keyframes progress-bar-stripes {
+        0% { background-position: 1rem 0; }
+        100% { background-position: 0 0; }
+    }
+    
+    /* Connection status indicator */
+    #connection-status {
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Enhanced button states */
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    /* Agent status indicators */
+    .agent-status.status-running {
+        box-shadow: 0 0 10px rgba(21, 87, 36, 0.3);
+    }
+    
+    /* Enhanced alerts */
+    .alert {
+        border-left: 4px solid;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Loading states */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
 </style>
 {% endblock %}
 
@@ -810,6 +882,9 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshDoctorDirectoryStatus();
         updateAgentStatus();
     }, 10000);
+    
+    // Initialize real-time status monitoring
+    initializeRealTimeMonitoring();
 });
 
 // Load dashboard data
@@ -928,9 +1003,21 @@ function updateDashboard() {
     if (!dashboardData) return;
     
     // Update agent status
-    if (dashboardData.agents) {
-        updateAgentStatus('mediamap', dashboardData.agents.mediamap);
-        updateAgentStatus('healthpin', dashboardData.agents.healthpin);
+    if (dashboardData.status) {
+        Object.keys(dashboardData.status).forEach(agentName => {
+            updateAgentStatusFromAPI(agentName, dashboardData.status[agentName]);
+        });
+    }
+    
+    // Update insights and recommendations
+    if (dashboardData.mediamap) {
+        updateRecommendations('mediamap', dashboardData.mediamap.recommendations);
+        updateTrends('mediamap', dashboardData.mediamap.trends);
+    }
+    
+    if (dashboardData.healthpin) {
+        updateRecommendations('healthpin', dashboardData.healthpin.recommendations);
+        updateTrends('healthpin', dashboardData.healthpin.trends);
     }
     
     // Update statistics
@@ -942,6 +1029,25 @@ function updateDashboard() {
     if (dashboardData.recent_activity) {
         updateRecentActivity(dashboardData.recent_activity);
     }
+}
+
+function updateAgentStatusFromAPI(agentName, status) {
+    // Update metrics in the sidebar
+    const cyclesElement = document.getElementById(`${agentName}-cycles`);
+    const dataElement = document.getElementById(`${agentName}-data`);
+    const insightsElement = document.getElementById(`${agentName}-insights`);
+    const uptimeElement = document.getElementById(`${agentName}-uptime`);
+    
+    if (cyclesElement) cyclesElement.textContent = status.learning_cycles || 0;
+    if (dataElement) dataElement.textContent = status.total_data_collected || 0;
+    if (insightsElement) insightsElement.textContent = status.knowledge_base_size || 0;
+    if (uptimeElement) {
+        const uptime = status.performance_metrics?.uptime_percentage || 0;
+        uptimeElement.textContent = `${uptime.toFixed(1)}%`;
+    }
+    
+    // Update running state
+    updateAgentRunningState(agentName, status.is_running || false);
 }
 
 // Update statistics display
@@ -1658,6 +1764,309 @@ async function cleanDoctorDirectory() {
         label.textContent = 'Completed';
         setTimeout(()=>{ progress.style.display = 'none'; bar.style.width = '10%'; label.textContent = 'Working...'; }, 1200);
         btn.disabled = false; scrapeBtn.disabled = false; refreshBtn.disabled = false;
+    }
+}
+
+// Real-time monitoring initialization
+function initializeRealTimeMonitoring() {
+    // Add visual indicators for agent status
+    updateAgentStatusIndicators();
+    
+    // Start real-time progress tracking for long-running operations
+    startProgressTracking();
+    
+    // Add connection status indicator
+    addConnectionStatusIndicator();
+}
+
+function updateAgentStatusIndicators() {
+    // Add pulsing animation for running agents
+    const runningBadges = document.querySelectorAll('.badge.bg-success');
+    runningBadges.forEach(badge => {
+        if (badge.textContent.includes('Running') || badge.textContent.includes('Active')) {
+            badge.classList.add('pulse-animation');
+        }
+    });
+}
+
+function startProgressTracking() {
+    // Track any ongoing operations and show progress
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        if (bar.style.width !== '0%' && bar.style.width !== '') {
+            bar.classList.add('progress-bar-animated');
+        }
+    });
+}
+
+function addConnectionStatusIndicator() {
+    // Add a small connection indicator to show if the backend is responsive
+    const indicator = document.createElement('div');
+    indicator.id = 'connection-status';
+    indicator.className = 'position-fixed';
+    indicator.style.cssText = 'top: 10px; right: 10px; z-index: 1050; padding: 5px 10px; border-radius: 15px; font-size: 12px; background: #28a745; color: white;';
+    indicator.innerHTML = '<i class="bi bi-wifi"></i> Connected';
+    document.body.appendChild(indicator);
+    
+    // Test connection every 30 seconds
+    setInterval(testConnection, 30000);
+}
+
+async function testConnection() {
+    const indicator = document.getElementById('connection-status');
+    try {
+        const response = await fetch('/api/agents/status', { 
+            credentials: 'include',
+            signal: AbortSignal.timeout(5000)
+        });
+        if (response.ok) {
+            indicator.style.background = '#28a745';
+            indicator.innerHTML = '<i class="bi bi-wifi"></i> Connected';
+        } else {
+            throw new Error('Server error');
+        }
+    } catch (error) {
+        indicator.style.background = '#dc3545';
+        indicator.innerHTML = '<i class="bi bi-wifi-off"></i> Disconnected';
+    }
+}
+
+// Enhanced button functionality with better error handling and feedback
+async function startIndividualAgent(agentName) {
+    try {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        
+        if (!startBtn) {
+            showAlert(`Start button not found for ${agentName} agent`, 'warning');
+            return;
+        }
+        
+        // Disable buttons and show loading state
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="bi bi-hourglass-split spin"></i> Starting...';
+        
+        showAlert(`Starting ${agentName} agent... This will begin background data collection and analysis.`, 'info');
+        
+        const response = await fetch(`/api/agents/${agentName}/start`, { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`✅ ${agentName} agent started successfully! It is now collecting real data and generating insights in the background.`, 'success');
+            
+            // Update UI to reflect running state
+            updateAgentRunningState(agentName, true);
+            
+            // Refresh dashboard data
+            loadDashboard();
+        } else {
+            throw new Error(data.error || 'Unknown error occurred');
+        }
+    } catch (error) {
+        console.error(`Error starting ${agentName} agent:`, error);
+        showAlert(`❌ Failed to start ${agentName} agent: ${error.message}`, 'danger');
+    } finally {
+        // Reset button state
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="bi bi-play-circle"></i> Start Agent';
+        }
+    }
+}
+
+async function stopIndividualAgent(agentName) {
+    try {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        
+        if (!stopBtn) {
+            showAlert(`Stop button not found for ${agentName} agent`, 'warning');
+            return;
+        }
+        
+        // Disable buttons and show loading state
+        stopBtn.disabled = true;
+        stopBtn.innerHTML = '<i class="bi bi-hourglass-split spin"></i> Stopping...';
+        
+        showAlert(`Stopping ${agentName} agent... This will halt background data collection.`, 'warning');
+        
+        const response = await fetch(`/api/agents/${agentName}/stop`, { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`🛑 ${agentName} agent stopped successfully!`, 'info');
+            
+            // Update UI to reflect stopped state
+            updateAgentRunningState(agentName, false);
+            
+            // Refresh dashboard data
+            loadDashboard();
+        } else {
+            throw new Error(data.error || 'Unknown error occurred');
+        }
+    } catch (error) {
+        console.error(`Error stopping ${agentName} agent:`, error);
+        showAlert(`❌ Failed to stop ${agentName} agent: ${error.message}`, 'danger');
+    } finally {
+        // Reset button state
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        if (stopBtn) {
+            stopBtn.disabled = false;
+            stopBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Agent';
+        }
+    }
+}
+
+function updateAgentRunningState(agentName, isRunning) {
+    // Update status badge
+    const statusBadge = document.getElementById(`${agentName}-live-status`);
+    if (statusBadge) {
+        statusBadge.textContent = isRunning ? 'Running' : 'Stopped';
+        statusBadge.className = `badge ${isRunning ? 'bg-success pulse-animation' : 'bg-secondary'}`;
+    }
+    
+    // Update activity text
+    const activityElement = document.getElementById(`${agentName}-current-activity`);
+    if (activityElement) {
+        const now = new Date().toLocaleTimeString();
+        if (isRunning) {
+            activityElement.innerHTML = `<small class="text-muted">Active - Collecting data and analyzing patterns (Started: ${now})</small>`;
+        } else {
+            activityElement.innerHTML = `<small class="text-muted">Stopped - No background data collection (Stopped: ${now})</small>`;
+        }
+    }
+    
+    // Update progress bar
+    const progressElement = document.querySelector(`#${agentName}-progress .progress-bar`);
+    if (progressElement) {
+        if (isRunning) {
+            progressElement.style.width = '25%';
+            progressElement.classList.add('progress-bar-animated', 'progress-bar-striped');
+        } else {
+            progressElement.style.width = '0%';
+            progressElement.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        }
+    }
+}
+
+// Enhanced run scrape function with better progress tracking
+async function runDoctorDirectoryAgent() {
+    try {
+        showAlert('Starting Doctor Directory scrape (South Africa)...', 'info');
+        const btn = document.getElementById('doctor-scrape-btn');
+        const cleanBtn = document.getElementById('doctor-clean-btn');
+        const refreshBtn = document.getElementById('doctor-refresh-btn');
+        const progress = document.getElementById('doctor-progress');
+        const bar = document.getElementById('doctor-progress-bar');
+        const label = document.getElementById('doctor-progress-label');
+        
+        if (!btn || !progress || !bar || !label) {
+            throw new Error('Required UI elements not found');
+        }
+        
+        // Disable buttons and show progress
+        btn.disabled = true; 
+        if (cleanBtn) cleanBtn.disabled = true; 
+        if (refreshBtn) refreshBtn.disabled = true;
+        
+        progress.style.display = 'block';
+        bar.style.width = '10%'; 
+        bar.setAttribute('aria-valuenow', 10);
+        bar.classList.add('progress-bar-animated', 'progress-bar-striped');
+        label.textContent = 'Initializing scrape...';
+
+        // Add estimated time
+        const startTime = Date.now();
+        label.innerHTML = 'Initializing scrape... <small class="text-muted">(This may take 2-5 minutes)</small>';
+
+        // Kick off scrape with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
+        
+        const res = await fetch('/api/agents/healthpin/scrape/doctors', { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            bar.style.width = '100%'; 
+            bar.setAttribute('aria-valuenow', 100);
+            
+            const elapsed = Math.round((Date.now() - startTime) / 1000);
+            label.innerHTML = `Completed in ${elapsed}s`;
+            
+            showAlert(`✅ Doctor Directory updated successfully! Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.`, 'success');
+            await refreshDoctorDirectoryStatus();
+        } else {
+            throw new Error(data.error || 'Unknown error occurred');
+        }
+    } catch (e) {
+        console.error('Doctor scrape error:', e);
+        if (e.name === 'AbortError') {
+            showAlert('❌ Doctor Directory scrape timed out. Please try again.', 'danger');
+        } else {
+            showAlert(`❌ Error starting Doctor Directory scrape: ${e.message}`, 'danger');
+        }
+    } finally {
+        // Reset UI state
+        const btn = document.getElementById('doctor-scrape-btn');
+        const cleanBtn = document.getElementById('doctor-clean-btn');
+        const refreshBtn = document.getElementById('doctor-refresh-btn');
+        const progress = document.getElementById('doctor-progress');
+        const bar = document.getElementById('doctor-progress-bar');
+        const label = document.getElementById('doctor-progress-label');
+        
+        if (bar) {
+            bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        }
+        
+        setTimeout(() => {
+            if (progress) progress.style.display = 'none';
+            if (bar) {
+                bar.style.width = '10%';
+                bar.setAttribute('aria-valuenow', 10);
+            }
+            if (label) label.textContent = 'Working...';
+        }, 2000);
+        
+        if (btn) btn.disabled = false;
+        if (cleanBtn) cleanBtn.disabled = false;
+        if (refreshBtn) refreshBtn.disabled = false;
     }
 }
 

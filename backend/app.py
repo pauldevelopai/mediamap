@@ -64,8 +64,12 @@ from urllib.parse import urlparse
 import io
 import traceback
 import sys
+import logging
 from functools import wraps
 from sqlalchemy import Column, Boolean, text
+
+# Configure logging
+logger = logging.getLogger(__name__)
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload
 from bs4 import BeautifulSoup
@@ -1702,6 +1706,262 @@ def admin_prompts():
 def admin_agents():
     """Admin AI agents dashboard"""
     return render_template('admin/agents.html')
+
+@app.route('/admin/insights')
+@login_required
+@admin_required
+def admin_insights():
+    """Admin AI insights dashboard"""
+    return render_template('admin/insights.html')
+
+@app.route('/admin/insights/generate-report', methods=['POST'])
+@login_required
+@admin_required
+def generate_insights_report():
+    """Generate comprehensive insights report"""
+    try:
+        # Check if request has JSON data
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Request must be JSON'
+            }), 400
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+            
+        report_type = data.get('type', 'mediamap')  # mediamap, healthpin
+        period_days = data.get('period', 30)
+        format_type = data.get('format', 'pdf')
+        
+        # Import agent_manager with error handling
+        try:
+            from backend.agents.agent_manager import agent_manager
+        except ImportError as e:
+            logger.error(f"Failed to import agent_manager: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Agent manager not available'
+            }), 500
+            
+        from datetime import datetime, timedelta
+        import json
+        import io
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+        
+        # Get insights based on type
+        insights = []
+        
+        try:
+            if report_type == 'mediamap':
+                mediamap_insights = agent_manager.get_mediamap_insights()
+                if mediamap_insights:
+                    for insight in mediamap_insights:
+                        insight['source_agent'] = 'mediamap'
+                        insights.append(insight)
+                else:
+                    # Add a sample insight if none available
+                    insights.append({
+                        'source_agent': 'mediamap',
+                        'type': 'Sample',
+                        'category': 'General',
+                        'insight': 'No MediaMap insights available at this time.',
+                        'confidence': 0.5,
+                        'timestamp': datetime.utcnow().isoformat()
+                    })
+            
+            elif report_type == 'healthpin':
+                healthpin_insights = agent_manager.get_healthpin_insights()
+                if healthpin_insights:
+                    for insight in healthpin_insights:
+                        insight['source_agent'] = 'healthpin'
+                        insights.append(insight)
+                else:
+                    # Add a sample insight if none available
+                    insights.append({
+                        'source_agent': 'healthpin',
+                        'type': 'Sample',
+                        'category': 'General',
+                        'insight': 'No HealthPIN insights available at this time.',
+                        'confidence': 0.5,
+                        'timestamp': datetime.utcnow().isoformat()
+                    })
+        except Exception as e:
+            logger.error(f"Error getting insights from agent_manager: {e}")
+            # Return sample data instead of failing
+            insights.append({
+                'source_agent': report_type,
+                'type': 'Error',
+                'category': 'System',
+                'insight': f'Agent manager temporarily unavailable. Error: {str(e)}',
+                'confidence': 0.1,
+                'timestamp': datetime.utcnow().isoformat()
+            })
+        
+        # Filter by date if needed
+        cutoff_date = datetime.utcnow() - timedelta(days=period_days)
+        filtered_insights = []
+        for insight in insights:
+            if insight.get('timestamp'):
+                try:
+                    insight_date = datetime.fromisoformat(insight['timestamp'].replace('Z', '+00:00'))
+                    if insight_date >= cutoff_date:
+                        filtered_insights.append(insight)
+                except:
+                    filtered_insights.append(insight)  # Include if we can't parse date
+            else:
+                filtered_insights.append(insight)  # Include if no timestamp
+        
+        # Generate report based on format
+        if format_type == 'json':
+            report_data = {
+                'report_type': report_type,
+                'period_days': period_days,
+                'generated_at': datetime.utcnow().isoformat(),
+                'insights_count': len(filtered_insights),
+                'insights': filtered_insights,
+                'summary': {
+                    'total_insights': len(filtered_insights),
+                    'mediamap_insights': len([i for i in filtered_insights if i.get('source_agent') == 'mediamap']),
+                    'healthpin_insights': len([i for i in filtered_insights if i.get('source_agent') == 'healthpin']),
+                    'avg_confidence': sum([i.get('confidence', 0.5) for i in filtered_insights]) / len(filtered_insights) if filtered_insights else 0
+                }
+            }
+            
+            # Create downloadable JSON
+            filename = f"insights_report_{report_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+            
+            return jsonify({
+                'success': True,
+                'report_data': report_data,
+                'filename': filename,
+                'download_url': f'/admin/insights/download/{filename}'
+            })
+        
+        elif format_type == 'html':
+            # Generate HTML report
+            html_content = generate_html_report(filtered_insights, report_type, period_days)
+            filename = f"insights_report_{report_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html"
+            
+            return jsonify({
+                'success': True,
+                'html_content': html_content,
+                'filename': filename,
+                'download_url': f'/admin/insights/download/{filename}'
+            })
+        
+        else:  # PDF format
+            # Generate PDF report
+            pdf_content = generate_pdf_report(filtered_insights, report_type, period_days)
+            filename = f"insights_report_{report_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+            
+            return jsonify({
+                'success': True,
+                'filename': filename,
+                'download_url': f'/admin/insights/download/{filename}'
+            })
+        
+    except Exception as e:
+        logger.error(f"Error generating insights report: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def generate_html_report(insights, report_type, period_days):
+    """Generate HTML report content"""
+    from datetime import datetime
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>AI Insights Report - {report_type.title()}</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            .header {{ text-align: center; margin-bottom: 40px; }}
+            .summary {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }}
+            .insight {{ border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; }}
+            .insight.mediamap {{ border-left: 4px solid #28a745; }}
+            .insight.healthpin {{ border-left: 4px solid #dc3545; }}
+            .badge {{ padding: 4px 8px; border-radius: 4px; font-size: 12px; }}
+            .badge-mediamap {{ background: #d4edda; color: #155724; }}
+            .badge-healthpin {{ background: #f8d7da; color: #721c24; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>AI Insights Report</h1>
+            <h2>{report_type.title()} - Last {period_days} Days</h2>
+            <p>Generated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
+        </div>
+        
+        <div class="summary">
+            <h3>Summary</h3>
+            <p><strong>Total Insights:</strong> {len(insights)}</p>
+            <p><strong>MediaMap Insights:</strong> {len([i for i in insights if i.get('source_agent') == 'mediamap'])}</p>
+            <p><strong>HealthPIN Insights:</strong> {len([i for i in insights if i.get('source_agent') == 'healthpin'])}</p>
+        </div>
+        
+        <div class="insights">
+            <h3>Detailed Insights</h3>
+    """
+    
+    for insight in insights:
+        source = insight.get('source_agent', 'unknown')
+        confidence = insight.get('confidence', 0.5)
+        timestamp = insight.get('timestamp', 'Unknown')
+        
+        html += f"""
+            <div class="insight {source}">
+                <div style="margin-bottom: 10px;">
+                    <span class="badge badge-{source}">{source.upper()}</span>
+                    <span style="margin-left: 10px;">Confidence: {int(confidence * 100)}%</span>
+                    <span style="float: right;">{timestamp}</span>
+                </div>
+                <h4>{insight.get('type', 'Insight')}</h4>
+                <p><strong>Category:</strong> {insight.get('category', 'General')}</p>
+                <p>{insight.get('insight', insight.get('content', 'No content available'))}</p>
+            </div>
+        """
+    
+    html += """
+        </div>
+    </body>
+    </html>
+    """
+    
+    return html
+
+def generate_pdf_report(insights, report_type, period_days):
+    """Generate PDF report content"""
+    # For now, return a simple text-based report
+    # In production, you'd use reportlab or similar
+    return f"PDF Report for {report_type} - {len(insights)} insights from last {period_days} days"
+
+@app.route('/admin/insights/download/<filename>')
+@login_required
+@admin_required
+def download_insights_report(filename):
+    """Download generated insights report"""
+    try:
+        # For now, return a simple response since we're not storing files
+        # In production, you'd serve the actual file
+        return jsonify({
+            'success': True,
+            'message': f'Report {filename} would be downloaded here'
+        })
+    except Exception as e:
+        logger.error(f"Error downloading report: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/admin/agents/<agent_name>/start', methods=['POST'])
 @login_required
