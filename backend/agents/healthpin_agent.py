@@ -54,11 +54,14 @@ class HealthPINAgent(BaseAgent):
         # Healthcare keywords for relevance scoring
         self.healthcare_keywords = [
             "healthcare", "medical", "patient", "clinical", "diagnosis", "treatment",
+            "health", "medicine", "doctor", "hospital", "nurse", "physician",
+            "cancer", "disease", "therapy", "surgery", "medication", "drug",
+            "wellness", "prevention", "symptoms", "condition", "disorder",
             "EHR", "electronic health record", "telemedicine", "digital health",
             "AI", "artificial intelligence", "machine learning", "analytics",
             "patient care", "outcomes", "safety", "quality", "protocols",
-            "medication", "therapy", "surgery", "prevention", "wellness",
-            "chronic disease", "mental health", "pediatrics", "geriatrics"
+            "chronic disease", "mental health", "pediatrics", "geriatrics",
+            "research", "study", "clinical trial", "vaccine", "infection"
         ]
         
         # Medical specialties for categorization
@@ -386,7 +389,10 @@ class HealthPINAgent(BaseAgent):
     
     def _collect_from_source(self, source: str) -> List[Dict[str, Any]]:
         """Collect data from healthcare sources"""
-        if source in self.healthcare_sources["medical_news"]:
+        # Check if it's an RSS feed (most common case)
+        if source.endswith('/feed/') or source.endswith('/rss') or 'feedburner.com' in source or 'rss' in source.lower() or 'xml' in source.lower():
+            return self._collect_from_rss_feed(source)
+        elif source in self.healthcare_sources["medical_news"]:
             return self._collect_from_rss_feed(source)
         elif source in self.healthcare_sources["research_feeds"]:
             return self._collect_from_research_feed(source)
@@ -395,30 +401,40 @@ class HealthPINAgent(BaseAgent):
         elif source in self.healthcare_sources["patient_care"]:
             return self._collect_from_care_feed(source)
         else:
-            logger.warning(f"Unknown healthcare source type: {source}")
-            return []
+            # Default to RSS feed collection for unknown sources
+            logger.info(f"Treating unknown healthcare source as RSS feed: {source}")
+            return self._collect_from_rss_feed(source)
     
     def _collect_from_rss_feed(self, feed_url: str) -> List[Dict[str, Any]]:
         """Collect data from medical news RSS feeds"""
         try:
+            logger.info(f"📡 Fetching healthcare RSS feed: {feed_url}")
             feed = feedparser.parse(feed_url)
             articles = []
+            
+            if not feed.entries:
+                logger.warning(f"⚠️ No entries found in healthcare RSS feed: {feed_url}")
+                return []
             
             for entry in feed.entries[:10]:  # Limit to 10 most recent
                 article = {
                     "title": entry.get("title", ""),
-                    "summary": entry.get("summary", ""),
+                    "summary": entry.get("summary", "") or entry.get("description", ""),
                     "link": entry.get("link", ""),
                     "published": entry.get("published", ""),
                     "source": feed_url,
-                    "type": "medical_news"
+                    "type": "medical_news",
+                    "author": entry.get("author", ""),
+                    "tags": [tag.get("term", "") for tag in entry.get("tags", [])]
                 }
                 articles.append(article)
+                logger.info(f"🏥 Collected: {article['title'][:50]}...")
             
+            logger.info(f"✅ Collected {len(articles)} healthcare articles from RSS feed: {feed_url}")
             return articles
             
         except Exception as e:
-            logger.error(f"Error collecting from medical RSS feed {feed_url}: {e}")
+            logger.error(f"❌ Error collecting from healthcare RSS feed {feed_url}: {e}")
             return []
     
     def _collect_from_research_feed(self, feed_url: str) -> List[Dict[str, Any]]:

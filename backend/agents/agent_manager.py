@@ -78,11 +78,11 @@ class AgentManager:
             name="HealthPINAgent",
             section="healthpin",
             data_sources=[
-                "https://www.medicalnewstoday.com/rss",
-                "https://www.healthline.com/rss",
-                "https://www.webmd.com/rss",
-                "https://www.healthcareitnews.com/rss",
-                "https://www.mobihealthnews.com/rss"
+                "https://feeds.feedburner.com/medicalnewstoday",
+                "https://www.cdc.gov/rss/news.xml",
+                "https://www.fda.gov/about-fda/fda-basics/fda-rss-feeds",
+                "https://www.who.int/rss-feeds/news-english.xml",
+                "https://www.health.harvard.edu/rss"
             ],
             learning_interval=45,  # 45 minutes
             max_data_points=1000,

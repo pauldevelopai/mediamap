@@ -385,6 +385,9 @@
                                                 <button class="btn btn-outline-warning" onclick="editAgent('mediamap')">
                                                     <i class="bi bi-pencil"></i> Edit Agent
                                                 </button>
+                                                <button class="btn btn-outline-info" onclick="viewRealData('mediamap')">
+                                                    <i class="bi bi-database"></i> View Real Data
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -564,6 +567,9 @@
                                                 </button>
                                                 <button class="btn btn-outline-warning" onclick="editAgent('healthpin')">
                                                     <i class="bi bi-pencil"></i> Edit Agent
+                                                </button>
+                                                <button class="btn btn-outline-info" onclick="viewRealData('healthpin')">
+                                                    <i class="bi bi-database"></i> View Real Data
                                                 </button>
                                             </div>
                                         </div>
@@ -1418,6 +1424,142 @@ function handleNewAgentSubmission(event) {
 function viewAgentDetails(agentName) {
     // This would open a detailed modal or navigate to a detailed view
     showAlert(`Viewing details for ${agentName} agent (feature coming soon)`, 'info');
+}
+
+// View real data collected by agents
+async function viewRealData(agentName) {
+    try {
+        showAlert(`Loading real data for ${agentName} agent...`, 'info');
+        
+        const response = await fetch('/admin/agents/real-data', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.real_data[agentName]) {
+                displayRealDataModal(data.real_data[agentName], agentName);
+            } else {
+                showAlert(`No real data available for ${agentName} agent`, 'warning');
+            }
+        } else {
+            showAlert('Failed to load real data', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading real data:', error);
+        showAlert('Error loading real data', 'error');
+    }
+}
+
+function displayRealDataModal(agentData, agentName) {
+    const dataPoints = agentData.data_points || 0;
+    const recentData = agentData.recent_data || [];
+    
+    const modalHtml = `
+        <div class="modal fade" id="realDataModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-database me-2"></i>Real Data Collected by ${agentName.charAt(0).toUpperCase() + agentName.slice(1)} Agent
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${dataPoints}</h3>
+                                        <p class="mb-0">Total Data Points</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${recentData.length}</h3>
+                                        <p class="mb-0">Recent Items</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${recentData.length > 0 ? `
+                            <h6>Recent Data Collected:</h6>
+                            <div class="accordion" id="dataAccordion">
+                                ${recentData.map((item, index) => `
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading${index}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                                                <div class="d-flex justify-content-between w-100 me-3">
+                                                    <span><strong>${item.category}</strong> - ${item.source}</span>
+                                                    <span class="badge bg-secondary">${new Date(item.timestamp).toLocaleString()}</span>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#dataAccordion">
+                                            <div class="accordion-body">
+                                                <div class="mb-2">
+                                                    <strong>Relevance Score:</strong> ${(item.relevance_score * 100).toFixed(1)}%
+                                                </div>
+                                                <div class="mb-2">
+                                                    <strong>Source URL:</strong> <a href="${item.metadata?.url || item.source}" target="_blank">${item.metadata?.url || item.source}</a>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <strong>Published:</strong> ${item.metadata?.published || 'Unknown'}
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Content Preview:</strong>
+                                                    <div class="border p-2 mt-1" style="max-height: 200px; overflow-y: auto;">
+                                                        ${item.content.substring(0, 500)}${item.content.length > 500 ? '...' : ''}
+                                                    </div>
+                                                </div>
+                                                ${item.metadata?.relevance_keywords ? `
+                                                    <div>
+                                                        <strong>Keywords:</strong> 
+                                                        ${item.metadata.relevance_keywords.map(keyword => `<span class="badge bg-info me-1">${keyword}</span>`).join('')}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                No recent data available. Try running a data collection cycle.
+                            </div>
+                        `}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="runAgentCycle('${agentName}'); bootstrap.Modal.getInstance(document.getElementById('realDataModal')).hide();">
+                            <i class="bi bi-arrow-repeat me-1"></i>Collect More Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('realDataModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('realDataModal'));
+    modal.show();
 }
 
 // Edit agent functionality

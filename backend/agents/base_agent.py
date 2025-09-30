@@ -135,7 +135,7 @@ class BaseAgent(ABC):
                 if source_data:
                     for item in source_data:
                         data_point = self._process_data_item(item, source)
-                        if data_point and data_point.relevance_score > 0.5:
+                        if data_point and data_point.relevance_score > 0.3:
                             data_points.append(data_point)
                 
                 logger.info(f"✅ Collected {len(source_data) if source_data else 0} items from {source}")

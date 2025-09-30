@@ -1712,6 +1712,48 @@ def admin_agents():
     """Admin AI agents dashboard"""
     return render_template('admin/agents.html')
 
+@app.route('/admin/agents/real-data')
+@login_required
+@admin_required
+def show_real_agent_data():
+    """Show real data collected by agents"""
+    import json
+    import os
+    
+    real_data = {}
+    
+    # Get MediaMap data
+    mediamap_data_file = "backend/agents/storage/mediamap/MediaMapAgent_data.json"
+    if os.path.exists(mediamap_data_file):
+        try:
+            with open(mediamap_data_file, 'r') as f:
+                mediamap_data = json.load(f)
+                real_data['mediamap'] = {
+                    'data_points': len(mediamap_data),
+                    'recent_data': mediamap_data[-3:] if mediamap_data else []
+                }
+        except Exception as e:
+            real_data['mediamap'] = {'error': str(e)}
+    
+    # Get HealthPIN data
+    healthpin_data_file = "backend/agents/storage/healthpin/HealthPINAgent_data.json"
+    if os.path.exists(healthpin_data_file):
+        try:
+            with open(healthpin_data_file, 'r') as f:
+                healthpin_data = json.load(f)
+                real_data['healthpin'] = {
+                    'data_points': len(healthpin_data),
+                    'recent_data': healthpin_data[-3:] if healthpin_data else []
+                }
+        except Exception as e:
+            real_data['healthpin'] = {'error': str(e)}
+    
+    return jsonify({
+        'success': True,
+        'real_data': real_data,
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
 
 
 @app.route('/admin/insights')

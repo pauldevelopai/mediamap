@@ -173,15 +173,19 @@ class MediaMapAgent(BaseAgent):
     
     def _collect_from_source(self, source: str) -> List[Dict[str, Any]]:
         """Collect data from media industry sources"""
-        if source in self.media_sources["news_feeds"]:
+        # Check if it's an RSS feed (most common case)
+        if source.endswith('/feed/') or source.endswith('/rss') or 'feedburner.com' in source or 'rss' in source.lower():
+            return self._collect_from_rss_feed(source)
+        elif source in self.media_sources["news_feeds"]:
             return self._collect_from_rss_feed(source)
         elif source in self.media_sources["industry_news"]:
             return self._collect_from_news_site(source)
         elif source in self.media_sources["social_media"]:
             return self._collect_from_social_media(source)
         else:
-            logger.warning(f"Unknown source type: {source}")
-            return []
+            # Default to RSS feed collection for unknown sources
+            logger.info(f"Treating unknown source as RSS feed: {source}")
+            return self._collect_from_rss_feed(source)
     
     def _collect_from_rss_feed(self, feed_url: str) -> List[Dict[str, Any]]:
         """Collect data from RSS feeds"""
