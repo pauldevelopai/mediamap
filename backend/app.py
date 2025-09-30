@@ -2148,7 +2148,8 @@ def run_agent_cycle(agent_name):
 def get_agents_dashboard():
     """Get agents dashboard data"""
     try:
-        from backend.models import Chat, HighlanderChat, DailyInsight, Newsroom, Organization
+        from backend.models import Chat, HighlanderChat, DailyInsight, Newsroom
+        from backend.aimap.models import Organisation
         from datetime import datetime, timedelta
         
         # Get real data instead of dummy data
@@ -2159,7 +2160,7 @@ def get_agents_dashboard():
         total_chats = Chat.query.count() + HighlanderChat.query.count()
         recent_insights = DailyInsight.query.filter(DailyInsight.created_at >= last_24h).count()
         total_newsrooms = Newsroom.query.count()
-        total_organizations = Organization.query.count()
+        total_organizations = Organisation.query.count()
         
         # Get recent activity
         recent_highlander_chats = HighlanderChat.query.filter(
@@ -3520,8 +3521,8 @@ def start_discovery():
         print(f"Discovery request: keywords='{keywords}', sector='{sector}'")  # Debug log
         
         # Get existing organizations from database to filter out duplicates
-        from backend.models import Organization
-        existing_orgs = Organization.query.all()
+        from backend.aimap.models import Organisation
+        existing_orgs = Organisation.query.all()
         existing_names = {org.name.lower().strip() for org in existing_orgs}
         print(f"Found {len(existing_names)} existing organizations in database")  # Debug log
         
@@ -4852,7 +4853,8 @@ def generate_newsroom_insight():
         knowledge_gaps = []
         
         try:
-            from backend.models import Newsroom, Organization, DailyInsight, Chat, User
+            from backend.models import Newsroom, DailyInsight, Chat, User
+            from backend.aimap.models import Organisation
             from datetime import datetime, timedelta
             
             # Get newsroom details
@@ -4888,8 +4890,8 @@ def generate_newsroom_insight():
                 }
             
             # Get related organizations
-            related_orgs = Organization.query.filter(
-                Organization.name.ilike(f"%{newsroom_data['name']}%")
+            related_orgs = Organisation.query.filter(
+                Organisation.name.ilike(f"%{newsroom_data['name']}%")
             ).all()
             
             # Get recent insights related to this newsroom
