@@ -1053,38 +1053,6 @@ function updateAgentStatusFromAPI(agentName, status) {
     updateAgentRunningState(agentName, status.is_running || false);
 }
 
-function updateAgentRunningState(agentName, isRunning) {
-    // Update status badge
-    const statusBadge = document.getElementById(`${agentName}-live-status`);
-    if (statusBadge) {
-        statusBadge.textContent = isRunning ? 'Running' : 'Stopped';
-        statusBadge.className = `badge ${isRunning ? 'bg-success pulse-animation' : 'bg-secondary'}`;
-    }
-    
-    // Update activity text
-    const activityElement = document.getElementById(`${agentName}-current-activity`);
-    if (activityElement) {
-        const now = new Date().toLocaleTimeString();
-        if (isRunning) {
-            activityElement.innerHTML = `<small class="text-muted">Active - Collecting data and analyzing patterns (Started: ${now})</small>`;
-        } else {
-            activityElement.innerHTML = `<small class="text-muted">Stopped - No background data collection (Stopped: ${now})</small>`;
-        }
-    }
-    
-    // Update progress bar
-    const progressElement = document.querySelector(`#${agentName}-progress .progress-bar`);
-    if (progressElement) {
-        if (isRunning) {
-            progressElement.style.width = '25%';
-            progressElement.classList.add('progress-bar-animated', 'progress-bar-striped');
-        } else {
-            progressElement.style.width = '0%';
-            progressElement.classList.remove('progress-bar-animated', 'progress-bar-striped');
-        }
-    }
-}
-
 // Update statistics display
 function updateStatistics(stats) {
     // Update any statistics displays on the page
@@ -1506,7 +1474,7 @@ function showEditAgentModal(agentName, config) {
                             
                             <div class="mb-3">
                                 <label for="dataSources" class="form-label">Data Sources (one per line)</label>
-                                <textarea class="form-control" id="dataSources" rows="6" placeholder="Enter data source URLs, one per line">${config.data_sources.join('\\n')}</textarea>
+                                <textarea class="form-control" id="dataSources" rows="6" placeholder="Enter data source URLs, one per line">${config.data_sources.join('\n')}</textarea>
                                 <div class="form-text">Enter one data source URL per line. These will be used for data collection.</div>
                             </div>
                             
@@ -1528,22 +1496,82 @@ function showEditAgentModal(agentName, config) {
     `;
     
     // Remove existing modal if it exists
-    const existingModal = document.getElementById("editAgentModal");
+    const existingModal = document.getElementById('editAgentModal');
     if (existingModal) {
         existingModal.remove();
     }
     
     // Add modal to page
-    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
     
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById("editAgentModal"));
+    const modal = new bootstrap.Modal(document.getElementById('editAgentModal'));
     modal.show();
     
     // Clean up modal when hidden
-    document.getElementById("editAgentModal").addEventListener("hidden.bs.modal", function() {
+    document.getElementById('editAgentModal').addEventListener('hidden.bs.modal', function() {
         this.remove();
     });
+}// Create edit modal
+    const modalHtml = `
+        <div class="modal fade" id="editAgentModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit ${config.display_name || agentName.charAt(0).toUpperCase() + agentName.slice(1)} Agent</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editAgentForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="agentRole" class="form-label">Agent Role</label>
+                                        <input type="text" class="form-control" id="agentRole" value="${config.role || ''}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="agentDescription" class="form-label">Description</label>
+                                        <textarea class="form-control" id="agentDescription" rows="3">${config.description || ''}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dataSources" class="form-label">Data Sources (one per line)</label>
+                                        <textarea class="form-control" id="dataSources" rows="4">${(config.data_sources || []).join('\n')}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="collectionInterval" class="form-label">Collection Interval (minutes)</label>
+                                        <input type="number" class="form-control" id="collectionInterval" value="${config.collection_interval || 30}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="agentInstructions" class="form-label">Agent Instructions</label>
+                                <textarea class="form-control" id="agentInstructions" rows="4">${config.instructions || ''}</textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="saveAgentChanges('${agentName}')">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('editAgentModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('editAgentModal'));
+    modal.show();
 }
 
 // removed MediaMap Clean button per product requirements
@@ -1632,7 +1660,7 @@ function saveAgentChanges(agentName) {
             showAlert(`${agentName.charAt(0).toUpperCase() + agentName.slice(1)} agent updated successfully!`, 'success');
             
             // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById("editAgentModal"));
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editAgentModal'));
             modal.hide();
             
             // Refresh agent display
@@ -1847,6 +1875,94 @@ async function testConnection() {
 
 // Duplicate function removed - using the enhanced version above
 
+// Enhanced run scrape function with better progress tracking
+    try {
+        const startBtn = document.getElementById(`${agentName}-start-btn`);
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        
+        if (!stopBtn) {
+            showAlert(`Stop button not found for ${agentName} agent`, 'warning');
+            return;
+        }
+        
+        // Disable buttons and show loading state
+        stopBtn.disabled = true;
+        stopBtn.innerHTML = '<i class="bi bi-hourglass-split spin"></i> Stopping...';
+        
+        showAlert(`Stopping ${agentName} agent... This will halt background data collection.`, 'warning');
+        
+        const response = await fetch(`/api/agents/${agentName}/stop`, { 
+            method: 'POST', 
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(`🛑 ${agentName} agent stopped successfully!`, 'info');
+            
+            // Update UI to reflect stopped state
+            updateAgentRunningState(agentName, false);
+            
+            // Refresh dashboard data
+            loadDashboard();
+        } else {
+            throw new Error(data.error || 'Unknown error occurred');
+        }
+    } catch (error) {
+        console.error(`Error stopping ${agentName} agent:`, error);
+        showAlert(`❌ Failed to stop ${agentName} agent: ${error.message}`, 'danger');
+    } finally {
+        // Reset button state
+        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
+        if (stopBtn) {
+            stopBtn.disabled = false;
+            stopBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Agent';
+        }
+    }
+}
+
+function updateAgentRunningState(agentName, isRunning) {
+    // Update status badge
+    const statusBadge = document.getElementById(`${agentName}-live-status`);
+    if (statusBadge) {
+        statusBadge.textContent = isRunning ? 'Running' : 'Stopped';
+        statusBadge.className = `badge ${isRunning ? 'bg-success pulse-animation' : 'bg-secondary'}`;
+    }
+    
+    // Update activity text
+    const activityElement = document.getElementById(`${agentName}-current-activity`);
+    if (activityElement) {
+        const now = new Date().toLocaleTimeString();
+        if (isRunning) {
+            activityElement.innerHTML = `<small class="text-muted">Active - Collecting data and analyzing patterns (Started: ${now})</small>`;
+        } else {
+            activityElement.innerHTML = `<small class="text-muted">Stopped - No background data collection (Stopped: ${now})</small>`;
+        }
+    }
+    
+    // Update progress bar
+    const progressElement = document.querySelector(`#${agentName}-progress .progress-bar`);
+    if (progressElement) {
+        if (isRunning) {
+            progressElement.style.width = '25%';
+            progressElement.classList.add('progress-bar-animated', 'progress-bar-striped');
+        } else {
+            progressElement.style.width = '0%';
+            progressElement.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        }
+    }
+}
+END OF DUPLICATE FUNCTION COMMENT */
+
+// Enhanced run scrape function with better progress tracking
 async function runDoctorDirectoryAgent() {
     try {
         showAlert('Starting Doctor Directory scrape (South Africa)...', 'info');

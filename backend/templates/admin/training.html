@@ -60,12 +60,38 @@
                             <div class="col-md-4">
                                 <h6><i class="bi bi-graph-up me-2"></i>Model Status</h6>
                                 <div id="mediamap-model-status">
+                                    {% if model_data and model_data.mediamap %}
+                                    <div class="model-status-card p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-{{ 'success' if model_data.mediamap.model_loaded else 'secondary' }}">
+                                                {{ 'Loaded' if model_data.mediamap.model_loaded else 'Not Loaded' }}
+                                            </span>
+                                            <small class="text-muted">{{ model_data.mediamap.last_training or 'Never' }}</small>
+                                        </div>
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="h5 mb-0">{{ model_data.mediamap.training_examples or 0 }}</div>
+                                                <small class="text-muted">Examples</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="h5 mb-0">{{ model_data.mediamap.accuracy or 'N/A' }}</div>
+                                                <small class="text-muted">Accuracy</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                {{ '✅ OpenAI Available' if model_data.mediamap.openai_available else '❌ OpenAI Unavailable' }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div class="text-center py-3">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <p class="mt-2 mb-0 text-muted">Loading MediaMap model status...</p>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -127,7 +153,7 @@
                         <div class="row mt-3">
                             <div class="col-12">
                                 <h6><i class="bi bi-gear me-2"></i>Actions</h6>
-                                <div class="btn-group" role="group">
+                                <div class="btn-group mb-2" role="group">
                                     <button class="btn btn-outline-primary btn-sm" onclick="collectMediaMapData()">
                                         <i class="bi bi-download me-1"></i>Collect Data
                                     </button>
@@ -143,6 +169,26 @@
                                     <button class="btn btn-outline-warning btn-sm" onclick="testMediaMapModel()">
                                         <i class="bi bi-bug me-1"></i>Test Model
                                     </button>
+                                </div>
+                                
+                                <!-- Agent-Based Training Section -->
+                                <div class="mt-3">
+                                    <h6><i class="bi bi-robot me-2"></i>Agent-Based Training</h6>
+                                    <div class="alert alert-info alert-sm">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Smart Training:</strong> Use data automatically collected by your MediaMap agent to train custom models.
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="showAgentDataStats('mediamap')">
+                                            <i class="bi bi-graph-up me-1"></i>View Agent Data
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm" onclick="collectAgentTrainingData()">
+                                            <i class="bi bi-collection me-1"></i>Collect from Agents
+                                        </button>
+                                        <button class="btn btn-success btn-sm" onclick="trainFromAgents('mediamap')">
+                                            <i class="bi bi-cpu me-1"></i>Train from Agents
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -166,12 +212,38 @@
                             <div class="col-md-6">
                                 <h6><i class="bi bi-graph-up me-2"></i>Model Status</h6>
                                 <div id="healthpin-model-status">
+                                    {% if model_data and model_data.healthpin %}
+                                    <div class="model-status-card p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-{{ 'success' if model_data.healthpin.model_loaded else 'secondary' }}">
+                                                {{ 'Loaded' if model_data.healthpin.model_loaded else 'Not Loaded' }}
+                                            </span>
+                                            <small class="text-muted">{{ model_data.healthpin.last_training or 'Never' }}</small>
+                                        </div>
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="h5 mb-0">{{ model_data.healthpin.training_examples or 0 }}</div>
+                                                <small class="text-muted">Examples</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="h5 mb-0">{{ model_data.healthpin.accuracy or 'N/A' }}</div>
+                                                <small class="text-muted">Accuracy</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                {{ '✅ OpenAI Available' if model_data.healthpin.openai_available else '❌ OpenAI Unavailable' }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div class="text-center py-3">
                                         <div class="spinner-border text-success" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <p class="mt-2 mb-0 text-muted">Loading HealthPIN model status...</p>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -189,7 +261,7 @@
                         <div class="row mt-3">
                             <div class="col-12">
                                 <h6><i class="bi bi-gear me-2"></i>Actions</h6>
-                                <div class="btn-group" role="group">
+                                <div class="btn-group mb-2" role="group">
                                     <button class="btn btn-outline-success btn-sm" onclick="collectHealthPINData()">
                                         <i class="bi bi-download me-1"></i>Collect Data
                                     </button>
@@ -205,6 +277,26 @@
                                     <button class="btn btn-outline-warning btn-sm" onclick="testHealthPINModel()">
                                         <i class="bi bi-bug me-1"></i>Test Model
                                     </button>
+                                </div>
+                                
+                                <!-- Agent-Based Training Section -->
+                                <div class="mt-3">
+                                    <h6><i class="bi bi-robot me-2"></i>Agent-Based Training</h6>
+                                    <div class="alert alert-success alert-sm">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Smart Training:</strong> Use data automatically collected by your HealthPIN agent to train custom models.
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-success btn-sm" onclick="showAgentDataStats('healthpin')">
+                                            <i class="bi bi-graph-up me-1"></i>View Agent Data
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm" onclick="collectAgentTrainingData()">
+                                            <i class="bi bi-collection me-1"></i>Collect from Agents
+                                        </button>
+                                        <button class="btn btn-success btn-sm" onclick="trainFromAgents('healthpin')">
+                                            <i class="bi bi-cpu me-1"></i>Train from Agents
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -228,12 +320,38 @@
                             <div class="col-md-6">
                                 <h6><i class="bi bi-graph-up me-2"></i>Model Status</h6>
                                 <div id="highlander-model-status">
+                                    {% if model_data and model_data.highlander %}
+                                    <div class="model-status-card p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-{{ 'success' if model_data.highlander.model_loaded else 'secondary' }}">
+                                                {{ 'Loaded' if model_data.highlander.model_loaded else 'Not Loaded' }}
+                                            </span>
+                                            <small class="text-muted">{{ model_data.highlander.last_training or 'Never' }}</small>
+                                        </div>
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="h5 mb-0">{{ model_data.highlander.training_examples or 0 }}</div>
+                                                <small class="text-muted">Examples</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="h5 mb-0">{{ model_data.highlander.accuracy or 'N/A' }}</div>
+                                                <small class="text-muted">Accuracy</small>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                {{ '✅ OpenAI Available' if model_data.highlander.openai_available else '❌ OpenAI Unavailable' }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% else %}
                                     <div class="text-center py-3">
                                         <div class="spinner-border text-warning" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <p class="mt-2 mb-0 text-muted">Loading Highlander model status...</p>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -664,6 +782,20 @@
 <script>
 // Load initial status
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Training page loaded, starting model data loading...');
+    
+    // Add immediate fallback for any loading elements
+    setTimeout(function() {
+        const loadingElements = document.querySelectorAll('[id$="-model-status"]');
+        loadingElements.forEach(function(element) {
+            if (element.innerHTML.includes('Loading') || element.innerHTML.includes('spinner')) {
+                console.log('Found stuck loading element:', element.id);
+                const modelName = element.id.replace('-model-status', '');
+                element.innerHTML = generateDefaultModelStatusHTML(modelName);
+            }
+        });
+    }, 10000); // 10 second timeout
+    
     loadAllModelData();
     
     // Set up auto-refresh every 30 seconds
@@ -680,33 +812,43 @@ async function loadAllModelData() {
 // Individual model loading functions
 async function loadModelStatus(modelName) {
     try {
-        const response = await fetch(`/admin/training/model-status?model=${modelName}`, {
+        console.log(`Loading model status for: ${modelName}`);
+        const response = await fetch(`/admin/training/model-status?model=${modelName}&t=${Date.now()}`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
             }
         });
         
         const statusDiv = document.getElementById(`${modelName}-model-status`);
-        if (!statusDiv) return;
+        if (!statusDiv) {
+            console.error(`Status div not found for model: ${modelName}`);
+            return;
+        }
+        
+        console.log(`Response status: ${response.status}`);
         
         if (response.ok) {
             const data = await response.json();
+            console.log(`Model status data for ${modelName}:`, data);
+            
             if (data.success) {
                 statusDiv.innerHTML = generateModelStatusHTML(data);
             } else {
-                statusDiv.innerHTML = generateDefaultModelStatusHTML(modelName);
+                console.error(`API returned error for ${modelName}:`, data.error);
+                statusDiv.innerHTML = generateErrorModelStatusHTML(modelName, data.error);
             }
         } else {
             console.error(`HTTP ${response.status}: ${response.statusText}`);
-            statusDiv.innerHTML = generateDefaultModelStatusHTML(modelName);
+            statusDiv.innerHTML = generateErrorModelStatusHTML(modelName, `HTTP ${response.status}`);
         }
     } catch (error) {
         console.error(`Error loading ${modelName} model status:`, error);
         const statusDiv = document.getElementById(`${modelName}-model-status`);
         if (statusDiv) {
-            statusDiv.innerHTML = generateDefaultModelStatusHTML(modelName);
+            statusDiv.innerHTML = generateErrorModelStatusHTML(modelName, error.message);
         }
     }
 }
@@ -860,6 +1002,31 @@ function generateDefaultModelStatusHTML(modelName) {
                 <small class="text-muted">
                     ⚠️ No ${modelName} model data available
                 </small>
+            </div>
+        </div>
+    `;
+}
+
+function generateErrorModelStatusHTML(modelName, error) {
+    return `
+        <div class="model-status-card p-3 bg-light rounded border-danger">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-danger">Error</span>
+                <small class="text-muted">Failed</small>
+            </div>
+            <div class="alert alert-danger alert-sm mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Error:</strong> ${error}
+            </div>
+            <div class="row text-center">
+                <div class="col-6">
+                    <div class="h5 mb-0">-</div>
+                    <small class="text-muted">Examples</small>
+                </div>
+                <div class="col-6">
+                    <div class="h5 mb-0">-</div>
+                    <small class="text-muted">Accuracy</small>
+                </div>
             </div>
         </div>
     `;
@@ -1966,10 +2133,20 @@ function displayCollectedData(modelName, data) {
 
 // Enhanced model loading functions
 async function loadMediaMapModel() {
-    await loadModelStatus('mediamap');
-    await loadTrainingData('mediamap');
-    await loadDataSources('mediamap');
-    await loadCollectedData('mediamap');
+    console.log('Loading MediaMap model data...');
+    try {
+        await loadModelStatus('mediamap');
+        await loadTrainingData('mediamap');
+        await loadDataSources('mediamap');
+        await loadCollectedData('mediamap');
+    } catch (error) {
+        console.error('Error loading MediaMap model:', error);
+        // Force show default status if loading fails
+        const statusDiv = document.getElementById('mediamap-model-status');
+        if (statusDiv && statusDiv.innerHTML.includes('Loading')) {
+            statusDiv.innerHTML = generateDefaultModelStatusHTML('mediamap');
+        }
+    }
 }
 
 async function loadHealthPINModel() {
@@ -2093,6 +2270,216 @@ function showToast(message, type = 'info') {
         toastContainer.removeChild(toast);
     });
 }
+
+// Agent-Based Training Functions
+async function showAgentDataStats(modelName) {
+    try {
+        showToast('Loading agent data statistics...', 'info');
+        
+        const response = await fetch('/admin/training/agent-data-stats', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayAgentDataModal(data.stats, modelName);
+            } else {
+                showToast('Error loading agent data: ' + data.error, 'error');
+            }
+        } else {
+            showToast('Failed to load agent data statistics', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading agent data stats:', error);
+        showToast('Error loading agent data statistics', 'error');
+    }
+}
+
+async function collectAgentTrainingData() {
+    try {
+        showToast('Collecting training data from agents...', 'info');
+        
+        const response = await fetch('/admin/training/collect-agent-data', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showToast(`Successfully collected training data! Stats: ${JSON.stringify(data.stats)}`, 'success');
+                // Refresh the training data displays
+                loadAllModelData();
+            } else {
+                showToast('Error collecting agent data: ' + data.error, 'error');
+            }
+        } else {
+            showToast('Failed to collect agent training data', 'error');
+        }
+    } catch (error) {
+        console.error('Error collecting agent training data:', error);
+        showToast('Error collecting agent training data', 'error');
+    }
+}
+
+async function trainFromAgents(modelName) {
+    try {
+        const confirmed = confirm(`Start training ${modelName} model using agent-collected data? This may take several hours.`);
+        if (!confirmed) return;
+        
+        showToast(`Starting ${modelName} training from agent data...`, 'info');
+        
+        const response = await fetch('/admin/training/train-from-agents', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model_name: modelName
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showToast(`Training started successfully for ${modelName}!`, 'success');
+                // Refresh model status
+                loadModelStatus(modelName);
+            } else {
+                showToast('Error starting training: ' + data.error, 'error');
+            }
+        } else {
+            showToast('Failed to start agent-based training', 'error');
+        }
+    } catch (error) {
+        console.error('Error starting agent-based training:', error);
+        showToast('Error starting agent-based training', 'error');
+    }
+}
+
+function displayAgentDataModal(stats, modelName) {
+    const modalHtml = `
+        <div class="modal fade" id="agentDataModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-robot me-2"></i>Agent Training Data Statistics
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.total_data_points}</h3>
+                                        <p class="mb-0">Total Data Points</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${stats.agents_available.length}</h3>
+                                        <p class="mb-0">Active Agents</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6>Available Agents:</h6>
+                        <ul class="list-group mb-3">
+                            ${stats.agents_available.map(agent => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-robot me-2"></i>${agent.charAt(0).toUpperCase() + agent.slice(1)}</span>
+                                    <span class="badge bg-primary rounded-pill">${stats.data_by_agent[agent] || 0} data points</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        
+                        <h6>Data Categories:</h6>
+                        <div class="row">
+                            ${stats.categories.map(category => `
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-secondary">${category}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">Last updated: ${new Date(stats.last_updated).toLocaleString()}</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success" onclick="collectAgentTrainingData(); bootstrap.Modal.getInstance(document.getElementById('agentDataModal')).hide();">
+                            <i class="bi bi-collection me-1"></i>Collect Fresh Data
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="trainFromAgents('${modelName}'); bootstrap.Modal.getInstance(document.getElementById('agentDataModal')).hide();">
+                            <i class="bi bi-cpu me-1"></i>Train Model
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('agentDataModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('agentDataModal'));
+    modal.show();
+}
+
+async function startContinuousCollection() {
+    try {
+        const hours = prompt('Enter collection interval in hours (default: 24):', '24');
+        if (!hours) return;
+        
+        const response = await fetch('/admin/training/start-continuous-collection', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                interval_hours: parseInt(hours)
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showToast(`Continuous collection started! Next collection in ${hours} hours.`, 'success');
+            } else {
+                showToast('Error starting continuous collection: ' + data.error, 'error');
+            }
+        } else {
+            showToast('Failed to start continuous collection', 'error');
+        }
+    } catch (error) {
+        console.error('Error starting continuous collection:', error);
+        showToast('Error starting continuous collection', 'error');
+    }
+}
+
 </script>
 
 <style>

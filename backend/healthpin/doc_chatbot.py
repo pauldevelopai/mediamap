@@ -16,6 +16,10 @@ def section_required(required_section):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
+            # Allow admin users to bypass section requirements
+            if hasattr(current_user, 'is_admin') and current_user.is_admin:
+                return f(*args, **kwargs)
+            
             current_section = session.get('section')
             if current_section != required_section:
                 flash(f'You need to be in the {required_section} section to access this feature.', 'warning')

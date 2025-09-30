@@ -188,65 +188,65 @@
         </div>
     </div>
     
-    <!-- Report Generation -->
+    <!-- Organization Selection & Report Generation -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Generate Insight Reports</h5>
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Organization AI Implementation Reports</h5>
                     <div class="export-options">
-                        <button class="btn btn-primary" onclick="generateReport('mediamap')">
-                            <i class="bi bi-newspaper"></i> MediaMap Report
+                        <button class="btn btn-success" onclick="generateOrganizationInsight()" id="generate-insight-btn" disabled>
+                            <i class="bi bi-lightbulb"></i> Generate Insight
                         </button>
-                        <button class="btn btn-danger" onclick="generateReport('healthpin')">
-                            <i class="bi bi-heart-pulse"></i> HealthPIN Report
+                        <button class="btn btn-primary" onclick="generateOrganizationReport()" id="generate-report-btn" disabled>
+                            <i class="bi bi-file-earmark-text"></i> Generate 2-Page Report
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Report Configuration</h6>
+                            <h6>Organization Selection</h6>
                             <div class="mb-3">
-                                <label for="report-period" class="form-label">Time Period</label>
-                                <select class="form-select" id="report-period">
-                                    <option value="7">Last 7 days</option>
-                                    <option value="30" selected>Last 30 days</option>
-                                    <option value="90">Last 90 days</option>
-                                    <option value="365">Last year</option>
+                                <label for="organization-select" class="form-label">Select Organization/Newsroom</label>
+                                <select class="form-select" id="organization-select" onchange="onOrganizationChange()">
+                                    <option value="">-- Select Organization --</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="report-format" class="form-label">Export Format</label>
+                                <label for="report-format" class="form-label">Report Format</label>
                                 <select class="form-select" id="report-format">
-                                    <option value="pdf">PDF Document</option>
                                     <option value="html">HTML Report</option>
+                                    <option value="pdf">PDF Document</option>
                                     <option value="json">JSON Data</option>
-                                    <option value="csv">CSV Export</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h6>Include Sections</h6>
+                            <h6>Report Features</h6>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="include-summary" checked>
                                 <label class="form-check-label" for="include-summary">Executive Summary</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="include-insights" checked>
-                                <label class="form-check-label" for="include-insights">Detailed Insights</label>
+                                <input class="form-check-input" type="checkbox" id="include-current-status" checked>
+                                <label class="form-check-label" for="include-current-status">Current AI Status</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="include-trends" checked>
-                                <label class="form-check-label" for="include-trends">Trend Analysis</label>
+                                <input class="form-check-input" type="checkbox" id="include-gap-analysis" checked>
+                                <label class="form-check-label" for="include-gap-analysis">Gap Analysis</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="include-recommendations" checked>
-                                <label class="form-check-label" for="include-recommendations">Recommendations</label>
+                                <label class="form-check-label" for="include-recommendations">Strategic Recommendations</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="include-charts">
-                                <label class="form-check-label" for="include-charts">Charts & Visualizations</label>
+                                <input class="form-check-input" type="checkbox" id="include-roadmap" checked>
+                                <label class="form-check-label" for="include-roadmap">Implementation Roadmap</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-resources" checked>
+                                <label class="form-check-label" for="include-resources">Resource Requirements</label>
                             </div>
                         </div>
                     </div>
@@ -278,11 +278,6 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="healthpin-tab" data-bs-toggle="pill" data-bs-target="#healthpin-insights-tab" type="button" role="tab">
                         <i class="bi bi-heart-pulse me-2"></i>HealthPIN
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="trends-tab" data-bs-toggle="pill" data-bs-target="#trends-analysis" type="button" role="tab">
-                        <i class="bi bi-graph-up me-2"></i>Trends
                     </button>
                 </li>
             </ul>
@@ -317,12 +312,20 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5>MediaMap Agent Insights</h5>
-                        <button class="btn btn-success" onclick="generateMediaMapInsight()">
-                            <i class="bi bi-plus-circle"></i> Generate New Insight
-                        </button>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="mediamap-org-select" style="width: 200px;" onchange="loadMediaMapInsights()">
+                                <option value="">-- Select Organization --</option>
+                            </select>
+                            <button class="btn btn-success" onclick="generateMediaMapInsight()" id="mediamap-generate-btn" disabled>
+                                <i class="bi bi-plus-circle"></i> Generate New Insight
+                            </button>
+                        </div>
                     </div>
                     <div id="mediamap-insights-list">
-                        <!-- Content loaded dynamically -->
+                        <div class="text-center py-4">
+                            <i class="bi bi-newspaper text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">Select an organization to view insights</h5>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -334,46 +337,25 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5>HealthPIN Agent Insights</h5>
-                        <button class="btn btn-danger" onclick="generateHealthPINInsight()">
-                            <i class="bi bi-plus-circle"></i> Generate New Insight
-                        </button>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="healthpin-org-select" style="width: 200px;" onchange="loadHealthPINInsights()">
+                                <option value="">-- Select Organization --</option>
+                            </select>
+                            <button class="btn btn-danger" onclick="generateHealthPINInsight()" id="healthpin-generate-btn" disabled>
+                                <i class="bi bi-plus-circle"></i> Generate New Insight
+                            </button>
+                        </div>
                     </div>
                     <div id="healthpin-insights-list">
-                        <!-- Content loaded dynamically -->
+                        <div class="text-center py-4">
+                            <i class="bi bi-heart-pulse text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">Select an organization to view insights</h5>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Trends Analysis Tab -->
-        <div class="tab-pane fade" id="trends-analysis" role="tabpanel">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>MediaMap Trends</h6>
-                        </div>
-                        <div class="card-body">
-                            <div id="mediamap-trends-list">
-                                <!-- Content loaded dynamically -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="bi bi-activity me-2"></i>HealthPIN Trends</h6>
-                        </div>
-                        <div class="card-body">
-                            <div id="healthpin-trends-list">
-                                <!-- Content loaded dynamically -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -407,6 +389,7 @@ let currentInsightId = null;
 document.addEventListener('DOMContentLoaded', function() {
     loadInsights();
     loadMetrics();
+    loadOrganizations();
     
     // Auto-refresh every 30 seconds
     setInterval(loadInsights, 30000);
@@ -591,10 +574,63 @@ function createInsightCard(insight) {
     `;
 }
 
-// Generate report
-async function generateReport(type) {
-    const period = document.getElementById('report-period').value;
-    const format = document.getElementById('report-format').value;
+// Load organizations
+async function loadOrganizations() {
+    try {
+        const response = await fetch('/api/newsrooms', { credentials: 'include' });
+        const data = await response.json();
+        
+        // Populate all organization dropdowns
+        const selects = [
+            'organization-select',
+            'mediamap-org-select', 
+            'healthpin-org-select'
+        ];
+        
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                select.innerHTML = '<option value="">-- Select Organization --</option>';
+                
+                if (data.success && data.newsrooms) {
+                    data.newsrooms.forEach(org => {
+                        const option = document.createElement('option');
+                        option.value = org.id;
+                        option.textContent = org.name;
+                        select.appendChild(option);
+                    });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading organizations:', error);
+    }
+}
+
+// Handle organization selection change
+function onOrganizationChange() {
+    const select = document.getElementById('organization-select');
+    const generateInsightBtn = document.getElementById('generate-insight-btn');
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    
+    if (select.value) {
+        generateInsightBtn.disabled = false;
+        generateReportBtn.disabled = false;
+    } else {
+        generateInsightBtn.disabled = true;
+        generateReportBtn.disabled = true;
+    }
+}
+
+// Generate organization insight
+async function generateOrganizationInsight() {
+    const organizationId = document.getElementById('organization-select').value;
+    
+    if (!organizationId) {
+        showAlert('Please select an organization first', 'warning');
+        return;
+    }
+    
     const progress = document.getElementById('report-progress');
     const progressBar = document.getElementById('report-progress-bar');
     const progressLabel = document.getElementById('report-progress-label');
@@ -602,28 +638,84 @@ async function generateReport(type) {
     try {
         progress.style.display = 'block';
         progressBar.style.width = '20%';
-        progressLabel.textContent = 'Gathering insights...';
+        progressLabel.textContent = 'Analyzing organization data...';
         
-        const response = await fetch('/admin/insights/generate-report', {
+        const response = await fetch('/api/organization-insights/generate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             credentials: 'include',
             body: JSON.stringify({
-                type: type,
-                period: parseInt(period),
-                format: format,
-                include_summary: document.getElementById('include-summary').checked,
-                include_insights: document.getElementById('include-insights').checked,
-                include_trends: document.getElementById('include-trends').checked,
-                include_recommendations: document.getElementById('include-recommendations').checked,
-                include_charts: document.getElementById('include-charts').checked
+                organization_id: parseInt(organizationId)
             })
         });
         
         progressBar.style.width = '70%';
-        progressLabel.textContent = 'Generating report...';
+        progressLabel.textContent = 'Generating AI insights...';
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            progressBar.style.width = '100%';
+            progressLabel.textContent = 'Insights generated successfully!';
+            
+            showAlert('Organization insights generated successfully!', 'success');
+            loadInsights(); // Refresh insights display
+        } else {
+            throw new Error(data.error || 'Failed to generate insights');
+        }
+        
+    } catch (error) {
+        console.error('Error generating insights:', error);
+        showAlert('Failed to generate insights: ' + error.message, 'danger');
+    } finally {
+        setTimeout(() => {
+            progress.style.display = 'none';
+            progressBar.style.width = '0%';
+        }, 2000);
+    }
+}
+
+// Generate organization report
+async function generateOrganizationReport() {
+    const organizationId = document.getElementById('organization-select').value;
+    const format = document.getElementById('report-format').value;
+    
+    if (!organizationId) {
+        showAlert('Please select an organization first', 'warning');
+        return;
+    }
+    
+    const progress = document.getElementById('report-progress');
+    const progressBar = document.getElementById('report-progress-bar');
+    const progressLabel = document.getElementById('report-progress-label');
+    
+    try {
+        progress.style.display = 'block';
+        progressBar.style.width = '20%';
+        progressLabel.textContent = 'Gathering organization data...';
+        
+        const response = await fetch('/api/organization-insights/report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                organization_id: parseInt(organizationId),
+                format: format,
+                include_summary: document.getElementById('include-summary').checked,
+                include_current_status: document.getElementById('include-current-status').checked,
+                include_gap_analysis: document.getElementById('include-gap-analysis').checked,
+                include_recommendations: document.getElementById('include-recommendations').checked,
+                include_roadmap: document.getElementById('include-roadmap').checked,
+                include_resources: document.getElementById('include-resources').checked
+            })
+        });
+        
+        progressBar.style.width = '70%';
+        progressLabel.textContent = 'Generating comprehensive report...';
         
         const data = await response.json();
         
@@ -631,12 +723,16 @@ async function generateReport(type) {
             progressBar.style.width = '100%';
             progressLabel.textContent = 'Report generated successfully!';
             
-            // Download the report
-            if (data.download_url) {
+            if (format === 'html' && data.content) {
+                // Open HTML report in new window
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(data.content);
+                newWindow.document.close();
+            } else if (data.download_url) {
                 window.open(data.download_url, '_blank');
             }
             
-            showAlert('Report generated successfully!', 'success');
+            showAlert('2-page AI implementation report generated successfully!', 'success');
         } else {
             throw new Error(data.error || 'Failed to generate report');
         }
@@ -652,21 +748,142 @@ async function generateReport(type) {
     }
 }
 
+// Load organization-specific insights
+async function loadMediaMapInsights() {
+    const organizationId = document.getElementById('mediamap-org-select').value;
+    const generateBtn = document.getElementById('mediamap-generate-btn');
+    
+    if (organizationId) {
+        generateBtn.disabled = false;
+        try {
+            const response = await fetch(`/api/organization-insights/${organizationId}`, { credentials: 'include' });
+            const data = await response.json();
+            
+            if (data.success) {
+                displayOrganizationInsights(data.insights, 'mediamap-insights-list', 'MediaMap');
+            }
+        } catch (error) {
+            console.error('Error loading MediaMap insights:', error);
+        }
+    } else {
+        generateBtn.disabled = true;
+        document.getElementById('mediamap-insights-list').innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-newspaper text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">Select an organization to view insights</h5>
+            </div>
+        `;
+    }
+}
+
+async function loadHealthPINInsights() {
+    const organizationId = document.getElementById('healthpin-org-select').value;
+    const generateBtn = document.getElementById('healthpin-generate-btn');
+    
+    if (organizationId) {
+        generateBtn.disabled = false;
+        try {
+            const response = await fetch(`/api/organization-insights/${organizationId}`, { credentials: 'include' });
+            const data = await response.json();
+            
+            if (data.success) {
+                displayOrganizationInsights(data.insights, 'healthpin-insights-list', 'HealthPIN');
+            }
+        } catch (error) {
+            console.error('Error loading HealthPIN insights:', error);
+        }
+    } else {
+        generateBtn.disabled = true;
+        document.getElementById('healthpin-insights-list').innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-heart-pulse text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">Select an organization to view insights</h5>
+            </div>
+        `;
+    }
+}
+
+// Display organization insights
+function displayOrganizationInsights(insights, containerId, agentType) {
+    const container = document.getElementById(containerId);
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-${agentType === 'MediaMap' ? 'newspaper' : 'heart-pulse'} text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">No ${agentType} insights found</h5>
+                <p class="text-muted">Generate your first insight for this organization</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = insights.map(insight => createOrganizationInsightCard(insight, agentType)).join('');
+}
+
+// Create organization insight card
+function createOrganizationInsightCard(insight, agentType) {
+    const confidence = insight.confidence_score ? Math.round(insight.confidence_score * 100) : 'N/A';
+    const timestamp = insight.created_at ? new Date(insight.created_at).toLocaleString() : 'Unknown';
+    const priorityClass = insight.priority === 'high' ? 'danger' : insight.priority === 'medium' ? 'warning' : 'info';
+    
+    return `
+        <div class="insight-card ${agentType.toLowerCase()}" onclick="viewOrganizationInsightDetail('${insight.id}')">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="insight-badge badge-${agentType.toLowerCase()}">${agentType.toUpperCase()}</span>
+                    <span class="insight-badge badge-${priorityClass} ms-2">${insight.priority || 'medium'} priority</span>
+                    <span class="insight-badge badge-confidence ms-2">${confidence}% confidence</span>
+                </div>
+                <small class="text-muted">${timestamp}</small>
+            </div>
+            <h6 class="mb-2">${insight.title}</h6>
+            <p class="mb-3">${insight.content.substring(0, 200)}${insight.content.length > 200 ? '...' : ''}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <strong>AI Maturity:</strong> ${insight.current_ai_maturity || 'Assessment needed'}
+                </small>
+                <div class="insight-actions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewOrganizationInsightDetail('${insight.id}')">
+                        <i class="bi bi-eye"></i> View
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); exportOrganizationInsight('${insight.id}')">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // Generate new insights
 async function generateMediaMapInsight() {
+    const organizationId = document.getElementById('mediamap-org-select').value;
+    
+    if (!organizationId) {
+        showAlert('Please select an organization first', 'warning');
+        return;
+    }
+    
     try {
         showAlert('Generating new MediaMap insight...', 'info');
         
-        const response = await fetch('/api/agents/mediamap/generate-insight', {
+        const response = await fetch('/api/organization-insights/generate', {
             method: 'POST',
-            credentials: 'include'
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                organization_id: parseInt(organizationId)
+            })
         });
         
         const data = await response.json();
         
         if (data.success) {
             showAlert('MediaMap insight generated successfully!', 'success');
-            loadInsights(); // Refresh the insights
+            loadMediaMapInsights(); // Refresh the insights
         } else {
             throw new Error(data.error || 'Failed to generate insight');
         }
@@ -677,19 +894,32 @@ async function generateMediaMapInsight() {
 }
 
 async function generateHealthPINInsight() {
+    const organizationId = document.getElementById('healthpin-org-select').value;
+    
+    if (!organizationId) {
+        showAlert('Please select an organization first', 'warning');
+        return;
+    }
+    
     try {
         showAlert('Generating new HealthPIN insight...', 'info');
         
-        const response = await fetch('/api/agents/healthpin/generate-insight', {
+        const response = await fetch('/api/organization-insights/generate', {
             method: 'POST',
-            credentials: 'include'
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                organization_id: parseInt(organizationId)
+            })
         });
         
         const data = await response.json();
         
         if (data.success) {
             showAlert('HealthPIN insight generated successfully!', 'success');
-            loadInsights(); // Refresh the insights
+            loadHealthPINInsights(); // Refresh the insights
         } else {
             throw new Error(data.error || 'Failed to generate insight');
         }
@@ -776,11 +1006,34 @@ function exportCurrentInsight() {
     }
 }
 
+// View organization insight detail
+function viewOrganizationInsightDetail(insightId) {
+    // For now, we'll use the existing modal but could create a specialized one
+    viewInsightDetail(insightId);
+}
+
+// Export organization insight
+function exportOrganizationInsight(insightId) {
+    // For now, we'll use the existing export function but could create a specialized one
+    exportInsight(insightId);
+}
+
 // Refresh insights
 function refreshInsights() {
     showAlert('Refreshing insights...', 'info');
     loadInsights();
     loadMetrics();
+    
+    // Also refresh organization-specific insights if tabs are active
+    const mediamapOrgId = document.getElementById('mediamap-org-select').value;
+    const healthpinOrgId = document.getElementById('healthpin-org-select').value;
+    
+    if (mediamapOrgId) {
+        loadMediaMapInsights();
+    }
+    if (healthpinOrgId) {
+        loadHealthPINInsights();
+    }
 }
 
 // Utility functions

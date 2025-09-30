@@ -225,6 +225,10 @@ def section_required(required_section):
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
+            # Allow admin users to bypass section requirements
+            if hasattr(current_user, 'is_admin') and current_user.is_admin:
+                return f(*args, **kwargs)
+            
             current_section = session.get('section')
             if current_section != required_section:
                 flash('You do not have access to this section.', 'danger')
@@ -1708,12 +1712,122 @@ def admin_agents():
     """Admin AI agents dashboard"""
     return render_template('admin/agents.html')
 
+
+
 @app.route('/admin/insights')
 @login_required
 @admin_required
 def admin_insights():
     """Admin AI insights dashboard"""
     return render_template('admin/insights.html')
+
+@app.route('/api/organization-insights/generate', methods=['POST'])
+@login_required
+def generate_organization_insight():
+    """Generate comprehensive AI insights for an organization"""
+    try:
+        data = request.get_json()
+        if not data or 'organization_id' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Organization ID is required'
+            }), 400
+        
+        organization_id = data['organization_id']
+        
+        # Import the service
+        from backend.services.organization_insight_service import organization_insight_service
+        
+        # Generate insights
+        result = organization_insight_service.generate_comprehensive_insight(
+            organization_id=organization_id,
+            user_id=current_user.id
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error generating organization insight: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/organization-insights/report', methods=['POST'])
+@login_required
+def generate_organization_report():
+    """Generate comprehensive 2-page AI implementation report for an organization"""
+    try:
+        data = request.get_json()
+        if not data or 'organization_id' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Organization ID is required'
+            }), 400
+        
+        organization_id = data['organization_id']
+        format_type = data.get('format', 'html')
+        
+        # Import the service
+        from backend.services.organization_insight_service import organization_insight_service
+        
+        # Generate report
+        result = organization_insight_service.generate_two_page_report(
+            organization_id=organization_id,
+            format_type=format_type
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error generating organization report: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/newsrooms', methods=['GET'])
+@login_required
+def get_newsrooms():
+    """Get list of newsrooms for selection"""
+    try:
+        newsrooms = Newsroom.query.all()
+        return jsonify({
+            'success': True,
+            'newsrooms': [
+                {
+                    'id': newsroom.id,
+                    'name': newsroom.name,
+                    'description': newsroom.description
+                } for newsroom in newsrooms
+            ]
+        })
+    except Exception as e:
+        logger.error(f"Error fetching newsrooms: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/organization-insights/<int:organization_id>', methods=['GET'])
+@login_required
+def get_organization_insights(organization_id: int):
+    """Get insights for a specific organization"""
+    try:
+        from backend.services.organization_insight_service import organization_insight_service
+        
+        insights = organization_insight_service.get_organization_insights(organization_id)
+        
+        return jsonify({
+            'success': True,
+            'insights': insights
+        })
+    except Exception as e:
+        logger.error(f"Error fetching insights for organization {organization_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/admin/insights/generate-report', methods=['POST'])
 @login_required
@@ -2083,64 +2197,7 @@ def get_agent_config(agent_name):
             'error': str(e)
         }), 500
 
-@app.route('/api/agents/<agent_name>/start', methods=['POST'])
-@login_required
-@admin_required
-def start_agent(agent_name):
-    """Start an agent"""
-    try:
-        import time
-        # For now, just return success - in a real implementation, this would start background processes
-        return jsonify({
-            'success': True,
-            'message': f'{agent_name} agent started successfully',
-            'agent_name': agent_name,
-            'status': 'running'
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/agents/<agent_name>/stop', methods=['POST'])
-@login_required
-@admin_required
-def stop_agent(agent_name):
-    """Stop an agent"""
-    try:
-        # For now, just return success - in a real implementation, this would stop background processes
-        return jsonify({
-            'success': True,
-            'message': f'{agent_name} agent stopped successfully',
-            'agent_name': agent_name,
-            'status': 'stopped'
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/agents/<agent_name>/cycle', methods=['POST'])
-@login_required
-@admin_required
-def run_agent_cycle(agent_name):
-    """Run a single cycle of an agent"""
-    try:
-        # For now, just return success - in a real implementation, this would run one cycle of data collection
-        return jsonify({
-            'success': True,
-            'message': f'{agent_name} agent cycle completed successfully',
-            'agent_name': agent_name,
-            'cycle_id': f'{agent_name}_{int(time.time())}',
-            'data_collected': 0  # Would be actual count in real implementation
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+# Removed conflicting placeholder routes - agent functionality is handled by agents blueprint
 
 @app.route('/api/agents/dashboard', methods=['GET'])
 @login_required
@@ -5857,6 +5914,98 @@ def upload_training_newsletter():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+# AI Policies API Endpoints
+@app.route('/admin/map/policies', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_policies():
+    """Manage AI policies and governance"""
+    if request.method == 'GET':
+        try:
+            from backend.models import AIPolicy
+            policies = AIPolicy.query.all()
+            policies_data = []
+            for policy in policies:
+                policies_data.append(policy.to_dict())
+            return jsonify({'policies': policies_data})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'POST':
+        try:
+            from backend.models import AIPolicy
+            from flask_login import current_user
+            data = request.get_json()
+            
+            new_policy = AIPolicy(
+                name=data['name'],
+                description=data.get('description', ''),
+                category=data.get('category', 'General'),
+                version=data.get('version', '1.0'),
+                status=data.get('status', 'Draft'),
+                content=data.get('content', ''),
+                newsroom_id=data.get('newsroom_id'),
+                organization_id=data.get('organization_id'),
+                organization_name=data.get('organization_name', ''),
+                compliance_requirements=data.get('compliance_requirements', ''),
+                review_frequency=data.get('review_frequency', 'Annual'),
+                priority=data.get('priority', 'Medium'),
+                applicable_to=data.get('applicable_to', ''),
+                tags=','.join(data.get('tags', [])),
+                created_by=current_user.id if current_user else None
+            )
+            
+            db.session.add(new_policy)
+            db.session.commit()
+            
+            return jsonify({'status': 'success', 'id': new_policy.id})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'PUT':
+        try:
+            from backend.models import AIPolicy
+            data = request.get_json()
+            policy_id = data['id']
+            
+            policy = AIPolicy.query.get(policy_id)
+            if not policy:
+                return jsonify({'error': 'Policy not found'})
+            
+            # Update fields
+            for field in ['name', 'description', 'category', 'version', 'status', 'content', 
+                         'compliance_requirements', 'review_frequency', 'priority', 'applicable_to']:
+                if field in data:
+                    setattr(policy, field, data[field])
+            
+            # Update tags
+            if 'tags' in data:
+                policy.tags = ','.join(data['tags'])
+            
+            policy.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+    
+    elif request.method == 'DELETE':
+        try:
+            from backend.models import AIPolicy
+            data = request.get_json()
+            policy_id = data['id']
+            
+            policy = AIPolicy.query.get(policy_id)
+            if not policy:
+                return jsonify({'error': 'Policy not found'})
+            
+            db.session.delete(policy)
+            db.session.commit()
+            
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'error': str(e)})
+
+
 # AI Tools API Endpoints
 @app.route('/admin/map/ai-tools', methods=['GET'])
 @login_required
@@ -6815,7 +6964,56 @@ def admin_training():
     # Force template reload for debugging
     from flask import current_app
     current_app.jinja_env.cache = {}
-    return render_template('admin/training.html')
+    
+    # Get actual model status data to pass to template
+    try:
+        from backend.training.openai_trainer import get_model_status
+        
+        # Get status for all models
+        mediamap_status = get_model_status('mediamap')
+        healthpin_status = get_model_status('healthpin')
+        highlander_status = {
+            'model_loaded': False,
+            'training_examples': 0,
+            'last_training': 'Never',
+            'accuracy': 'N/A',
+            'openai_available': bool(os.getenv('OPENAI_API_KEY'))
+        }
+        
+        model_data = {
+            'mediamap': mediamap_status,
+            'healthpin': healthpin_status,
+            'highlander': highlander_status
+        }
+        
+    except Exception as e:
+        print(f"Error getting model status: {e}")
+        # Fallback data
+        model_data = {
+            'mediamap': {
+                'model_loaded': False,
+                'training_examples': 0,
+                'last_training': 'Never',
+                'accuracy': 'N/A',
+                'openai_available': bool(os.getenv('OPENAI_API_KEY'))
+            },
+            'healthpin': {
+                'model_loaded': False,
+                'training_examples': 0,
+                'last_training': 'Never',
+                'accuracy': 'N/A',
+                'openai_available': bool(os.getenv('OPENAI_API_KEY'))
+            },
+            'highlander': {
+                'model_loaded': False,
+                'training_examples': 0,
+                'last_training': 'Never',
+                'accuracy': 'N/A',
+                'openai_available': bool(os.getenv('OPENAI_API_KEY'))
+            }
+        }
+    
+    return render_template('admin/training.html', model_data=model_data)
 
 # ===== Implementation Plans =====
 @app.route('/admin/plans')
@@ -7665,6 +7863,11 @@ def login():
             requested_section = request.form.get('section')
             next_page = request.args.get('next')
             if (requested_section == 'admin' or (next_page and next_page.startswith('/admin'))) and getattr(user, 'is_admin', False):
+                session['section'] = 'admin'
+                return jsonify({'success': True, 'redirect': url_for('admin_map')})
+            
+            # For admin users, set section to admin to allow access to all features
+            if getattr(user, 'is_admin', False):
                 session['section'] = 'admin'
                 return jsonify({'success': True, 'redirect': url_for('admin_map')})
 
@@ -9146,6 +9349,118 @@ def test_model():
             'success': False,
             'error': str(e)
         }), 500
+
+# Agent Training Integration Endpoints
+@app.route('/admin/training/agent-data-stats')
+@login_required
+@admin_required
+def get_agent_training_stats():
+    """Get statistics about available agent training data"""
+    try:
+        from backend.training.agent_training_bridge import create_training_bridge
+        
+        bridge = create_training_bridge()
+        stats = bridge.get_training_data_stats()
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/admin/training/collect-agent-data', methods=['POST'])
+@login_required
+@admin_required
+def collect_agent_training_data():
+    """Collect training data from agents"""
+    try:
+        from backend.training.agent_training_bridge import create_training_bridge
+        
+        bridge = create_training_bridge()
+        stats = bridge.collect_all_agent_training_data()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Agent training data collected successfully',
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/admin/training/train-from-agents', methods=['POST'])
+@login_required
+@admin_required
+def train_model_from_agents():
+    """Train a model using agent-collected data"""
+    try:
+        data = request.get_json() or {}
+        model_name = data.get('model_name', 'mediamap')
+        
+        from backend.training.agent_training_bridge import create_training_bridge
+        from backend.training.openai_trainer import OpenAITrainer
+        
+        # First collect the latest agent data
+        bridge = create_training_bridge()
+        collection_stats = bridge.collect_all_agent_training_data()
+        
+        # Initialize trainer
+        trainer = OpenAITrainer(model_name)
+        
+        # Prepare training data from agent-collected data
+        training_file = str(bridge.training_output_path / "agent_consolidated_training.json")
+        
+        if not os.path.exists(training_file):
+            return jsonify({
+                'success': False,
+                'error': 'No agent training data available. Please collect data first.'
+            })
+        
+        # Start training process
+        result = trainer.train_model(training_file)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Training started for {model_name} using agent data',
+            'collection_stats': collection_stats,
+            'training_result': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@app.route('/admin/training/start-continuous-collection', methods=['POST'])
+@login_required
+@admin_required
+def start_continuous_agent_collection():
+    """Start continuous collection of training data from agents"""
+    try:
+        data = request.get_json() or {}
+        interval_hours = data.get('interval_hours', 24)
+        
+        from backend.training.agent_training_bridge import create_training_bridge
+        
+        bridge = create_training_bridge()
+        result = bridge.start_continuous_training_collection(interval_hours)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Continuous agent data collection started',
+            'schedule': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 def find_available_port(start_port=3000, max_port=8100):
     """Find an available port starting from start_port"""

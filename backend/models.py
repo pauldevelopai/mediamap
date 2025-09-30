@@ -570,7 +570,7 @@ class Newsroom(db.Model):
     client = db.relationship('Client', backref='newsrooms')
 
 class AIPrototype(db.Model):
-    """AI prototypes being developed by newsrooms"""
+    """AI prototypes being developed by newsrooms and organizations"""
     __tablename__ = 'ai_prototypes'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -578,6 +578,8 @@ class AIPrototype(db.Model):
     description = db.Column(db.Text)
     newsroom_id = db.Column(db.Integer, db.ForeignKey('newsroom.id'), nullable=True)
     newsroom_name = db.Column(db.String(200))  # Denormalized for performance
+    organization_id = db.Column(db.Integer, nullable=True)  # Will link to Organisation model
+    organization_name = db.Column(db.String(200), nullable=True)  # Fallback if not in system
     
     # Prototype details
     category = db.Column(db.String(100))  # Content Generation, Fact-Checking, Personalization, Analytics, etc.
@@ -655,6 +657,58 @@ class DailyInsight(db.Model):
     source = db.Column(db.String(200))
     url = db.Column(db.String(500))  # URL to the original article
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class OrganizationInsight(db.Model):
+    """Organization-specific AI implementation insights"""
+    __tablename__ = 'organization_insights'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('newsroom.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(100))  # Implementation, Strategy, Performance, Recommendations
+    insight_type = db.Column(db.String(50))  # current_status, gap_analysis, recommendations, next_steps
+    confidence_score = db.Column(db.Float)  # 0.0 to 1.0
+    priority = db.Column(db.String(20))  # high, medium, low
+    
+    # AI Implementation Analysis
+    current_ai_maturity = db.Column(db.String(50))  # beginner, intermediate, advanced
+    implementation_gaps = db.Column(db.JSON)  # List of identified gaps
+    recommended_actions = db.Column(db.JSON)  # List of recommended actions
+    expected_outcomes = db.Column(db.JSON)  # Expected benefits and outcomes
+    timeline_estimate = db.Column(db.String(100))  # Implementation timeline
+    resource_requirements = db.Column(db.JSON)  # Required resources
+    
+    # Metadata
+    generated_by = db.Column(db.String(100))  # AI agent or user who generated
+    data_sources = db.Column(db.JSON)  # Sources used for analysis
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    organization = db.relationship('Newsroom', backref='ai_insights')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'organization_id': self.organization_id,
+            'title': self.title,
+            'content': self.content,
+            'category': self.category,
+            'insight_type': self.insight_type,
+            'confidence_score': self.confidence_score,
+            'priority': self.priority,
+            'current_ai_maturity': self.current_ai_maturity,
+            'implementation_gaps': self.implementation_gaps,
+            'recommended_actions': self.recommended_actions,
+            'expected_outcomes': self.expected_outcomes,
+            'timeline_estimate': self.timeline_estimate,
+            'resource_requirements': self.resource_requirements,
+            'generated_by': self.generated_by,
+            'data_sources': self.data_sources,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class HighlanderChat(db.Model):
     """Highlander AI chat conversations"""
@@ -1844,3 +1898,77 @@ class PromptPerformance(db.Model):
             'error_message': self.error_message,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+
+class AIPolicy(db.Model):
+    """AI Policies and Governance model"""
+    __tablename__ = 'ai_policies'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    category = db.Column(db.String(100), nullable=False)  # AI Ethics, Data Governance, Usage Guidelines
+    version = db.Column(db.String(20), default='1.0')
+    status = db.Column(db.String(50), default='Draft')  # Draft, Under Review, Active, Archived
+    content = db.Column(db.Text, nullable=False)  # The actual policy content
+    
+    # Organization/Newsroom relationships
+    newsroom_id = db.Column(db.Integer, db.ForeignKey('newsroom.id'), nullable=True)
+    organization_id = db.Column(db.Integer, nullable=True)  # Will link to Organisation model
+    organization_name = db.Column(db.String(200), nullable=True)  # Fallback if not in system
+    
+    # Compliance and governance
+    compliance_requirements = db.Column(db.Text, nullable=True)  # JSON string of requirements
+    review_frequency = db.Column(db.String(50), default='Annual')  # Annual, Quarterly, Monthly
+    last_reviewed = db.Column(db.DateTime, nullable=True)
+    next_review_date = db.Column(db.DateTime, nullable=True)
+    
+    # Approval workflow
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
+    
+    # Metadata
+    tags = db.Column(db.String(500), nullable=True)  # Comma-separated tags
+    priority = db.Column(db.String(20), default='Medium')  # Low, Medium, High, Critical
+    applicable_to = db.Column(db.Text, nullable=True)  # Who/what this policy applies to
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    creator = db.relationship('User', foreign_keys=[created_by], backref='created_policies')
+    approver = db.relationship('User', foreign_keys=[approved_by], backref='approved_policies')
+    newsroom = db.relationship('Newsroom', backref='ai_policies')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'version': self.version,
+            'status': self.status,
+            'content': self.content,
+            'newsroom_id': self.newsroom_id,
+            'organization_id': self.organization_id,
+            'organization_name': self.organization_name,
+            'compliance_requirements': self.compliance_requirements,
+            'review_frequency': self.review_frequency,
+            'last_reviewed': self.last_reviewed.isoformat() if self.last_reviewed else None,
+            'next_review_date': self.next_review_date.isoformat() if self.next_review_date else None,
+            'created_by': self.created_by,
+            'approved_by': self.approved_by,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
+            'tags': self.tags.split(',') if self.tags and isinstance(self.tags, str) else [],
+            'priority': self.priority,
+            'applicable_to': self.applicable_to,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'creator_name': self.creator.username if self.creator else None,
+            'approver_name': self.approver.username if self.approver else None,
+            'newsroom_name': self.newsroom.name if self.newsroom else None
+        }
+    
+    def __repr__(self):
+        return f'<AIPolicy {self.name}>'

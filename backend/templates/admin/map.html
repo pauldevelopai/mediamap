@@ -1417,8 +1417,17 @@ function analyzeOrganization(orgId) {
 }
 
 function searchOrganizations() {
-    const searchTerm = document.getElementById('orgSearch').value;
-    alert('Search organizations functionality - Term: ' + searchTerm);
+    const keywords = document.getElementById('searchKeywords').value;
+    const sector = document.getElementById('searchSector').value;
+    const region = document.getElementById('searchRegion').value;
+    
+    if (!keywords.trim()) {
+        alert('Please enter search keywords');
+        return;
+    }
+    
+    // Show discovery progress
+    startDiscoveryScan();
 }
 
 // Organization Discovery Functions
@@ -1649,7 +1658,95 @@ function searchResearch() {
 
 // People Functions
 function addNewPerson() {
-    alert('Add new person functionality');
+    // Clear form
+    document.getElementById('personForm').reset();
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('addPersonModal'));
+    modal.show();
+}
+
+function savePerson() {
+    // Get form data
+    const name = document.getElementById('personName').value.trim();
+    const title = document.getElementById('personTitle').value.trim();
+    const role = document.getElementById('personRole').value;
+    const organization = document.getElementById('personOrganization').value.trim();
+    const email = document.getElementById('personEmail').value.trim();
+    const phone = document.getElementById('personPhone').value.trim();
+    const linkedin_url = document.getElementById('personLinkedIn').value.trim();
+    const availability = document.getElementById('personAvailability').value;
+    const hourly_rate = document.getElementById('personHourlyRate').value;
+    const expertise = document.getElementById('personExpertise').value.trim();
+    const ai_skills = document.getElementById('personAISkills').value.trim();
+    const notes = document.getElementById('personNotes').value.trim();
+    
+    // Validate required fields
+    if (!name) {
+        alert('Please enter a name');
+        return;
+    }
+    
+    // Prepare data
+    const personData = {
+        name: name,
+        title: title,
+        role: role,
+        organization: organization,
+        email: email,
+        phone: phone,
+        linkedin_url: linkedin_url,
+        availability: availability,
+        hourly_rate: hourly_rate ? parseFloat(hourly_rate) : null,
+        expertise: expertise ? expertise.split(',').map(s => s.trim()).filter(s => s) : [],
+        ai_skills: ai_skills ? ai_skills.split(',').map(s => s.trim()).filter(s => s) : [],
+        notes: notes,
+        tags: []
+    };
+    
+    // Show loading state
+    const saveButton = document.querySelector('#addPersonModal .btn-primary');
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+    saveButton.disabled = true;
+    
+    // Send to backend
+    fetch('/admin/map/people', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(personData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success' || data.id) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addPersonModal'));
+            modal.hide();
+            
+            // Show success message
+            alert('Person added successfully!');
+            
+            // Refresh the people list (if there's a function for it)
+            if (typeof loadPeople === 'function') {
+                loadPeople();
+            } else {
+                // Reload the page to show the new person
+                location.reload();
+            }
+        } else {
+            alert('Error adding person: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding person: Network error');
+    })
+    .finally(() => {
+        // Restore button state
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+    });
 }
 
 function importContacts() {
@@ -1882,7 +1979,204 @@ function searchWorkshops() {
 
 // AI Policies Functions
 function createNewPolicy() {
-    alert('Create new policy functionality');
+    // Clear form
+    document.getElementById('policyForm').reset();
+    // Reset to default values
+    document.getElementById('policyVersion').value = '1.0';
+    document.getElementById('policyStatus').value = 'Draft';
+    document.getElementById('policyPriority').value = 'Medium';
+    document.getElementById('policyReviewFrequency').value = 'Annual';
+    // Hide organization selection
+    document.getElementById('organizationSelectionRow').style.display = 'none';
+    // Load organizations and newsrooms
+    loadOrganizationsAndNewsrooms();
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('addPolicyModal'));
+    modal.show();
+}
+
+function toggleOrganizationFields() {
+    const orgType = document.getElementById('policyOrganizationType').value;
+    const selectionRow = document.getElementById('organizationSelectionRow');
+    const newsroomDiv = document.getElementById('newsroomSelectDiv');
+    const organizationDiv = document.getElementById('organizationSelectDiv');
+    const organizationNameDiv = document.getElementById('organizationNameDiv');
+    
+    if (orgType) {
+        selectionRow.style.display = 'block';
+        
+        // Hide all first
+        newsroomDiv.style.display = 'none';
+        organizationDiv.style.display = 'none';
+        organizationNameDiv.style.display = 'none';
+        
+        // Show appropriate field
+        if (orgType === 'newsroom') {
+            newsroomDiv.style.display = 'block';
+        } else if (orgType === 'organization') {
+            organizationDiv.style.display = 'block';
+        } else if (orgType === 'other') {
+            organizationNameDiv.style.display = 'block';
+        }
+    } else {
+        selectionRow.style.display = 'none';
+    }
+}
+
+function loadOrganizationsAndNewsrooms() {
+    // Load newsrooms
+    fetch('/admin/map/clients')
+        .then(response => response.json())
+        .then(data => {
+            const newsroomSelect = document.getElementById('policyNewsroom');
+            newsroomSelect.innerHTML = '<option value="">Select Newsroom</option>';
+            
+            if (data.clients) {
+                data.clients.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = client.name;
+                    newsroomSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading newsrooms:', error));
+    
+    // Load organizations
+    fetch('/admin/map/organizations')
+        .then(response => response.json())
+        .then(data => {
+            const orgSelect = document.getElementById('policyOrganization');
+            orgSelect.innerHTML = '<option value="">Select Organization</option>';
+            
+            if (data.organizations) {
+                data.organizations.forEach(org => {
+                    const option = document.createElement('option');
+                    option.value = org.id;
+                    option.textContent = org.name;
+                    orgSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading organizations:', error));
+}
+
+function savePolicy() {
+    // Get form data
+    const name = document.getElementById('policyName').value.trim();
+    const category = document.getElementById('policyCategory').value;
+    const version = document.getElementById('policyVersion').value.trim();
+    const status = document.getElementById('policyStatus').value;
+    const priority = document.getElementById('policyPriority').value;
+    const description = document.getElementById('policyDescription').value.trim();
+    const content = document.getElementById('policyContent').value.trim();
+    const applicable_to = document.getElementById('policyApplicableTo').value.trim();
+    const review_frequency = document.getElementById('policyReviewFrequency').value;
+    const compliance_requirements = document.getElementById('policyCompliance').value.trim();
+    const tags = document.getElementById('policyTags').value.trim();
+    
+    // Get organization data
+    const orgType = document.getElementById('policyOrganizationType').value;
+    const newsroomId = document.getElementById('policyNewsroom').value;
+    const organizationId = document.getElementById('policyOrganization').value;
+    const organizationName = document.getElementById('policyOrganizationName').value.trim();
+    
+    // Validate required fields
+    if (!name) {
+        alert('Please enter a policy name');
+        return;
+    }
+    if (!category) {
+        alert('Please select a category');
+        return;
+    }
+    if (!content) {
+        alert('Please enter policy content');
+        return;
+    }
+    
+    // Validate organization selection
+    if (orgType === 'newsroom' && !newsroomId) {
+        alert('Please select a newsroom');
+        return;
+    }
+    if (orgType === 'organization' && !organizationId) {
+        alert('Please select an organization');
+        return;
+    }
+    if (orgType === 'other' && !organizationName) {
+        alert('Please enter an organization name');
+        return;
+    }
+    
+    // Prepare data
+    const policyData = {
+        name: name,
+        category: category,
+        version: version || '1.0',
+        status: status,
+        priority: priority,
+        description: description,
+        content: content,
+        applicable_to: applicable_to,
+        review_frequency: review_frequency,
+        compliance_requirements: compliance_requirements,
+        tags: tags ? tags.split(',').map(s => s.trim()).filter(s => s) : []
+    };
+    
+    // Add organization data based on type
+    if (orgType === 'newsroom' && newsroomId) {
+        policyData.newsroom_id = parseInt(newsroomId);
+    } else if (orgType === 'organization' && organizationId) {
+        policyData.organization_id = parseInt(organizationId);
+    } else if (orgType === 'other' && organizationName) {
+        policyData.organization_name = organizationName;
+    }
+    
+    // Show loading state
+    const saveButton = document.querySelector('#addPolicyModal .btn-primary');
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Creating...';
+    saveButton.disabled = true;
+    
+    // Send to backend
+    fetch('/admin/map/policies', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(policyData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success' || data.id) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addPolicyModal'));
+            modal.hide();
+            
+            // Show success message
+            alert('Policy created successfully!');
+            
+            // Refresh the policies list (if there's a function for it)
+            if (typeof loadPolicies === 'function') {
+                loadPolicies();
+            } else {
+                // Reload the page to show the new policy
+                location.reload();
+            }
+        } else {
+            alert('Error creating policy: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating policy: Network error');
+    })
+    .finally(() => {
+        // Restore button state
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+    });
 }
 
 function importPolicyTemplate() {
@@ -1978,6 +2272,265 @@ function searchPrototypes() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="saveClient()">Save Client</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Person Modal -->
+<div class="modal fade" id="addPersonModal" tabindex="-1" aria-labelledby="addPersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPersonModalLabel">Add New Person</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="personForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personName" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="personName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personTitle" class="form-label">Job Title</label>
+                                <input type="text" class="form-control" id="personTitle" placeholder="e.g., AI Engineer, Editor">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personRole" class="form-label">Role</label>
+                                <select class="form-select" id="personRole">
+                                    <option value="Team Member">Team Member</option>
+                                    <option value="AI Expert">AI Expert</option>
+                                    <option value="Consultant">Consultant</option>
+                                    <option value="Client Contact">Client Contact</option>
+                                    <option value="Project Manager">Project Manager</option>
+                                    <option value="Developer">Developer</option>
+                                    <option value="Researcher">Researcher</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personOrganization" class="form-label">Organization</label>
+                                <input type="text" class="form-control" id="personOrganization" placeholder="Company or organization">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="personEmail" placeholder="email@example.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personPhone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="personPhone" placeholder="+1 (555) 123-4567">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="personLinkedIn" class="form-label">LinkedIn URL</label>
+                        <input type="url" class="form-control" id="personLinkedIn" placeholder="https://linkedin.com/in/username">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personAvailability" class="form-label">Availability</label>
+                                <select class="form-select" id="personAvailability">
+                                    <option value="Available">Available</option>
+                                    <option value="Busy">Busy</option>
+                                    <option value="Unavailable">Unavailable</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personHourlyRate" class="form-label">Hourly Rate ($)</label>
+                                <input type="number" class="form-control" id="personHourlyRate" placeholder="150" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="personExpertise" class="form-label">Expertise (comma-separated)</label>
+                        <input type="text" class="form-control" id="personExpertise" placeholder="AI, Machine Learning, Data Science">
+                    </div>
+                    <div class="mb-3">
+                        <label for="personAISkills" class="form-label">AI Skills (comma-separated)</label>
+                        <input type="text" class="form-control" id="personAISkills" placeholder="TensorFlow, PyTorch, OpenAI API">
+                    </div>
+                    <div class="mb-3">
+                        <label for="personNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="personNotes" rows="3" placeholder="Additional notes about this person..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="savePerson()">Save Person</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Policy Modal -->
+<div class="modal fade" id="addPolicyModal" tabindex="-1" aria-labelledby="addPolicyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPolicyModalLabel">Create New AI Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="policyForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="policyName" class="form-label">Policy Name *</label>
+                                <input type="text" class="form-control" id="policyName" required placeholder="e.g., AI Ethics Guidelines">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="policyCategory" class="form-label">Category *</label>
+                                <select class="form-select" id="policyCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="AI Ethics">AI Ethics</option>
+                                    <option value="Data Governance">Data Governance</option>
+                                    <option value="Usage Guidelines">Usage Guidelines</option>
+                                    <option value="Privacy & Security">Privacy & Security</option>
+                                    <option value="Compliance">Compliance</option>
+                                    <option value="Risk Management">Risk Management</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="policyOrganizationType" class="form-label">Organization Type</label>
+                                <select class="form-select" id="policyOrganizationType" onchange="toggleOrganizationFields()">
+                                    <option value="">Select Type</option>
+                                    <option value="newsroom">Newsroom</option>
+                                    <option value="organization">Organization</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="organizationSelectionRow" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="mb-3" id="newsroomSelectDiv" style="display: none;">
+                                <label for="policyNewsroom" class="form-label">Newsroom *</label>
+                                <select class="form-select" id="policyNewsroom">
+                                    <option value="">Select Newsroom</option>
+                                    <!-- Will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="mb-3" id="organizationSelectDiv" style="display: none;">
+                                <label for="policyOrganization" class="form-label">Organization *</label>
+                                <select class="form-select" id="policyOrganization">
+                                    <option value="">Select Organization</option>
+                                    <!-- Will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="mb-3" id="organizationNameDiv" style="display: none;">
+                                <label for="policyOrganizationName" class="form-label">Organization Name *</label>
+                                <input type="text" class="form-control" id="policyOrganizationName" placeholder="Enter organization name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Why link to an organization?</strong><br>
+                                Policies should be associated with the newsroom or organization that creates and implements them. This helps track ownership and compliance.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="policyVersion" class="form-label">Version</label>
+                                <input type="text" class="form-control" id="policyVersion" value="1.0" placeholder="1.0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="policyStatus" class="form-label">Status</label>
+                                <select class="form-select" id="policyStatus">
+                                    <option value="Draft">Draft</option>
+                                    <option value="Under Review">Under Review</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Archived">Archived</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="policyPriority" class="form-label">Priority</label>
+                                <select class="form-select" id="policyPriority">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="policyDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="policyDescription" rows="2" placeholder="Brief description of this policy..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="policyContent" class="form-label">Policy Content *</label>
+                        <textarea class="form-control" id="policyContent" rows="8" required placeholder="Enter the detailed policy content here...
+
+Example:
+1. Purpose and Scope
+2. Definitions
+3. Policy Statement
+4. Responsibilities
+5. Compliance Requirements
+6. Review and Updates"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="policyApplicableTo" class="form-label">Applicable To</label>
+                                <input type="text" class="form-control" id="policyApplicableTo" placeholder="All employees, AI developers, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="policyReviewFrequency" class="form-label">Review Frequency</label>
+                                <select class="form-select" id="policyReviewFrequency">
+                                    <option value="Monthly">Monthly</option>
+                                    <option value="Quarterly">Quarterly</option>
+                                    <option value="Annual" selected>Annual</option>
+                                    <option value="Biennial">Biennial</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="policyCompliance" class="form-label">Compliance Requirements</label>
+                        <textarea class="form-control" id="policyCompliance" rows="3" placeholder="GDPR, CCPA, industry standards, etc."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="policyTags" class="form-label">Tags (comma-separated)</label>
+                        <input type="text" class="form-control" id="policyTags" placeholder="ethics, privacy, compliance, ai-safety">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="savePolicy()">Create Policy</button>
             </div>
         </div>
     </div>
