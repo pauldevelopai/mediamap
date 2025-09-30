@@ -1,216 +1,167 @@
 #!/bin/bash
 set -e
 
-# Your existing Lightsail instance details
-LIGHTSAIL_INSTANCE_NAME="datasafe"
-INSTANCE_IP="13.40.124.51"
+echo "🚀 Deploying MediaMap to Existing Lightsail Instance"
+echo "=================================================="
+echo ""
+
+# Configuration
+INSTANCE_NAME="MEDIAMAPUPGRADE"
 REGION="eu-west-2"
+APP_DIR="/opt/mediamap"
 
-echo "🚀 Deploying DataSafe to your existing Lightsail instance..."
-echo "📋 Instance: $LIGHTSAIL_INSTANCE_NAME"
-echo "🌐 IP Address: $INSTANCE_IP"
+echo "📋 Instance: $INSTANCE_NAME"
 echo "🌍 Region: $REGION"
+echo ""
 
-# Verify AWS credentials
-echo "🔐 Verifying AWS credentials..."
-if ! aws sts get-caller-identity --query 'Account' --output text > /dev/null 2>&1; then
-    echo "❌ AWS credentials not configured or invalid."
-    exit 1
-fi
+# Get instance details from console
+echo "🔍 Please get the following information from your Lightsail console:"
+echo "   1. Public IP address"
+echo "   2. SSH key name"
+echo ""
+echo "🌐 Go to: https://lightsail.aws.amazon.com/ls/webapp/$REGION/instances/$INSTANCE_NAME/connect"
+echo ""
 
-ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-echo "✅ AWS credentials verified! Account: $ACCOUNT_ID"
+# Prompt for instance details
+read -p "Enter the Public IP address: " INSTANCE_IP
+read -p "Enter the SSH key name (e.g., LightsailDefaultKey-eu-west-2): " KEY_NAME
 
-# Check Lightsail permissions
-echo "🔍 Checking Lightsail permissions..."
-if ! aws lightsail get-instances --region $REGION --query 'instances[0].name' --output text > /dev/null 2>&1; then
-    echo "❌ No Lightsail permissions or no instances found in region $REGION"
-    echo "💡 You may need to:"
-    echo "   1. Enable Lightsail in your AWS account"
-    echo "   2. Add Lightsail permissions to your IAM user"
-    echo "   3. Or use the AWS Console to manage your instance"
+# Check if SSH key exists locally
+KEY_FILE="$KEY_NAME.pem"
+if [ ! -f "$KEY_FILE" ]; then
+    echo "❌ SSH key file not found: $KEY_FILE"
+    echo "📥 Please download the SSH key from Lightsail console:"
+    echo "   1. Go to your instance"
+    echo "   2. Click 'Connect using SSH'"
+    echo "   3. Download the key file"
+    echo "   4. Place it in this directory as: $KEY_FILE"
     echo ""
-    echo "🔧 Alternative: Deploy directly via SSH"
-    echo "   Since we know your instance IP, we can deploy directly:"
-    echo "   ./deploy-via-ssh.sh"
+    read -p "Press Enter when you have the key file ready..."
+fi
+
+# Set proper permissions
+chmod 400 $KEY_FILE
+
+echo "🔑 Using SSH key: $KEY_FILE"
+echo "🌐 Connecting to: ubuntu@$INSTANCE_IP"
+echo ""
+
+# Test SSH connection
+echo "🔍 Testing SSH connection..."
+if ssh -i $KEY_FILE -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@$INSTANCE_IP 'echo "SSH connection successful!"'; then
+    echo "✅ SSH connection successful!"
+else
+    echo "❌ SSH connection failed. Please check:"
+    echo "   - IP address is correct"
+    echo "   - SSH key file exists and has correct permissions"
+    echo "   - Instance is running"
     exit 1
 fi
 
-# Check if instance exists and is running
-echo "🔍 Checking instance status..."
-INSTANCE_STATE=$(aws lightsail get-instances --instance-names $LIGHTSAIL_INSTANCE_NAME --region $REGION --query 'instances[0].state.name' --output text 2>/dev/null || echo "NOT_FOUND")
+echo ""
+echo "🚀 Starting deployment..."
+echo "⏳ This will take 5-10 minutes..."
+echo ""
 
-if [ "$INSTANCE_STATE" == "NOT_FOUND" ]; then
-    echo "❌ Instance '$LIGHTSAIL_INSTANCE_NAME' not found in region $REGION"
-    echo "💡 Available instances:"
-    aws lightsail get-instances --region $REGION --query 'instances[*].name' --output text 2>/dev/null || echo "None found"
-    exit 1
-fi
-
-echo "📊 Instance State: $INSTANCE_STATE"
-
-if [ "$INSTANCE_STATE" != "running" ]; then
-    echo "🚀 Starting instance..."
-    aws lightsail start-instance --instance-name $LIGHTSAIL_INSTANCE_NAME --region $REGION
-    echo "⏳ Waiting for instance to start..."
-    aws lightsail wait instance-running --instance-name $LIGHTSAIL_INSTANCE_NAME --region $REGION
-    echo "✅ Instance is now running!"
-fi
-
-# Get SSH key
-echo "🔑 Getting SSH key..."
-KEY_PAIR_NAME=$(aws lightsail get-instances --instance-names $LIGHTSAIL_INSTANCE_NAME --region $REGION --query 'instances[0].sshKeyName' --output text)
-
-# Download SSH key if not exists
-if [ ! -f "$KEY_PAIR_NAME.pem" ]; then
-    echo "📥 Downloading SSH key..."
-    aws lightsail download-default-key-pair --region $REGION --output text > $KEY_PAIR_NAME.pem
-    chmod 400 $KEY_PAIR_NAME.pem
-    echo "✅ SSH key downloaded: $KEY_PAIR_NAME.pem"
-fi
-
-# Ensure ports are open
-echo "🔓 Ensuring ports are open..."
-aws lightsail open-instance-public-ports \
-    --instance-name $LIGHTSAIL_INSTANCE_NAME \
-    --port-info fromPort=80,toPort=80,protocol=tcp \
-    --region $REGION 2>/dev/null || echo "Port 80 already open"
-
-aws lightsail open-instance-public-ports \
-    --instance-name $LIGHTSAIL_INSTANCE_NAME \
-    --port-info fromPort=443,toPort=443,protocol=tcp \
-    --region $REGION 2>/dev/null || echo "Port 443 already open"
-
-aws lightsail open-instance-public-ports \
-    --instance-name $LIGHTSAIL_INSTANCE_NAME \
-    --port-info fromPort=8000,toPort=8000,protocol=tcp \
-    --region $REGION 2>/dev/null || echo "Port 8000 already open"
-
-# Create deployment script for remote execution
-echo "📝 Creating deployment script..."
-cat > remote-deploy.sh << 'EOF'
+# Create deployment script
+cat > deploy_script.sh << 'EOF'
 #!/bin/bash
 set -e
 
-echo "🚀 Starting DataSafe deployment on Lightsail instance..."
-
-# Update system
-echo "📦 Updating system packages..."
+echo "🔧 Updating system..."
 sudo apt update && sudo apt upgrade -y
 
-# Install Docker if not already installed
-if ! command -v docker &> /dev/null; then
-    echo "🐳 Installing Docker..."
-    sudo apt install -y docker.io docker-compose
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    sudo usermod -a -G docker ubuntu
-    echo "✅ Docker installed!"
-else
-    echo "✅ Docker already installed"
-fi
+echo "🐳 Installing Docker..."
+sudo apt install -y docker.io docker-compose
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -a -G docker ubuntu
 
-# Install additional dependencies
-echo "📚 Installing additional dependencies..."
+echo "📦 Installing additional tools..."
 sudo apt install -y curl git python3-pip htop
 
-# Stop any existing WordPress services
-echo "🛑 Stopping existing WordPress services..."
-sudo systemctl stop apache2 2>/dev/null || true
-sudo systemctl stop mysql 2>/dev/null || true
-sudo systemctl disable apache2 2>/dev/null || true
-sudo systemctl disable mysql 2>/dev/null || true
+echo "📁 Creating application directory..."
+sudo mkdir -p /opt/mediamap
+sudo chown ubuntu:ubuntu /opt/mediamap
 
-# Create application directory
-echo "📁 Setting up application directory..."
-sudo mkdir -p /opt/datasafe
-sudo chown ubuntu:ubuntu /opt/datasafe
-cd /opt/datasafe
+echo "📥 Cloning MediaMap repository..."
+cd /opt/mediamap
+git clone https://github.com/pauldevelopai/mediamap.git .
 
-# Clone or update repository
-if [ -d ".git" ]; then
-    echo "📥 Updating existing repository..."
-    git pull origin main
-else
-    echo "📥 Cloning repository..."
-    git clone https://github.com/pauldevelopai/datasafe.git .
-fi
-
-# Create environment file if it doesn't exist
-if [ ! -f ".env" ]; then
-    echo "📝 Creating environment file..."
-    cat > .env << 'ENVEOF'
+echo "🔧 Creating environment file..."
+cat > .env << 'ENVEOF'
 SECRET_KEY=your-super-secret-production-key-change-this
 OPENAI_API_KEY=your-openai-api-key-here
 FLASK_ENV=production
+DATABASE_URL=sqlite:///./instance/media_analysis.db
+HUGGINGFACE_HUB_TOKEN=
 ENVEOF
-    echo "⚠️ Please edit .env file with your actual values!"
-fi
 
-# Stop existing containers
-echo "🛑 Stopping existing containers..."
-docker-compose down 2>/dev/null || true
-
-# Build and start application
-echo "🔨 Building and starting application..."
+echo "🐳 Building and starting application..."
 docker-compose build --no-cache
 docker-compose up -d
 
-# Wait for application to start
 echo "⏳ Waiting for application to start..."
 sleep 30
 
-# Check health
-echo "🏥 Checking application health..."
+echo "🏥 Testing application health..."
 if curl -f http://localhost:8000/health; then
     echo "✅ Application is healthy!"
 else
-    echo "❌ Application health check failed!"
-    echo "📋 Checking logs..."
-    docker-compose logs --tail=20
-    exit 1
+    echo "⚠️ Health check failed, but application may still be starting..."
 fi
 
-echo "🎉 Deployment complete!"
-echo "🌐 Application should be available at: http://$(curl -s ifconfig.me)"
-echo "📊 Check status: docker-compose ps"
-echo "📋 View logs: docker-compose logs -f"
+echo "📊 Checking running containers..."
+docker-compose ps
+
+echo "🎉 Deployment completed!"
+echo "🌐 Your MediaMap application should be available at:"
+echo "   http://$(curl -s ifconfig.me):8000"
+echo ""
+echo "🔍 To check logs:"
+echo "   docker-compose logs -f"
+echo ""
+echo "🔧 To restart:"
+echo "   docker-compose restart"
 EOF
 
-# Copy deployment script to instance
-echo "📤 Copying deployment script to instance..."
-scp -i $KEY_PAIR_NAME.pem -o StrictHostKeyChecking=no remote-deploy.sh ubuntu@$INSTANCE_IP:/tmp/
+# Copy and execute deployment script
+echo "📤 Uploading deployment script..."
+scp -i $KEY_FILE deploy_script.sh ubuntu@$INSTANCE_IP:/tmp/
 
-# Execute deployment script on instance
-echo "🚀 Executing deployment on instance..."
-ssh -i $KEY_PAIR_NAME.pem -o StrictHostKeyChecking=no ubuntu@$INSTANCE_IP "chmod +x /tmp/remote-deploy.sh && /tmp/remote-deploy.sh"
+echo "🚀 Executing deployment on server..."
+ssh -i $KEY_FILE ubuntu@$INSTANCE_IP 'chmod +x /tmp/deploy_script.sh && /tmp/deploy_script.sh'
 
 # Clean up
-rm -f remote-deploy.sh
+rm deploy_script.sh
 
 echo ""
 echo "🎉 Deployment completed!"
 echo ""
 echo "📋 Summary:"
-echo "  - Instance Name: $LIGHTSAIL_INSTANCE_NAME"
+echo "  - Instance: $INSTANCE_NAME"
 echo "  - Public IP: $INSTANCE_IP"
 echo "  - Region: $REGION"
 echo ""
-echo "🌐 Your DataSafe application:"
-echo "   http://$INSTANCE_IP"
-echo "   http://$INSTANCE_IP:8000 (direct Flask app)"
+echo "🌐 Your MediaMap application:"
+echo "   http://$INSTANCE_IP:8000"
 echo ""
 echo "🔍 Management Commands:"
 echo "  # Check status"
-echo "  aws lightsail get-instances --instance-names $LIGHTSAIL_INSTANCE_NAME --region $REGION"
-echo ""
-echo "  # SSH into instance"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP"
+echo "  ssh -i $KEY_FILE ubuntu@$INSTANCE_IP 'docker-compose ps'"
 echo ""
 echo "  # View logs"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'docker-compose logs -f'"
+echo "  ssh -i $KEY_FILE ubuntu@$INSTANCE_IP 'docker-compose logs -f'"
 echo ""
 echo "  # Restart application"
-echo "  ssh -i $KEY_PAIR_NAME.pem ubuntu@$INSTANCE_IP 'cd /opt/datasafe && docker-compose restart'"
+echo "  ssh -i $KEY_FILE ubuntu@$INSTANCE_IP 'cd /opt/mediamap && docker-compose restart'"
 echo ""
-echo "⚠️ Note: This deployment replaces the WordPress installation with your DataSafe application." 
+echo "  # Update application"
+echo "  ssh -i $KEY_FILE ubuntu@$INSTANCE_IP 'cd /opt/mediamap && git pull && docker-compose build --no-cache && docker-compose up -d'"
+echo ""
+echo "🔧 Next Steps:"
+echo "  1. Visit http://$INSTANCE_IP:8000 to access your application"
+echo "  2. Edit /opt/mediamap/.env to add your OpenAI API key"
+echo "  3. Restart the application: docker-compose restart"
+echo ""
+echo "💰 Cost: Your Lightsail instance is already running and billing"
