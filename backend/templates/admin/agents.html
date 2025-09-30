@@ -240,623 +240,275 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
+    <!-- Header Section -->
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1>🤖 AI Agents Dashboard</h1>
-                    <p class="text-muted mb-0">Autonomous AI agents that continuously collect data and generate insights for MediaMap and HealthPIN</p>
+                    <h1 class="mb-1">🤖 AI Agents Control Center</h1>
+                    <p class="text-muted mb-0">Monitor, control, and configure your AI agents</p>
                 </div>
                 <div>
-                    <button class="btn btn-primary" onclick="refreshDashboard()" title="Refresh the dashboard data">
+                    <button class="btn btn-outline-primary me-2" onclick="refreshDashboard()" title="Refresh all data">
                         <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button class="btn btn-success" onclick="startAllAgents()" title="Start all agents">
+                        <i class="bi bi-play-circle"></i> Start All
+                    </button>
+                    <button class="btn btn-warning" onclick="testJavaScript()" title="Test JavaScript">
+                        <i class="bi bi-bug"></i> Test JS
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    
 
-    <!-- Agent Tabs -->
+    <!-- Quick Stats Overview -->
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs" id="agentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="mediamap-tab" data-bs-toggle="tab" data-bs-target="#mediamap" type="button" role="tab">
-                                <i class="bi bi-newspaper me-2"></i>MediaMap Agent
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="healthpin-tab" data-bs-toggle="tab" data-bs-target="#healthpin" type="button" role="tab">
-                                <i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="add-agent-tab" data-bs-toggle="tab" data-bs-target="#add-agent" type="button" role="tab">
-                                <i class="bi bi-plus-circle me-2"></i>Add New Agent
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div class="tab-content" id="agentTabContent">
-                        <!-- MediaMap Agent Tab -->
-                        <div class="tab-pane fade show active" id="mediamap" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5><i class="bi bi-newspaper me-2"></i>MediaMap Agent</h5>
-                                    <p class="text-muted">Autonomous AI agent for media industry data collection and analysis</p>
-                                    
-                                    
-                                    
-                                    <!-- Agent Instructions -->
-                                    <div class="card mb-4">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-book me-2"></i>Agent Instructions & Configuration</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <h6>Data Sources</h6>
-                                                    <ul class="list-unstyled">
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Nieman Lab RSS Feed</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Poynter Institute</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Journalism.co.uk</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>MediaPost</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>O'Reilly Radar</li>
-                                                    </ul>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <h6>Collection Schedule</h6>
-                                                    <ul class="list-unstyled">
-                                                        <li><i class="bi bi-clock text-info me-2"></i>Every 30 minutes</li>
-                                                        <li><i class="bi bi-arrow-repeat text-info me-2"></i>Continuous learning</li>
-                                                        <li><i class="bi bi-graph-up text-info me-2"></i>Trend analysis</li>
-                                                        <li><i class="bi bi-lightbulb text-info me-2"></i>Insight generation</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="mt-3">
-                                                <h6>Agent Behavior</h6>
-                                                <div class="alert alert-info">
-                                                    <small>
-                                                        <strong>What this agent does:</strong><br>
-                                                        • Monitors media industry news and trends<br>
-                                                        • Analyzes business models and revenue patterns<br>
-                                                        • Identifies emerging technologies in journalism<br>
-                                                        • Generates actionable insights for media organizations<br>
-                                                        • Learns from patterns to improve recommendations
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Real-time Status -->
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-activity me-2"></i>Real-Time Status</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="activity-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span><strong>Current Activity</strong></span>
-                                                    <span id="mediamap-live-status" class="badge bg-success">Active</span>
-                                                </div>
-                                                <div id="mediamap-current-activity" class="mt-2">
-                                                    <small class="text-muted">Monitoring media industry trends and generating insights</small>
-                                                </div>
-                                                <div id="mediamap-next-action" class="mt-1">
-                                                    <small class="text-info">Next: Data collection cycle in 30 minutes</small>
-                                                </div>
-                                                <div id="mediamap-progress" class="mt-2">
-                                                    <div class="progress" style="height: 6px;">
-                                                        <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-4">
-                                    <!-- Agent Controls -->
-                                    <div class="card mb-4">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Agent Controls</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="d-grid gap-2">
-                                                <button class="btn btn-success" onclick="startIndividualAgent('mediamap')" id="mediamap-start-btn">
-                                                    <i class="bi bi-play-circle"></i> Start Agent
-                                                </button>
-                                                <button class="btn btn-danger" onclick="stopIndividualAgent('mediamap')" id="mediamap-stop-btn">
-                                                    <i class="bi bi-stop-circle"></i> Stop Agent
-                                                </button>
-                                                <button class="btn btn-outline-primary" onclick="runAgentCycle('mediamap')">
-                                                    <i class="bi bi-arrow-repeat"></i> Run Single Cycle
-                                                </button>
-                                                <button class="btn btn-outline-info" onclick="viewAgentDetails('mediamap')">
-                                                    <i class="bi bi-eye"></i> View Details
-                                                </button>
-                                                <button class="btn btn-outline-warning" onclick="editAgent('mediamap')">
-                                                    <i class="bi bi-pencil"></i> Edit Agent
-                                                </button>
-                                                <button class="btn btn-outline-info" onclick="viewRealData('mediamap')">
-                                                    <i class="bi bi-database"></i> View Real Data
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Agent Metrics -->
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Performance Metrics</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row text-center">
-                                                <div class="col-6 mb-3">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="mediamap-cycles">-</div>
-                                                        <div class="metric-label">Cycles</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 mb-3">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="mediamap-data">-</div>
-                                                        <div class="metric-label">Data Points</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="mediamap-insights">-</div>
-                                                        <div class="metric-label">Insights</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="mediamap-uptime">-</div>
-                                                        <div class="metric-label">Uptime</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- HealthPIN Agent Tab -->
-                        <div class="tab-pane fade" id="healthpin" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5><i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent</h5>
-                                    <p class="text-muted">Autonomous AI agent for healthcare industry data collection and analysis</p>
-                                    
-                                    <!-- Doctor Directory Agent Card -->
-                                    <div class="card mb-4">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Doctor Directory Agent (South Africa)</h6>
-                                            <div>
-                                                <span id="doctor-agent-count" class="badge bg-success">336 doctors</span>
-                                                <span id="agent-status" class="badge bg-warning ms-2">Stopped</span>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <p class="mb-2">Scrapes and maintains a directory of doctors in South Africa from public sources.</p>
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-success" id="doctor-scrape-btn" onclick="runDoctorDirectoryAgent()">
-                                                    <i class="bi bi-cloud-download"></i> Run Scrape
-                                                </button>
-                                                <button class="btn btn-outline-secondary" id="doctor-refresh-btn" onclick="refreshDoctorDirectoryStatus()">
-                                                    <i class="bi bi-arrow-clockwise"></i> Refresh Status
-                                                </button>
-                                                <button class="btn btn-outline-warning" id="doctor-clean-btn" onclick="cleanDoctorDirectory()">
-                                                    <i class="bi bi-broom"></i> Clean Doctor Data
-                                                </button>
-                                                <a class="btn btn-outline-info" href="/admin/healthpin#doctors" onclick="navigateToHealthpinDoctors(event)">
-                                                    <i class="bi bi-box-arrow-up-right"></i> View in HealthPIN
-                                                </a>
-                                            </div>
-                                            <div id="doctor-progress" class="mt-3" style="display:none;">
-                                                <div class="progress" style="height: 8px;">
-                                                    <div id="doctor-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 10%" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                                <small id="doctor-progress-label" class="text-muted d-block mt-1">Working...</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Agent Instructions -->
-                                    <div class="card mb-4">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-book me-2"></i>Agent Instructions & Configuration</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <h6>Data Sources</h6>
-                                                    <ul class="list-unstyled">
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Healthcare News Feeds</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Medical Journals</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Policy Updates</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Clinical Guidelines</li>
-                                                        <li><i class="bi bi-rss text-primary me-2"></i>Research Publications</li>
-                                                    </ul>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <h6>Collection Schedule</h6>
-                                                    <ul class="list-unstyled">
-                                                        <li><i class="bi bi-clock text-info me-2"></i>Every 45 minutes</li>
-                                                        <li><i class="bi bi-arrow-repeat text-info me-2"></i>Continuous learning</li>
-                                                        <li><i class="bi bi-graph-up text-info me-2"></i>Trend analysis</li>
-                                                        <li><i class="bi bi-lightbulb text-info me-2"></i>Clinical insights</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="mt-3">
-                                                <h6>Agent Behavior</h6>
-                                                <div class="alert alert-info">
-                                                    <small>
-                                                        <strong>What this agent does:</strong><br>
-                                                        • Monitors healthcare industry developments<br>
-                                                        • Tracks medical research and clinical trials<br>
-                                                        • Analyzes healthcare policy changes<br>
-                                                        • Identifies emerging medical technologies<br>
-                                                        • Generates clinical insights and recommendations
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Real-time Status -->
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-activity me-2"></i>Real-Time Status</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="activity-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span><strong>Current Activity</strong></span>
-                                                    <span id="healthpin-live-status" class="badge bg-secondary">Checking...</span>
-                                                </div>
-                                                <div id="healthpin-current-activity" class="mt-2">
-                                                    <small class="text-muted">Initializing...</small>
-                                                </div>
-                                                <div id="healthpin-next-action" class="mt-1">
-                                                    <small class="text-info">Next: Checking status...</small>
-                                                </div>
-                                                <div id="healthpin-progress" class="mt-2">
-                                                    <div class="progress" style="height: 6px;">
-                                                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-4">
-                                    <!-- Agent Controls -->
-                                    <div class="card mb-4">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Agent Controls</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="d-grid gap-2">
-                                                <button class="btn btn-success" onclick="startIndividualAgent('healthpin')" id="healthpin-start-btn">
-                                                    <i class="bi bi-play-circle"></i> Start Agent
-                                                </button>
-                                                <button class="btn btn-danger" onclick="stopIndividualAgent('healthpin')" id="healthpin-stop-btn">
-                                                    <i class="bi bi-stop-circle"></i> Stop Agent
-                                                </button>
-                                                <button class="btn btn-outline-primary" onclick="runAgentCycle('healthpin')">
-                                                    <i class="bi bi-arrow-repeat"></i> Run Single Cycle
-                                                </button>
-                                                <button class="btn btn-outline-success" onclick="scrapeHealthpinDoctors()">
-                                                    <i class="bi bi-cloud-download"></i> Scrape SA Doctors
-                                                </button>
-                                                <button class="btn btn-outline-info" onclick="viewAgentDetails('healthpin')">
-                                                    <i class="bi bi-eye"></i> View Details
-                                                </button>
-                                                <button class="btn btn-outline-warning" onclick="editAgent('healthpin')">
-                                                    <i class="bi bi-pencil"></i> Edit Agent
-                                                </button>
-                                                <button class="btn btn-outline-info" onclick="viewRealData('healthpin')">
-                                                    <i class="bi bi-database"></i> View Real Data
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Agent Metrics -->
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Performance Metrics</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row text-center">
-                                                <div class="col-6 mb-3">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="healthpin-cycles">-</div>
-                                                        <div class="metric-label">Cycles</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 mb-3">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="healthpin-data">-</div>
-                                                        <div class="metric-label">Data Points</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="healthpin-insights">-</div>
-                                                        <div class="metric-label">Insights</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="metric-card">
-                                                        <div class="metric-value" id="healthpin-uptime">-</div>
-                                                        <div class="metric-label">Uptime</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        
-                        <!-- Add New Agent Tab -->
-                        <div class="tab-pane fade" id="add-agent" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5><i class="bi bi-plus-circle me-2"></i>Add New Agent</h5>
-                                    <p class="text-muted">Create a new AI agent for specialized data collection and analysis</p>
-                                    
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Agent Configuration</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <form id="newAgentForm">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="mb-3">
-                                                            <label for="agentName" class="form-label">Agent Name</label>
-                                                            <input type="text" class="form-control" id="agentName" placeholder="e.g., Finance Agent">
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="agentDescription" class="form-label">Description</label>
-                                                            <textarea class="form-control" id="agentDescription" rows="3" placeholder="Describe what this agent will do..."></textarea>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="agentCategory" class="form-label">Category</label>
-                                                            <select class="form-select" id="agentCategory">
-                                                                <option value="media">Media & Journalism</option>
-                                                                <option value="healthcare">Healthcare</option>
-                                                                <option value="finance">Finance</option>
-                                                                <option value="technology">Technology</option>
-                                                                <option value="education">Education</option>
-                                                                <option value="other">Other</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="mb-3">
-                                                            <label for="dataSources" class="form-label">Data Sources (RSS URLs)</label>
-                                                            <textarea class="form-control" id="dataSources" rows="4" placeholder="Enter RSS feed URLs, one per line..."></textarea>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="collectionInterval" class="form-label">Collection Interval (minutes)</label>
-                                                            <input type="number" class="form-control" id="collectionInterval" value="30" min="5" max="1440">
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="agentInstructions" class="form-label">Agent Instructions</label>
-                                                            <textarea class="form-control" id="agentInstructions" rows="3" placeholder="Specific instructions for this agent..."></textarea>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="d-grid">
-                                                    <button type="submit" class="btn btn-primary">
-                                                        <i class="bi bi-plus-circle"></i> Create New Agent
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-4">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Agent Types</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <h6>Media & Journalism</h6>
-                                                <small class="text-muted">Monitors news sites, journalism trends, and media industry developments</small>
-                                            </div>
-                                            <div class="mb-3">
-                                                <h6>Healthcare</h6>
-                                                <small class="text-muted">Tracks medical research, clinical guidelines, and healthcare policy</small>
-                                            </div>
-                                            <div class="mb-3">
-                                                <h6>Finance</h6>
-                                                <small class="text-muted">Monitors financial markets, economic indicators, and business news</small>
-                                            </div>
-                                            <div class="mb-3">
-                                                <h6>Technology</h6>
-                                                <small class="text-muted">Tracks tech news, product launches, and industry trends</small>
-                                            </div>
-                                            <div class="mb-3">
-                                                <h6>Education</h6>
-                                                <small class="text-muted">Monitors educational policies, research, and learning trends</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 id="total-data-points">0</h3>
+                    <p class="mb-0">Total Data Points</p>
                 </div>
             </div>
         </div>
-    </div>
-
-    
-    
-    <!-- Detailed Activity Log -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-clock-history me-2"></i>
-                        Detailed Activity Log
-                    </h5>
-                    <small class="text-muted">Recent actions, timing, and next steps for each agent</small>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-newspaper me-2"></i>MediaMap Agent Activity</h6>
-                            <div id="mediamap-activity-log" class="activity-log">
-                                <div class="activity-entry">
-                                    <div class="d-flex justify-content-between">
-                                        <span class="activity-text">Initializing agent...</span>
-                                        <small class="text-muted">Just now</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="bi bi-heart-pulse me-2"></i>HealthPIN Agent Activity</h6>
-                            <div id="healthpin-activity-log" class="activity-log">
-                                <div class="activity-entry">
-                                    <div class="d-flex justify-content-between">
-                                        <span class="activity-text">Initializing agent...</span>
-                                        <small class="text-muted">Just now</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 id="total-insights">0</h3>
+                    <p class="mb-0">Insights Generated</p>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Performance Metrics -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-speedometer2 me-2"></i>
-                        Performance Metrics
-                    </h5>
-                    <small class="text-muted">Response times, success rates, and efficiency metrics</small>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="metric-card text-center">
-                                <div class="metric-value" id="avg-response-time">-</div>
-                                <div class="metric-label">Avg Response Time</div>
-                                <small class="text-muted" id="response-time-detail">ms</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="metric-card text-center">
-                                <div class="metric-value" id="success-rate">-</div>
-                                <div class="metric-label">Success Rate</div>
-                                <small class="text-muted" id="success-rate-detail">%</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="metric-card text-center">
-                                <div class="metric-value" id="data-per-hour">-</div>
-                                <div class="metric-label">Data Points/Hour</div>
-                                <small class="text-muted" id="data-rate-detail">items</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="metric-card text-center">
-                                <div class="metric-value" id="insights-per-hour">-</div>
-                                <div class="metric-label">Insights/Hour</div>
-                                <small class="text-muted" id="insights-rate-detail">items</small>
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 id="active-agents">0</h3>
+                    <p class="mb-0">Active Agents</p>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Recommendations -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="section-header">
-                <h3 class="section-title">💼 Business Recommendations</h3>
-                <p class="section-subtitle">AI-generated business advice</p>
-            </div>
-            <div id="mediamap-recommendations">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="section-header">
-                <h3 class="section-title">🏥 Clinical Recommendations</h3>
-                <p class="section-subtitle">AI-generated clinical advice</p>
-            </div>
-            <div id="healthpin-recommendations">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3 id="training-ready">No</h3>
+                    <p class="mb-0">Training Ready</p>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Trends -->
+
+    <!-- Agent Cards -->
     <div class="row">
-        <div class="col-md-6">
-            <div class="section-header">
-                <h3 class="section-title">📈 Industry Trends</h3>
-                <p class="section-subtitle">Media industry trends and patterns</p>
-            </div>
-            <div id="mediamap-trends">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
+        <!-- MediaMap Agent Card -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0"><i class="bi bi-newspaper me-2 text-primary"></i>MediaMap Agent</h5>
+                        <small class="text-muted">Media industry intelligence & business insights</small>
+                    </div>
+                    <div>
+                        <span id="mediamap-live-status" class="badge bg-secondary">Stopped</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Status & Controls -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="d-grid gap-2">
+                                <button id="mediamap-start-btn" class="btn btn-success btn-sm" onclick="startIndividualAgent('mediamap')">
+                                    <i class="bi bi-play-circle"></i> Start Agent
+                                </button>
+                                <button id="mediamap-stop-btn" class="btn btn-danger btn-sm" onclick="stopIndividualAgent('mediamap')">
+                                    <i class="bi bi-stop-circle"></i> Stop Agent
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="runAgentCycle('mediamap')">
+                                    <i class="bi bi-arrow-repeat"></i> Run Cycle
+                                </button>
+                                <button class="btn btn-outline-info btn-sm" onclick="viewRealData('mediamap')">
+                                    <i class="bi bi-database"></i> View Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="mb-0" id="mediamap-data-count">0</h6>
+                                <small class="text-muted">Data Points</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="mb-0" id="mediamap-insights-count">0</h6>
+                                <small class="text-muted">Insights</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="mb-0" id="mediamap-last-cycle">Never</h6>
+                                <small class="text-muted">Last Cycle</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Activity -->
+                    <div class="mb-3">
+                        <h6>Current Activity:</h6>
+                        <div id="mediamap-current-activity">
+                            <small class="text-muted">Stopped - No background data collection</small>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Data Collection Progress</small>
+                            <small id="mediamap-progress-text">0%</small>
+                        </div>
+                        <div id="mediamap-progress" class="progress" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="editAgentConfig('mediamap')">
+                            <i class="bi bi-gear"></i> Configure Agent
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="section-header">
-                <h3 class="section-title">📊 Clinical Trends</h3>
-                <p class="section-subtitle">Healthcare and clinical trends</p>
+
+        <!-- HealthPIN Agent Card -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0"><i class="bi bi-heart-pulse me-2 text-success"></i>HealthPIN Agent</h5>
+                        <small class="text-muted">Healthcare intelligence & clinical insights</small>
+                    </div>
+                    <div>
+                        <span id="healthpin-live-status" class="badge bg-secondary">Stopped</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Status & Controls -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="d-grid gap-2">
+                                <button id="healthpin-start-btn" class="btn btn-success btn-sm" onclick="startIndividualAgent('healthpin')">
+                                    <i class="bi bi-play-circle"></i> Start Agent
+                                </button>
+                                <button id="healthpin-stop-btn" class="btn btn-danger btn-sm" onclick="stopIndividualAgent('healthpin')">
+                                    <i class="bi bi-stop-circle"></i> Stop Agent
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="runAgentCycle('healthpin')">
+                                    <i class="bi bi-arrow-repeat"></i> Run Cycle
+                                </button>
+                                <button class="btn btn-outline-info btn-sm" onclick="viewRealData('healthpin')">
+                                    <i class="bi bi-database"></i> View Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="mb-0" id="healthpin-data-count">0</h6>
+                                <small class="text-muted">Data Points</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="mb-0" id="healthpin-insights-count">0</h6>
+                                <small class="text-muted">Insights</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-2">
+                                <h6 class="mb-0" id="healthpin-last-cycle">Never</h6>
+                                <small class="text-muted">Last Cycle</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Activity -->
+                    <div class="mb-3">
+                        <h6>Current Activity:</h6>
+                        <div id="healthpin-current-activity">
+                            <small class="text-muted">Stopped - No background data collection</small>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Data Collection Progress</small>
+                            <small id="healthpin-progress-text">0%</small>
+                        </div>
+                        <div id="healthpin-progress" class="progress" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="editAgentConfig('healthpin')">
+                            <i class="bi bi-gear"></i> Configure Agent
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div id="healthpin-trends">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Training & Analytics Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-cpu me-2"></i>Training & Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Data Quality Assessment</h6>
+                            <div id="data-quality-status" class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Run data collection cycles to assess training readiness
+                            </div>
+                            <button class="btn btn-primary" onclick="assessDataQuality()">
+                                <i class="bi bi-graph-up"></i> Assess Data Quality
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Training Actions</h6>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" onclick="collectAllAgentData()">
+                                    <i class="bi bi-collection"></i> Collect All Data
+                                </button>
+                                <button class="btn btn-warning" onclick="generateTrainingData()">
+                                    <i class="bi bi-file-earmark-text"></i> Generate Training Data
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -864,370 +516,220 @@
     </div>
 </div>
 
+<!-- Agent Configuration Modal -->
+<div class="modal fade" id="agentConfigModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agentConfigModalTitle">Configure Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agentConfigForm">
+                    <div class="mb-3">
+                        <label for="configDataSources" class="form-label">Data Sources (RSS Feeds)</label>
+                        <textarea class="form-control" id="configDataSources" rows="4" placeholder="Enter RSS feed URLs, one per line"></textarea>
+                        <div class="form-text">Enter RSS feed URLs that the agent should monitor for data collection.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="configLearningInterval" class="form-label">Learning Interval (minutes)</label>
+                        <input type="number" class="form-control" id="configLearningInterval" value="30" min="5" max="1440">
+                        <div class="form-text">How often the agent should run learning cycles.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="configMaxDataPoints" class="form-label">Max Data Points</label>
+                        <input type="number" class="form-control" id="configMaxDataPoints" value="1000" min="100" max="10000">
+                        <div class="form-text">Maximum number of data points to store.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveAgentConfig()">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
 // Global variables
-let dashboardData = null;
+let currentAgentConfig = null;
 
-// Initialize dashboard
+// Test JavaScript function
+function testJavaScript() {
+    console.log('🧪 JavaScript test function called');
+    showAlert('JavaScript is working! 🎉', 'success');
+    alert('JavaScript is working! Check console for more details.');
+}
+
+// Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🤖 Agent dashboard initialized');
     loadDashboard();
-    loadLiveMonitoring();
-    
-    // Load doctor data immediately (no loading states)
-    refreshDoctorDirectoryStatus();
-    updateAgentStatus();
+    updateQuickStats();
     
     // Auto-refresh every 30 seconds
-    setInterval(loadDashboard, 30000);
-    
-    // Initialize new agent form
-    initializeNewAgentForm();
-    
-    // Auto-refresh live monitoring every 5 seconds
-    setInterval(loadLiveMonitoring, 5000);
-    
-    // Real-time updates every 10 seconds
     setInterval(function() {
-        refreshDoctorDirectoryStatus();
-        updateAgentStatus();
-    }, 10000);
-    
-    // Initialize real-time status monitoring
-    initializeRealTimeMonitoring();
+        updateQuickStats();
+        updateAgentStatuses();
+    }, 30000);
 });
 
 // Load dashboard data
 async function loadDashboard() {
     try {
-    const response = await fetch('/api/agents/dashboard', { credentials: 'include' });
-        const data = await response.json();
+        const response = await fetch('/api/agents/dashboard', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         
-        if (data.success) {
-            dashboardData = data.dashboard;
-            updateDashboard();
+        if (response.ok) {
+            const data = await response.json();
+            updateDashboard(data);
         } else {
-            console.error('Failed to load dashboard:', data.error);
+            console.error('Failed to load dashboard');
         }
     } catch (error) {
         console.error('Error loading dashboard:', error);
     }
 }
 
-// Load real-time monitoring data
-async function loadLiveMonitoring() {
-    try {
-        const [liveResponse, activityResponse] = await Promise.all([
-            fetch('/api/agents/monitoring/live-status', { credentials: 'include' }),
-            fetch('/api/agents/monitoring/activity-log', { credentials: 'include' })
-        ]);
-        
-        const liveData = await liveResponse.json();
-        const activityData = await activityResponse.json();
-        
-        if (liveData.success) {
-            updateLiveStatus(liveData.live_status);
-            updatePerformanceMetrics(liveData.metrics);
-        }
-        
-        if (activityData.success) {
-            updateActivityLog(activityData.activity_log);
-        }
-    } catch (error) {
-        console.error('Error loading live monitoring:', error);
-    }
-}
-
-// Update live status display
-function updateLiveStatus(liveStatus) {
-    liveStatus.forEach(agent => {
-        const agentName = agent.agent.toLowerCase();
-        
-        // Update live status badge
-        const statusElement = document.getElementById(`${agentName}-live-status`);
-        if (statusElement) {
-            statusElement.textContent = agent.status;
-            statusElement.className = `badge ${agent.status === 'running' ? 'bg-success' : 'bg-danger'}`;
-        }
-        
-        // Update current activity
-        const activityElement = document.getElementById(`${agentName}-current-activity`);
-        if (activityElement) {
-            activityElement.innerHTML = `<small class="text-muted">${agent.current_activity}</small>`;
-        }
-        
-        // Update next action
-        const nextElement = document.getElementById(`${agentName}-next-action`);
-        if (nextElement) {
-            nextElement.innerHTML = `<small class="text-info">Next: ${agent.next_action}</small>`;
-        }
-        
-        // Update progress bar
-        const progressElement = document.querySelector(`#${agentName}-progress .progress-bar`);
-        if (progressElement) {
-            progressElement.style.width = `${agent.progress}%`;
-            progressElement.setAttribute('aria-valuenow', agent.progress);
-        }
-    });
-}
-
-// Update performance metrics
-function updatePerformanceMetrics(metrics) {
-    if (metrics.avg_response_time !== undefined) {
-        document.getElementById('avg-response-time').textContent = Math.round(metrics.avg_response_time);
-    }
-    
-    if (metrics.success_rate !== undefined) {
-        document.getElementById('success-rate').textContent = Math.round(metrics.success_rate * 100);
-    }
-    
-    if (metrics.data_per_hour !== undefined) {
-        document.getElementById('data-per-hour').textContent = Math.round(metrics.data_per_hour);
-    }
-    
-    if (metrics.insights_per_hour !== undefined) {
-        document.getElementById('insights-per-hour').textContent = Math.round(metrics.insights_per_hour);
-    }
-}
-
-// Update activity log
-function updateActivityLog(activityLog) {
-    Object.entries(activityLog).forEach(([agentName, activities]) => {
-        const logElement = document.getElementById(`${agentName.toLowerCase()}-activity-log`);
-        if (logElement) {
-            const html = activities.map(activity => `
-                <div class="activity-entry">
-                    <div class="d-flex justify-content-between">
-                        <span class="activity-text">${activity.action}: ${activity.details}</span>
-                        <small class="text-muted">${activity.timestamp}</small>
-                    </div>
-                </div>
-            `).join('');
-            logElement.innerHTML = html;
-        }
-    });
-}
-
 // Update dashboard with data
-function updateDashboard() {
-    if (!dashboardData) return;
-    
-    // Update agent status
-    if (dashboardData.status) {
-        Object.keys(dashboardData.status).forEach(agentName => {
-            updateAgentStatusFromAPI(agentName, dashboardData.status[agentName]);
+function updateDashboard(data) {
+    if (data.agents) {
+        Object.keys(data.agents).forEach(agentName => {
+            updateAgentCard(agentName, data.agents[agentName]);
         });
     }
-    
-    // Update insights and recommendations
-    if (dashboardData.mediamap) {
-        updateRecommendations('mediamap', dashboardData.mediamap.recommendations);
-        updateTrends('mediamap', dashboardData.mediamap.trends);
-    }
-    
-    if (dashboardData.healthpin) {
-        updateRecommendations('healthpin', dashboardData.healthpin.recommendations);
-        updateTrends('healthpin', dashboardData.healthpin.trends);
-    }
-    
-    // Update statistics
-    if (dashboardData.statistics) {
-        updateStatistics(dashboardData.statistics);
-    }
-    
-    // Update recent activity
-    if (dashboardData.recent_activity) {
-        updateRecentActivity(dashboardData.recent_activity);
-    }
 }
 
-function updateAgentStatusFromAPI(agentName, status) {
-    // Update metrics in the sidebar
-    const cyclesElement = document.getElementById(`${agentName}-cycles`);
-    const dataElement = document.getElementById(`${agentName}-data`);
-    const insightsElement = document.getElementById(`${agentName}-insights`);
-    const uptimeElement = document.getElementById(`${agentName}-uptime`);
-    
-    if (cyclesElement) cyclesElement.textContent = status.learning_cycles || 0;
-    if (dataElement) dataElement.textContent = status.total_data_collected || 0;
-    if (insightsElement) insightsElement.textContent = status.knowledge_base_size || 0;
-    if (uptimeElement) {
-        const uptime = status.performance_metrics?.uptime_percentage || 0;
-        uptimeElement.textContent = `${uptime.toFixed(1)}%`;
-    }
-    
-    // Update running state
-    updateAgentRunningState(agentName, status.is_running || false);
-}
-
-function updateAgentRunningState(agentName, isRunning) {
+// Update individual agent card
+function updateAgentCard(agentName, agentData) {
     // Update status badge
     const statusBadge = document.getElementById(`${agentName}-live-status`);
     if (statusBadge) {
-        statusBadge.textContent = isRunning ? 'Running' : 'Stopped';
-        statusBadge.className = `badge ${isRunning ? 'bg-success pulse-animation' : 'bg-secondary'}`;
+        statusBadge.textContent = agentData.is_running ? 'Running' : 'Stopped';
+        statusBadge.className = `badge ${agentData.is_running ? 'bg-success' : 'bg-secondary'}`;
     }
     
-    // Update activity text
-    const activityElement = document.getElementById(`${agentName}-current-activity`);
-    if (activityElement) {
-        const now = new Date().toLocaleTimeString();
-        if (isRunning) {
-            activityElement.innerHTML = `<small class="text-muted">Active - Collecting data and analyzing patterns (Started: ${now})</small>`;
+    // Update data counts
+    const dataCount = document.getElementById(`${agentName}-data-count`);
+    if (dataCount) {
+        dataCount.textContent = agentData.total_data_collected || 0;
+    }
+    
+    // Update insights count
+    const insightsCount = document.getElementById(`${agentName}-insights-count`);
+    if (insightsCount) {
+        insightsCount.textContent = agentData.total_insights || 0;
+    }
+    
+    // Update last cycle
+    const lastCycle = document.getElementById(`${agentName}-last-cycle`);
+    if (lastCycle) {
+        lastCycle.textContent = agentData.last_cycle ? 
+            new Date(agentData.last_cycle).toLocaleTimeString() : 'Never';
+    }
+    
+    // Update activity
+    const activity = document.getElementById(`${agentName}-current-activity`);
+    if (activity) {
+        if (agentData.is_running) {
+            activity.innerHTML = `<small class="text-success">Active - Collecting data and analyzing patterns</small>`;
         } else {
-            activityElement.innerHTML = `<small class="text-muted">Stopped - No background data collection (Stopped: ${now})</small>`;
+            activity.innerHTML = `<small class="text-muted">Stopped - No background data collection</small>`;
         }
     }
     
-    // Update progress bar
-    const progressElement = document.querySelector(`#${agentName}-progress .progress-bar`);
-    if (progressElement) {
-        if (isRunning) {
-            progressElement.style.width = '25%';
-            progressElement.classList.add('progress-bar-animated', 'progress-bar-striped');
-        } else {
-            progressElement.style.width = '0%';
-            progressElement.classList.remove('progress-bar-animated', 'progress-bar-striped');
-        }
+    // Update progress
+    const progress = document.querySelector(`#${agentName}-progress .progress-bar`);
+    const progressText = document.getElementById(`${agentName}-progress-text`);
+    if (progress && progressText) {
+        const progressPercent = Math.min((agentData.total_data_collected || 0) / 100 * 100, 100);
+        progress.style.width = `${progressPercent}%`;
+        progressText.textContent = `${Math.round(progressPercent)}%`;
     }
 }
 
-// Update statistics display
-function updateStatistics(stats) {
-    // Update any statistics displays on the page
-    const statsElements = document.querySelectorAll('[data-stat]');
-    statsElements.forEach(element => {
-        const statType = element.getAttribute('data-stat');
-        if (stats[statType] !== undefined) {
-            element.textContent = stats[statType];
-        }
-    });
-}
-
-// Update recent activity
-function updateRecentActivity(activity) {
-    // Update recent activity displays
-    if (activity.highlander_chats && activity.highlander_chats.length > 0) {
-        const activityContainer = document.getElementById('recent-activity-container');
-        if (activityContainer) {
-            activityContainer.innerHTML = activity.highlander_chats.map(chat => `
-                <div class="activity-item mb-2">
-                    <small class="text-muted">${new Date(chat.created_at).toLocaleString()}</small>
-                    <div class="text-truncate">${chat.message}</div>
-                </div>
-            `).join('');
-        }
-    }
-}
-
-// Update agent status
-function updateAgentStatus(agentName, status) {
-    const statusElement = document.getElementById(`${agentName}-status`);
-    const cyclesElement = document.getElementById(`${agentName}-cycles`);
-    const dataElement = document.getElementById(`${agentName}-data`);
-    const insightsElement = document.getElementById(`${agentName}-insights`);
-    const activityElement = document.getElementById(`${agentName}-activity-text`);
-    
-    if (status) {
-        // Update status
-        const isRunning = status.is_running;
-        statusElement.textContent = isRunning ? 'Running' : 'Stopped';
-        statusElement.className = `agent-status ${isRunning ? 'status-running' : 'status-stopped'}`;
+// Update quick stats
+async function updateQuickStats() {
+    try {
+        const response = await fetch('/admin/agents/real-data', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         
-        // Update activity text
-        if (activityElement) {
-            const now = new Date().toLocaleTimeString();
-            if (isRunning) {
-                activityElement.textContent = `Active - Collecting data and analyzing patterns (Last update: ${now})`;
-            } else {
-                activityElement.textContent = `Stopped - No background data collection`;
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.real_data) {
+                const mediamapData = data.real_data.mediamap?.data_points || 0;
+                const healthpinData = data.real_data.healthpin?.data_points || 0;
+                const totalData = mediamapData + healthpinData;
+                
+                document.getElementById('total-data-points').textContent = totalData;
+                document.getElementById('active-agents').textContent = 
+                    (mediamapData > 0 ? 1 : 0) + (healthpinData > 0 ? 1 : 0);
+                
+                // Update training readiness
+                const trainingReady = totalData >= 100;
+                document.getElementById('training-ready').textContent = trainingReady ? 'Yes' : 'No';
+                document.querySelector('#training-ready').parentElement.parentElement.className = 
+                    `card ${trainingReady ? 'bg-success' : 'bg-warning'} text-white`;
             }
         }
+    } catch (error) {
+        console.error('Error updating quick stats:', error);
+    }
+}
+
+// Update agent statuses
+async function updateAgentStatuses() {
+    try {
+        const response = await fetch('/api/agents/status', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         
-        // Update metrics
-        cyclesElement.textContent = status.learning_cycles || 0;
-        dataElement.textContent = status.total_data_collected || 0;
-        insightsElement.textContent = status.knowledge_base_size || 0;
+        if (response.ok) {
+            const data = await response.json();
+            if (data.agents) {
+                Object.keys(data.agents).forEach(agentName => {
+                    updateAgentCard(agentName, data.agents[agentName]);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error updating agent statuses:', error);
     }
 }
 
-// Update insights
-function updateInsights(agentName, insights) {
-    const container = document.getElementById(`${agentName}-insights-list`);
-    
-    if (!insights || insights.length === 0) {
-        container.innerHTML = '<p class="text-muted">No insights available</p>';
-        return;
-    }
-    
-    const html = insights.map(insight => `
-        <div class="insight-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h6 class="mb-1">${insight.type || 'Insight'}</h6>
-                    <p class="mb-1">${insight.insight || 'No insight text'}</p>
-                    <small class="text-muted">${insight.category || 'General'} • ${insight.confidence ? (insight.confidence * 100).toFixed(0) + '%' : 'N/A'} confidence</small>
-                </div>
-                <span class="badge bg-secondary">${insight.timestamp ? new Date(insight.timestamp).toLocaleDateString() : 'Recent'}</span>
-            </div>
-        </div>
-    `).join('');
-    
-    container.innerHTML = html;
-}
-
-// Update recommendations
-function updateRecommendations(agentName, recommendations) {
-    const container = document.getElementById(`${agentName}-recommendations`);
-    
-    if (!recommendations || recommendations.length === 0) {
-        container.innerHTML = '<p class="text-muted">No recommendations available</p>';
-        return;
-    }
-    
-    const html = recommendations.map(rec => `
-        <div class="recommendation-item">
-            <p class="mb-0">${rec}</p>
-        </div>
-    `).join('');
-    
-    container.innerHTML = html;
-}
-
-// Update trends
-function updateTrends(agentName, trends) {
-    const container = document.getElementById(`${agentName}-trends`);
-    
-    if (!trends || Object.keys(trends).length === 0) {
-        container.innerHTML = '<p class="text-muted">No trends available</p>';
-        return;
-    }
-    
-    const html = Object.entries(trends).map(([trendType, trendData]) => `
-        <div class="trend-item">
-            <h6 class="mb-1">${trendType.replace('_', ' ')}</h6>
-            <p class="mb-0 small">${trendData.length} patterns identified</p>
-        </div>
-    `).join('');
-    
-    container.innerHTML = html;
-}
-
-// Agent control functions
+// Start individual agent
 async function startIndividualAgent(agentName) {
-    console.log(`🚀 Starting ${agentName} agent...`);
+    console.log(`🚀 Starting agent: ${agentName}`);
     try {
         const startBtn = document.getElementById(`${agentName}-start-btn`);
-        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
-        
-        console.log(`Found start button:`, startBtn);
-        console.log(`Found stop button:`, stopBtn);
+        if (!startBtn) {
+            console.error(`❌ Start button not found for agent: ${agentName}`);
+            showAlert(`Start button not found for ${agentName}`, 'danger');
+            return;
+        }
         
         startBtn.disabled = true;
         startBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Starting...';
         
-        showAlert(`Starting ${agentName} agent... This will begin background data collection and analysis.`, 'info');
-        console.log(`Making fetch request to: /api/agents/${agentName}/start`);
-        
+        console.log(`📡 Making API call to start ${agentName} agent`);
         const response = await fetch(`/api/agents/${agentName}/start`, { 
             method: 'POST', 
             credentials: 'include',
@@ -1237,52 +739,40 @@ async function startIndividualAgent(agentName) {
             }
         });
         
-        console.log(`Response status: ${response.status}`);
-        console.log(`Response redirected: ${response.redirected}`);
-        
         if (response.status === 302 || response.redirected) {
-            console.log(`🔐 Authentication required - redirecting`);
-            showAlert(`Authentication required. Please refresh the page and try again.`, 'warning');
+            showAlert('Authentication required. Please refresh the page and try again.', 'warning');
             window.location.reload();
             return;
         }
         
         if (!response.ok) {
-            console.log(`❌ HTTP Error: ${response.status} ${response.statusText}`);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log(`Response data:`, data);
         
         if (data.success) {
-            console.log(`✅ Agent started successfully!`);
-            showAlert(`✅ ${agentName} agent started successfully! It is now collecting real data and generating insights in the background.`, 'success');
-            loadDashboard();
+            showAlert(`${agentName} agent started successfully!`, 'success');
+            updateAgentStatuses();
         } else {
-            console.log(`❌ Agent start failed:`, data.error);
             showAlert(`Failed to start ${agentName} agent: ${data.error}`, 'danger');
         }
     } catch (error) {
-        console.error(`❌ Error starting ${agentName} agent:`, error);
+        console.error(`Error starting ${agentName} agent:`, error);
         showAlert(`Error starting ${agentName} agent: ${error.message}`, 'danger');
     } finally {
         const startBtn = document.getElementById(`${agentName}-start-btn`);
-        const stopBtn = document.getElementById(`${agentName}-stop-btn`);
         startBtn.disabled = false;
-        startBtn.innerHTML = '<i class="bi bi-play-circle"></i> Start';
+        startBtn.innerHTML = '<i class="bi bi-play-circle"></i> Start Agent';
     }
 }
 
+// Stop individual agent
 async function stopIndividualAgent(agentName) {
     try {
-        const startBtn = document.getElementById(`${agentName}-start-btn`);
         const stopBtn = document.getElementById(`${agentName}-stop-btn`);
-        
         stopBtn.disabled = true;
         stopBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Stopping...';
-        
-        showAlert(`Stopping ${agentName} agent... This will halt background data collection.`, 'warning');
         
         const response = await fetch(`/api/agents/${agentName}/stop`, { 
             method: 'POST', 
@@ -1292,141 +782,67 @@ async function stopIndividualAgent(agentName) {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
+        
+        if (response.status === 302 || response.redirected) {
+            showAlert('Authentication required. Please refresh the page and try again.', 'warning');
+            window.location.reload();
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
-            showAlert(`🛑 ${agentName} agent stopped successfully!`, 'info');
-            loadDashboard();
+            showAlert(`${agentName} agent stopped successfully!`, 'success');
+            updateAgentStatuses();
         } else {
             showAlert(`Failed to stop ${agentName} agent: ${data.error}`, 'danger');
         }
     } catch (error) {
+        console.error(`Error stopping ${agentName} agent:`, error);
         showAlert(`Error stopping ${agentName} agent: ${error.message}`, 'danger');
     } finally {
-        const startBtn = document.getElementById(`${agentName}-start-btn`);
         const stopBtn = document.getElementById(`${agentName}-stop-btn`);
         stopBtn.disabled = false;
-        stopBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop';
+        stopBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Agent';
     }
 }
 
+// Run agent cycle
 async function runAgentCycle(agentName) {
     try {
-        const response = await fetch(`/api/agents/${agentName}/cycle`, { method: 'POST', credentials: 'include' });
-        const data = await response.json();
+        showAlert(`Running ${agentName} cycle...`, 'info');
         
-        if (data.success) {
-            showAlert(`${agentName} learning cycle completed`, 'success');
-            loadDashboard();
+        const response = await fetch(`/api/agents/${agentName}/cycle`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showAlert(`${agentName} cycle completed successfully!`, 'success');
+                updateQuickStats();
+                updateAgentStatuses();
+            } else {
+                showAlert(`Failed to run ${agentName} cycle: ${data.error}`, 'danger');
+            }
         } else {
-            showAlert(`Failed to run cycle for ${agentName}: ` + data.error, 'danger');
+            showAlert(`Failed to run ${agentName} cycle`, 'error');
         }
     } catch (error) {
-        showAlert(`Error running cycle for ${agentName}: ` + error.message, 'danger');
+        console.error(`Error running ${agentName} cycle:`, error);
+        showAlert(`Error running ${agentName} cycle`, 'error');
     }
 }
 
-function viewAgentDetails(agentName) {
-    // This would open a detailed view of the agent
-    showAlert(`Viewing details for ${agentName} agent`, 'info');
-}
-
-function refreshDashboard() {
-    loadDashboard();
-    showAlert('Dashboard refreshed', 'info');
-}
-
-function showAlert(message, type) {
-    // Create and show a Bootstrap alert
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // Insert at the top of the page
-    const container = document.querySelector('.container-fluid');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
-
-// New Agent Form Functions
-function initializeNewAgentForm() {
-    const form = document.getElementById('newAgentForm');
-    if (form) {
-        form.addEventListener('submit', handleNewAgentSubmission);
-    }
-}
-
-function handleNewAgentSubmission(event) {
-    event.preventDefault();
-    
-    const formData = {
-        name: document.getElementById('agentName').value,
-        description: document.getElementById('agentDescription').value,
-        category: document.getElementById('agentCategory').value,
-        dataSources: document.getElementById('dataSources').value.split('\n').filter(url => url.trim()),
-        collectionInterval: parseInt(document.getElementById('collectionInterval').value),
-        instructions: document.getElementById('agentInstructions').value
-    };
-    
-    // Validate form data
-    if (!formData.name || !formData.description || formData.dataSources.length === 0) {
-        showAlert('Please fill in all required fields', 'warning');
-        return;
-    }
-    
-    // Show loading state
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Creating Agent...';
-    submitBtn.disabled = true;
-    
-    // Submit to backend (this would need to be implemented)
-    fetch('/admin/agents/create', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('New agent created successfully!', 'success');
-            // Reset form
-            document.getElementById('newAgentForm').reset();
-            // Refresh dashboard to show new agent
-            loadDashboard();
-        } else {
-            showAlert('Error creating agent: ' + (data.error || 'Unknown error'), 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('Error creating agent: ' + error.message, 'danger');
-    })
-    .finally(() => {
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
-}
-
-// Enhanced agent details view
-function viewAgentDetails(agentName) {
-    // This would open a detailed modal or navigate to a detailed view
-    showAlert(`Viewing details for ${agentName} agent (feature coming soon)`, 'info');
-}
-
-// View real data collected by agents
+// View real data
 async function viewRealData(agentName) {
     try {
         showAlert(`Loading real data for ${agentName} agent...`, 'info');
@@ -1455,6 +871,7 @@ async function viewRealData(agentName) {
     }
 }
 
+// Display real data modal
 function displayRealDataModal(agentData, agentName) {
     const dataPoints = agentData.data_points || 0;
     const recentData = agentData.recent_data || [];
@@ -1562,682 +979,234 @@ function displayRealDataModal(agentData, agentName) {
     modal.show();
 }
 
-// Edit agent functionality
-function editAgent(agentName) {
-    // Show loading state
-    showAlert(`Loading ${agentName} agent configuration...`, 'info');
-    
-    // Fetch agent configuration from backend
-    fetch(`/admin/agents/${agentName}/config`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const config = data.config;
-                showEditAgentModal(agentName, config);
-            } else {
-                showAlert(`Error loading agent configuration: ${data.error}`, 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('Error loading agent config:', error);
-            showAlert('Error loading agent configuration', 'danger');
-        });
-}
-
-// Trigger HealthPIN doctors scrape
-async function scrapeHealthpinDoctors() {
+// Edit agent configuration
+async function editAgentConfig(agentName) {
     try {
-        showAlert('Starting scrape of South African doctors...', 'info');
-        const res = await fetch('/api/agents/healthpin/scrape/doctors', { method: 'POST', credentials: 'include' });
-        const data = await res.json();
-        if (data.success) {
-            const r = data.result || {};
-            showAlert(`Scrape complete. Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.`, 'success');
-            loadDashboard();
-        } else {
-            showAlert(`Scrape failed: ${data.error || 'Unknown error'}`, 'danger');
+        currentAgentConfig = agentName;
+        
+        // Load current configuration
+        const response = await fetch(`/api/agents/${agentName}/config`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.config) {
+                document.getElementById('configDataSources').value = data.config.data_sources.join('\n');
+                document.getElementById('configLearningInterval').value = data.config.learning_interval || 30;
+                document.getElementById('configMaxDataPoints').value = data.config.max_data_points || 1000;
+            }
         }
-    } catch (e) {
-        showAlert(`Error starting scrape: ${e.message}`, 'danger');
+        
+        // Update modal title
+        document.getElementById('agentConfigModalTitle').textContent = `Configure ${agentName.charAt(0).toUpperCase() + agentName.slice(1)} Agent`;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('agentConfigModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error loading agent config:', error);
+        showAlert('Error loading agent configuration', 'error');
     }
 }
 
-function showEditAgentModal(agentName, config) {
-    // Create modal HTML
-    const modalHtml = `
-        <div class="modal fade" id="editAgentModal" tabindex="-1" aria-labelledby="editAgentModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editAgentModalLabel">
-                            <i class="bi bi-gear me-2"></i>Edit ${agentName.charAt(0).toUpperCase() + agentName.slice(1)} Agent
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="editAgentForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="agentName" class="form-label">Agent Name</label>
-                                        <input type="text" class="form-control" id="agentName" value="${config.name}" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="agentSection" class="form-label">Section</label>
-                                        <input type="text" class="form-control" id="agentSection" value="${config.section}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="learningInterval" class="form-label">Learning Interval (minutes)</label>
-                                        <input type="number" class="form-control" id="learningInterval" value="${config.learning_interval}" min="1" max="1440">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="maxDataPoints" class="form-label">Max Data Points</label>
-                                        <input type="number" class="form-control" id="maxDataPoints" value="${config.max_data_points}" min="1" max="10000">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="dataSources" class="form-label">Data Sources (one per line)</label>
-                                <textarea class="form-control" id="dataSources" rows="6" placeholder="Enter data source URLs, one per line">${config.data_sources.join('\\n')}</textarea>
-                                <div class="form-text">Enter one data source URL per line. These will be used for data collection.</div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="storagePath" class="form-label">Storage Path</label>
-                                <input type="text" class="form-control" id="storagePath" value="${config.storage_path}" readonly>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="saveAgentChanges('${agentName}')">
-                            <i class="bi bi-check-circle me-2"></i>Save Changes
-                        </button>
-                    </div>
-                </div>
+// Save agent configuration
+async function saveAgentConfig() {
+    if (!currentAgentConfig) return;
+    
+    try {
+        const dataSources = document.getElementById('configDataSources').value
+            .split('\n')
+            .map(url => url.trim())
+            .filter(url => url);
+        
+        const config = {
+            data_sources: dataSources,
+            learning_interval: parseInt(document.getElementById('configLearningInterval').value),
+            max_data_points: parseInt(document.getElementById('configMaxDataPoints').value)
+        };
+        
+        const response = await fetch(`/api/agents/${currentAgentConfig}/config`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showAlert(`${currentAgentConfig} configuration updated successfully!`, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('agentConfigModal')).hide();
+            } else {
+                showAlert(`Failed to update configuration: ${data.error}`, 'danger');
+            }
+        } else {
+            showAlert('Failed to update configuration', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving agent config:', error);
+        showAlert('Error saving agent configuration', 'error');
+    }
+}
+
+// Start all agents
+async function startAllAgents() {
+    const agents = ['mediamap', 'healthpin'];
+    for (const agent of agents) {
+        await startIndividualAgent(agent);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between starts
+    }
+}
+
+// Refresh dashboard
+function refreshDashboard() {
+    loadDashboard();
+    updateQuickStats();
+    updateAgentStatuses();
+    showAlert('Dashboard refreshed', 'info');
+}
+
+// Assess data quality
+async function assessDataQuality() {
+    try {
+        showAlert('Assessing data quality...', 'info');
+        
+        const response = await fetch('/admin/training/agent-data-stats', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                const statusDiv = document.getElementById('data-quality-status');
+                statusDiv.className = 'alert alert-success';
+                statusDiv.innerHTML = `
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Data Quality Assessment:</strong><br>
+                    Total Data Points: ${data.stats.total_data_points}<br>
+                    Active Agents: ${data.stats.agents_available.length}<br>
+                    Training Ready: ${data.stats.total_data_points >= 100 ? 'Yes' : 'No'}
+                `;
+            } else {
+                showAlert('Error assessing data quality: ' + data.error, 'error');
+            }
+        } else {
+            showAlert('Failed to assess data quality', 'error');
+        }
+    } catch (error) {
+        console.error('Error assessing data quality:', error);
+        showAlert('Error assessing data quality', 'error');
+    }
+}
+
+// Collect all agent data
+async function collectAllAgentData() {
+    try {
+        showAlert('Collecting data from all agents...', 'info');
+        
+        const response = await fetch('/admin/training/collect-agent-data', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showAlert('Data collection completed successfully!', 'success');
+                updateQuickStats();
+            } else {
+                showAlert('Error collecting data: ' + data.error, 'error');
+            }
+        } else {
+            showAlert('Failed to collect agent data', 'error');
+        }
+    } catch (error) {
+        console.error('Error collecting agent data:', error);
+        showAlert('Error collecting agent data', 'error');
+    }
+}
+
+// Generate training data
+async function generateTrainingData() {
+    try {
+        showAlert('Generating training data...', 'info');
+        
+        const response = await fetch('/admin/training/train-from-agents', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model_name: 'mediamap'
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showAlert('Training data generation started!', 'success');
+            } else {
+                showAlert('Error generating training data: ' + data.error, 'error');
+            }
+        } else {
+            showAlert('Failed to generate training data', 'error');
+        }
+    } catch (error) {
+        console.error('Error generating training data:', error);
+        showAlert('Error generating training data', 'error');
+    }
+}
+
+// Show alert/toast
+function showAlert(message, type = 'info') {
+    console.log(`📢 Showing alert: ${message} (type: ${type})`);
+    // Create toast element
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>
     `;
     
-    // Remove existing modal if it exists
-    const existingModal = document.getElementById("editAgentModal");
-    if (existingModal) {
-        existingModal.remove();
+    // Add to toast container
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1055';
+        document.body.appendChild(toastContainer);
     }
     
-    // Add modal to page
-    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
     
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById("editAgentModal"));
-    modal.show();
+    // Show toast
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
     
-    // Clean up modal when hidden
-    document.getElementById("editAgentModal").addEventListener("hidden.bs.modal", function() {
-        this.remove();
+    // Remove toast element after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
     });
 }
-
-// removed MediaMap Clean button per product requirements
-
-// Get agent role
-function getAgentRole(agentName) {
-    const roles = {
-        'mediamap': 'Media Industry Data Collector',
-        'healthpin': 'Healthcare Data Collector'
-    };
-    return roles[agentName] || 'Data Collector';
-}
-
-// Get agent description
-function getAgentDescription(agentName) {
-    const descriptions = {
-        'mediamap': 'Collects and analyzes media industry data from RSS feeds, news sites, and industry publications. Monitors trends, business models, and emerging technologies in journalism and media.',
-        'healthpin': 'Collects and analyzes healthcare data from medical journals, clinical guidelines, and healthcare policy updates. Monitors medical research, clinical trials, and healthcare trends.'
-    };
-    return descriptions[agentName] || 'Data collection and analysis agent';
-}
-
-// Get agent data sources
-function getAgentDataSources(agentName) {
-    const sources = {
-        'mediamap': 'Nieman Lab RSS Feed\nPoynter Institute\nJournalism.co.uk\nMediaPost\nO\'Reilly Radar',
-        'healthpin': 'Healthcare News Feeds\nMedical Journals\nPolicy Updates\nClinical Guidelines\nResearch Publications'
-    };
-    return sources[agentName] || 'RSS Feeds\nNews Sites\nIndustry Publications';
-}
-
-// Get agent collection interval
-function getAgentInterval(agentName) {
-    const intervals = {
-        'mediamap': 30,
-        'healthpin': 45
-    };
-    return intervals[agentName] || 30;
-}
-
-// Get agent instructions
-function getAgentInstructions(agentName) {
-    const instructions = {
-        'mediamap': 'Focus on media industry trends, business models, and technological innovations. Analyze content for actionable insights and identify emerging patterns in journalism and media.',
-        'healthpin': 'Focus on healthcare developments, clinical research, and medical policy changes. Analyze content for clinical insights and identify trends in healthcare delivery and technology.'
-    };
-    return instructions[agentName] || 'Collect and analyze relevant data from assigned sources.';
-}
-
-// Save agent changes
-function saveAgentChanges(agentName) {
-    const formData = {
-        data_sources: document.getElementById('dataSources').value.split('\n').filter(line => line.trim()),
-        learning_interval: parseInt(document.getElementById('learningInterval').value),
-        max_data_points: parseInt(document.getElementById('maxDataPoints').value)
-    };
-    
-    // Validate form data
-    if (!formData.data_sources.length) {
-        showAlert('Please provide at least one data source', 'warning');
-        return;
-    }
-    
-    if (formData.learning_interval < 1 || formData.learning_interval > 1440) {
-        showAlert('Learning interval must be between 1 and 1440 minutes', 'warning');
-        return;
-    }
-    
-    // Show loading state
-    const saveBtn = document.querySelector('#editAgentModal .btn-primary');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
-    saveBtn.disabled = true;
-    
-    // Save to backend
-    fetch(`/admin/agents/${agentName}/config`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert(`${agentName.charAt(0).toUpperCase() + agentName.slice(1)} agent updated successfully!`, 'success');
-            
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById("editAgentModal"));
-            modal.hide();
-            
-            // Refresh agent display
-            loadDashboard();
-        } else {
-            showAlert(`Error updating agent: ${data.error}`, 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Error saving agent config:', error);
-        showAlert('Error updating agent configuration', 'danger');
-    })
-    .finally(() => {
-        // Reset button
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    });
-}
-
-async function refreshDoctorDirectoryStatus() {
-    try {
-        const res = await fetch('/api/agents/healthpin/doctor-directory/status', { credentials: 'include' });
-        const data = await res.json();
-        const badge = document.getElementById('doctor-agent-count');
-        if (data.success) {
-            badge.className = 'badge bg-success';
-            badge.textContent = `${data.status.total_doctors || 0} doctors`;
-        } else {
-            badge.className = 'badge bg-danger';
-            badge.textContent = 'Error';
-        }
-    } catch (e) {
-        const badge = document.getElementById('doctor-agent-count');
-        badge.className = 'badge bg-danger';
-        badge.textContent = 'Error';
-    }
-}
-
-async function updateAgentStatus() {
-    try {
-        const res = await fetch('/api/agents/healthpin/status', { credentials: 'include' });
-        const data = await res.json();
-        const statusBadge = document.getElementById('agent-status');
-        if (data.success) {
-            const isRunning = data.status.is_running;
-            if (isRunning) {
-                statusBadge.className = 'badge bg-success ms-2';
-                statusBadge.textContent = 'Running';
-            } else {
-                statusBadge.className = 'badge bg-warning ms-2';
-                statusBadge.textContent = 'Stopped';
-            }
-        }
-    } catch (e) {
-        const statusBadge = document.getElementById('agent-status');
-        statusBadge.className = 'badge bg-danger ms-2';
-        statusBadge.textContent = 'Error';
-    }
-}
-
-async function runDoctorDirectoryAgent() {
-    try {
-        showAlert('Starting Doctor Directory scrape (South Africa)...', 'info');
-        const btn = document.getElementById('doctor-scrape-btn');
-        const cleanBtn = document.getElementById('doctor-clean-btn');
-        const refreshBtn = document.getElementById('doctor-refresh-btn');
-        const progress = document.getElementById('doctor-progress');
-        const bar = document.getElementById('doctor-progress-bar');
-        const label = document.getElementById('doctor-progress-label');
-        btn.disabled = true; cleanBtn.disabled = true; refreshBtn.disabled = true;
-        progress.style.display = 'block';
-        bar.style.width = '15%'; bar.setAttribute('aria-valuenow', 15);
-        label.textContent = 'Initializing scrape...';
-
-        // Kick off scrape
-        const res = await fetch('/api/agents/healthpin/scrape/doctors', { method: 'POST', credentials: 'include' });
-        const data = await res.json();
-        if (data.success) {
-            const r = data.result || {};
-            bar.style.width = '90%'; bar.setAttribute('aria-valuenow', 90);
-            label.textContent = 'Finalizing...';
-            showAlert(`Doctor Directory updated. Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.`, 'success');
-            await refreshDoctorDirectoryStatus();
-        } else {
-            showAlert(`Doctor Directory scrape failed: ${data.error || 'Unknown error'}`, 'danger');
-        }
-    } catch (e) {
-        showAlert(`Error starting Doctor Directory scrape: ${e.message}`, 'danger');
-    } finally {
-        const btn = document.getElementById('doctor-scrape-btn');
-        const cleanBtn = document.getElementById('doctor-clean-btn');
-        const refreshBtn = document.getElementById('doctor-refresh-btn');
-        const progress = document.getElementById('doctor-progress');
-        const bar = document.getElementById('doctor-progress-bar');
-        const label = document.getElementById('doctor-progress-label');
-        bar.style.width = '100%'; bar.setAttribute('aria-valuenow', 100);
-        label.textContent = 'Completed';
-        setTimeout(()=>{ progress.style.display = 'none'; bar.style.width = '10%'; label.textContent = 'Working...'; }, 1200);
-        btn.disabled = false; cleanBtn.disabled = false; refreshBtn.disabled = false;
-    }
-}
-
-function navigateToHealthpinDoctors(event) {
-    event.preventDefault();
-    window.location.href = '/admin/healthpin#doctors';
-}
-
-async function cleanDoctorDirectory() {
-    try {
-        showAlert('Cleaning doctor directory data (normalize & dedupe)...', 'info');
-        const btn = document.getElementById('doctor-clean-btn');
-        const scrapeBtn = document.getElementById('doctor-scrape-btn');
-        const refreshBtn = document.getElementById('doctor-refresh-btn');
-        const progress = document.getElementById('doctor-progress');
-        const bar = document.getElementById('doctor-progress-bar');
-        const label = document.getElementById('doctor-progress-label');
-        btn.disabled = true; scrapeBtn.disabled = true; refreshBtn.disabled = true;
-        progress.style.display = 'block';
-        bar.style.width = '20%'; bar.setAttribute('aria-valuenow', 20);
-        label.textContent = 'Cleaning records...';
-
-        const res = await fetch('/api/agents/healthpin/doctor-directory/clean', { method: 'POST', credentials: 'include' });
-        const data = await res.json();
-        if (data.success) {
-            const r = data.result || {};
-            bar.style.width = '90%'; bar.setAttribute('aria-valuenow', 90);
-            label.textContent = 'Finalizing...';
-            showAlert(`Doctor data cleaned. Updated: ${r.updated || 0}, Removed duplicates: ${r.removed || 0}.`, 'success');
-            await refreshDoctorDirectoryStatus();
-        } else {
-            showAlert(`Doctor cleaning failed: ${data.error || 'Unknown error'}`, 'danger');
-        }
-    } catch (e) {
-        showAlert(`Error cleaning doctor data: ${e.message}`, 'danger');
-    } finally {
-        const btn = document.getElementById('doctor-clean-btn');
-        const scrapeBtn = document.getElementById('doctor-scrape-btn');
-        const refreshBtn = document.getElementById('doctor-refresh-btn');
-        const progress = document.getElementById('doctor-progress');
-        const bar = document.getElementById('doctor-progress-bar');
-        const label = document.getElementById('doctor-progress-label');
-        bar.style.width = '100%'; bar.setAttribute('aria-valuenow', 100);
-        label.textContent = 'Completed';
-        setTimeout(()=>{ progress.style.display = 'none'; bar.style.width = '10%'; label.textContent = 'Working...'; }, 1200);
-        btn.disabled = false; scrapeBtn.disabled = false; refreshBtn.disabled = false;
-    }
-}
-
-// Real-time monitoring initialization
-function initializeRealTimeMonitoring() {
-    // Add visual indicators for agent status
-    updateAgentStatusIndicators();
-    
-    // Start real-time progress tracking for long-running operations
-    startProgressTracking();
-    
-    // Add connection status indicator
-    addConnectionStatusIndicator();
-}
-
-function updateAgentStatusIndicators() {
-    // Add pulsing animation for running agents
-    const runningBadges = document.querySelectorAll('.badge.bg-success');
-    runningBadges.forEach(badge => {
-        if (badge.textContent.includes('Running') || badge.textContent.includes('Active')) {
-            badge.classList.add('pulse-animation');
-        }
-    });
-}
-
-function startProgressTracking() {
-    // Track any ongoing operations and show progress
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(bar => {
-        if (bar.style.width !== '0%' && bar.style.width !== '') {
-            bar.classList.add('progress-bar-animated');
-        }
-    });
-}
-
-function addConnectionStatusIndicator() {
-    // Add a small connection indicator to show if the backend is responsive
-    const indicator = document.createElement('div');
-    indicator.id = 'connection-status';
-    indicator.className = 'position-fixed';
-    indicator.style.cssText = 'top: 10px; right: 10px; z-index: 1050; padding: 5px 10px; border-radius: 15px; font-size: 12px; background: #28a745; color: white;';
-    indicator.innerHTML = '<i class="bi bi-wifi"></i> Connected';
-    document.body.appendChild(indicator);
-    
-    // Test connection every 30 seconds
-    setInterval(testConnection, 30000);
-}
-
-async function testConnection() {
-    const indicator = document.getElementById('connection-status');
-    try {
-        const response = await fetch('/api/agents/status', { 
-            credentials: 'include',
-            signal: AbortSignal.timeout(5000)
-        });
-        if (response.ok) {
-            indicator.style.background = '#28a745';
-            indicator.innerHTML = '<i class="bi bi-wifi"></i> Connected';
-        } else {
-            throw new Error('Server error');
-        }
-    } catch (error) {
-        indicator.style.background = '#dc3545';
-        indicator.innerHTML = '<i class="bi bi-wifi-off"></i> Disconnected';
-    }
-}
-
-// Duplicate function removed - using the enhanced version above
-
-async function runDoctorDirectoryAgent() {
-    try {
-        showAlert('Starting Doctor Directory scrape (South Africa)...', 'info');
-        const btn = document.getElementById('doctor-scrape-btn');
-        const cleanBtn = document.getElementById('doctor-clean-btn');
-        const refreshBtn = document.getElementById('doctor-refresh-btn');
-        const progress = document.getElementById('doctor-progress');
-        const bar = document.getElementById('doctor-progress-bar');
-        const label = document.getElementById('doctor-progress-label');
-        
-        if (!btn || !progress || !bar || !label) {
-            throw new Error('Required UI elements not found');
-        }
-        
-        // Disable buttons and show progress
-        btn.disabled = true; 
-        if (cleanBtn) cleanBtn.disabled = true; 
-        if (refreshBtn) refreshBtn.disabled = true;
-        
-        progress.style.display = 'block';
-        bar.style.width = '10%'; 
-        bar.setAttribute('aria-valuenow', 10);
-        bar.classList.add('progress-bar-animated', 'progress-bar-striped');
-        label.textContent = 'Initializing scrape...';
-
-        // Add estimated time
-        const startTime = Date.now();
-        label.innerHTML = 'Initializing scrape... <small class="text-muted">(This may take 2-5 minutes)</small>';
-
-        // Kick off scrape with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
-        
-        const res = await fetch('/api/agents/healthpin/scrape/doctors', { 
-            method: 'POST', 
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        const data = await res.json();
-        if (data.success) {
-            const r = data.result || {};
-            bar.style.width = '100%'; 
-            bar.setAttribute('aria-valuenow', 100);
-            
-            const elapsed = Math.round((Date.now() - startTime) / 1000);
-            label.innerHTML = `Completed in ${elapsed}s`;
-            
-            showAlert(`✅ Doctor Directory updated successfully! Created: ${r.created || 0}, Updated: ${r.updated || 0}, Skipped: ${r.skipped || 0}.`, 'success');
-            await refreshDoctorDirectoryStatus();
-        } else {
-            throw new Error(data.error || 'Unknown error occurred');
-        }
-    } catch (e) {
-        console.error('Doctor scrape error:', e);
-        if (e.name === 'AbortError') {
-            showAlert('❌ Doctor Directory scrape timed out. Please try again.', 'danger');
-        } else {
-            showAlert(`❌ Error starting Doctor Directory scrape: ${e.message}`, 'danger');
-        }
-    } finally {
-        // Reset UI state
-        const btn = document.getElementById('doctor-scrape-btn');
-        const cleanBtn = document.getElementById('doctor-clean-btn');
-        const refreshBtn = document.getElementById('doctor-refresh-btn');
-        const progress = document.getElementById('doctor-progress');
-        const bar = document.getElementById('doctor-progress-bar');
-        const label = document.getElementById('doctor-progress-label');
-        
-        if (bar) {
-            bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
-        }
-        
-        setTimeout(() => {
-            if (progress) progress.style.display = 'none';
-            if (bar) {
-                bar.style.width = '10%';
-                bar.setAttribute('aria-valuenow', 10);
-            }
-            if (label) label.textContent = 'Working...';
-        }, 2000);
-        
-        if (btn) btn.disabled = false;
-        if (cleanBtn) cleanBtn.disabled = false;
-        if (refreshBtn) refreshBtn.disabled = false;
-    }
-}
-
-// Multiple agents workflow functions
-function loadWorkflowAgents(workflow) {
-    fetch(`/admin/workflows/${workflow}/agents`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayWorkflowAgents(workflow, data.agents);
-            } else {
-                showAlert(`Error loading ${workflow} agents: ${data.error}`, 'danger');
-            }
-        })
-        .catch(error => {
-            console.error(`Error loading ${workflow} agents:`, error);
-            showAlert(`Error loading ${workflow} agents`, 'danger');
-        });
-}
-
-function displayWorkflowAgents(workflow, agents) {
-    const container = document.getElementById(`${workflow}-agents-list`);
-    if (!container) return;
-    
-    if (!agents || agents.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-3">
-                <i class="bi bi-robot text-muted" style="font-size: 2rem;"></i>
-                <p class="mt-2 text-muted">No agents configured for ${workflow} workflow.</p>
-                <button class="btn btn-sm btn-primary" onclick="addAgentToWorkflow('${workflow}')">
-                    <i class="bi bi-plus"></i> Add First Agent
-                </button>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = agents.map(agent => `
-        <div class="agent-item mb-3 p-3 border rounded">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-1">${agent.display_name}</h6>
-                    <small class="text-muted">${agent.description}</small>
-                    <div class="mt-1">
-                        <span class="badge bg-secondary me-1">Priority: ${agent.priority}</span>
-                        <span class="badge bg-info me-1">Interval: ${agent.collection_interval}m</span>
-                        <span class="badge bg-success">Active</span>
-                    </div>
-                </div>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-warning" onclick="editWorkflowAgent('${workflow}', ${agent.id})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-outline-danger" onclick="removeWorkflowAgent('${workflow}', ${agent.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function addAgentToWorkflow(workflow) {
-    const agentName = prompt(`Enter agent name for ${workflow} workflow:`);
-    if (!agentName) return;
-    
-    const displayName = prompt(`Enter display name for ${agentName}:`);
-    if (!displayName) return;
-    
-    const role = prompt(`Enter agent role:`);
-    if (!role) return;
-    
-    const description = prompt(`Enter agent description:`);
-    if (!description) return;
-    
-    const dataSources = prompt(`Enter data sources (one per line):`);
-    const dataSourcesList = dataSources ? dataSources.split('\n').filter(line => line.trim()) : [];
-    
-    const collectionInterval = parseInt(prompt(`Enter collection interval in minutes (default 30):`) || '30');
-    
-    const instructions = prompt(`Enter agent instructions:`);
-    if (!instructions) return;
-    
-    const priority = parseInt(prompt(`Enter priority (1 = highest, default 1):`) || '1');
-    
-    const agentData = {
-        agent_name: agentName,
-        display_name: displayName,
-        role: role,
-        description: description,
-        data_sources: dataSourcesList,
-        collection_interval: collectionInterval,
-        instructions: instructions,
-        priority: priority
-    };
-    
-    fetch(`/admin/workflows/${workflow}/agents`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(agentData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert(`Agent added to ${workflow} workflow successfully!`, 'success');
-            loadWorkflowAgents(workflow);
-        } else {
-            showAlert(`Error adding agent: ${data.error}`, 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Error adding agent:', error);
-        showAlert('Error adding agent to workflow', 'danger');
-    });
-}
-
-function editWorkflowAgent(workflow, agentId) {
-    showAlert(`Editing agent in ${workflow} workflow (feature coming soon)`, 'info');
-}
-
-function removeWorkflowAgent(workflow, agentId) {
-    if (confirm(`Are you sure you want to remove this agent from ${workflow} workflow?`)) {
-        fetch(`/admin/workflows/${workflow}/agents/${agentId}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert(`Agent removed from ${workflow} workflow successfully!`, 'success');
-                loadWorkflowAgents(workflow);
-            } else {
-                showAlert(`Error removing agent: ${data.error}`, 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('Error removing agent:', error);
-            showAlert('Error removing agent from workflow', 'danger');
-        });
-    }
-}
-
-// Load workflow agents when the multiple agents tab is shown
-document.addEventListener('DOMContentLoaded', function() {
-    const multipleAgentsTab = document.getElementById('multiple-agents-tab');
-    if (multipleAgentsTab) {
-        multipleAgentsTab.addEventListener('shown.bs.tab', function() {
-            loadWorkflowAgents('mediamap');
-            loadWorkflowAgents('healthpin');
-        });
-    }
-});
 </script>
 {% endblock %}
-
-
-
