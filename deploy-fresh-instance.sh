@@ -1,39 +1,71 @@
 #!/bin/bash
 
-# Quick Deploy Script
-# ===================
-# Efficient deployment to new Lightsail instance
+# Fresh Instance Deployment Script
+# ================================
+# This script deploys the application to a fresh Lightsail instance
 
 set -e
 
+echo "🚀 Fresh Instance Deployment"
+echo "==========================="
+echo ""
+
+# Get new IP address
+read -p "Enter the new Lightsail IP address: " NEW_IP
+
+if [ -z "$NEW_IP" ]; then
+    echo "❌ No IP address provided"
+    exit 1
+fi
+
+echo "📍 Deploying to: $NEW_IP"
+echo ""
+
 # Configuration
-LIGHTSAIL_IP="18.175.120.201"
 LIGHTSAIL_USER="ubuntu"
 LIGHTSAIL_KEY="LightsailDefaultKey-eu-west-2.pem"
 APP_DIR="/opt/mediamap"
 
-echo "🚀 Quick Deploy to New Instance"
-echo "==============================="
-echo "📍 Target: $LIGHTSAIL_USER@$LIGHTSAIL_IP"
+# Check if key file exists
+if [ ! -f "$LIGHTSAIL_KEY" ]; then
+    echo "❌ SSH key file not found: $LIGHTSAIL_KEY"
+    exit 1
+fi
+
+# Set proper permissions on key file
+chmod 400 "$LIGHTSAIL_KEY"
+
+echo "🔧 Step 1: Testing connection..."
+# Wait for instance to be ready
+echo "⏳ Waiting for instance to be ready (60 seconds)..."
+sleep 60
+
+# Test connection with retries
+for i in {1..5}; do
+    if ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o BatchMode=yes "$LIGHTSAIL_USER@$NEW_IP" "echo 'Connection test successful'" 2>/dev/null; then
+        echo "✅ Connection successful"
+        break
+    else
+        echo "⏳ Attempt $i/5 failed, retrying in 30 seconds..."
+        sleep 30
+    fi
+done
+
 echo ""
-
-# Test connection
-echo "🔧 Testing connection..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "echo 'Connection successful'"
-
-echo "🔧 Step 1: Setting up application directory..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 2: Setting up application directory..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     sudo mkdir -p $APP_DIR
     sudo chown ubuntu:ubuntu $APP_DIR
+    cd $APP_DIR
 "
 
-echo "🔧 Step 2: Installing system dependencies..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 3: Installing dependencies..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     sudo apt update
-    sudo apt install -y python3 python3-pip python3-venv git curl
+    sudo apt install -y python3 python3-pip python3-venv git
 "
 
-echo "🔧 Step 3: Syncing application files (excluding venv)..."
+echo "🔧 Step 4: Syncing application files..."
 rsync -avz --delete \
     --exclude='.git' \
     --exclude='__pycache__' \
@@ -42,12 +74,11 @@ rsync -avz --delete \
     --exclude='venv' \
     --exclude='instance' \
     --exclude='*.log' \
-    --exclude='.venv' \
     -e "ssh -i $LIGHTSAIL_KEY -o StrictHostKeyChecking=no" \
-    ./ "$LIGHTSAIL_USER@$LIGHTSAIL_IP:$APP_DIR/"
+    ./ "$LIGHTSAIL_USER@$NEW_IP:$APP_DIR/"
 
-echo "🔧 Step 4: Setting up Python environment..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 5: Setting up Python environment..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     cd $APP_DIR
     python3 -m venv venv
     source venv/bin/activate
@@ -55,18 +86,19 @@ ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_
     pip install -r requirements.txt
 "
 
-echo "🔧 Step 5: Creating database and tables..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 6: Creating database and tables..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     cd $APP_DIR
     sudo mkdir -p instance
     sudo chown www-data:www-data instance
     sudo chmod 755 instance
     
-    # Create database with all tables
+    # Create database tables
     sudo -u www-data python3 -c \"
 import sqlite3
 import os
 
+# Create database
 db_path = '/opt/mediamap/instance/media_analysis.db'
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
@@ -84,7 +116,7 @@ CREATE TABLE IF NOT EXISTS users (
 )
 ''')
 
-# Create other essential tables
+# Create other tables
 tables = [
     '''CREATE TABLE IF NOT EXISTS highlander_chat (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,25 +171,6 @@ tables = [
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id)
-    )''',
-    '''CREATE TABLE IF NOT EXISTS healthpin_doctors (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        phone_number VARCHAR(20) NOT NULL UNIQUE,
-        whatsapp_id VARCHAR(50) UNIQUE,
-        first_name VARCHAR(100) NOT NULL,
-        last_name VARCHAR(100) NOT NULL,
-        medical_license VARCHAR(100) UNIQUE,
-        specialties TEXT,
-        qualifications TEXT,
-        experience_years INTEGER,
-        languages TEXT,
-        consultation_fee DECIMAL(10,2),
-        availability_schedule TEXT,
-        is_active BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id)
     )'''
 ]
 
@@ -176,8 +189,8 @@ print('✅ Database created successfully')
 \"
 "
 
-echo "🔧 Step 6: Setting up systemd service..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 7: Setting up systemd service..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     cd $APP_DIR
     sudo tee /etc/systemd/system/mediamap.service > /dev/null << 'EOF'
 [Unit]
@@ -202,36 +215,37 @@ EOF
     sudo systemctl enable mediamap
 "
 
-echo "🔧 Step 7: Setting permissions..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 8: Setting permissions..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     cd $APP_DIR
     sudo chown -R www-data:www-data .
     sudo chmod -R 755 .
     sudo chmod 664 instance/*.db 2>/dev/null || true
 "
 
-echo "🔧 Step 8: Starting application..."
-ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "
+echo "🔧 Step 9: Starting application..."
+ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "
     cd $APP_DIR
     sudo systemctl start mediamap
 "
 
-echo "🔧 Step 9: Testing application..."
+echo "🔧 Step 10: Testing application..."
 sleep 10
-if ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health" | grep -q "200"; then
+if ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health" | grep -q "200"; then
     echo "✅ Application is running successfully"
 else
     echo "⚠️  Application may not be running properly"
     echo "📋 Checking logs..."
-    ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$LIGHTSAIL_IP" "sudo journalctl -u mediamap --no-pager -n 10"
+    ssh -i "$LIGHTSAIL_KEY" -o StrictHostKeyChecking=no "$LIGHTSAIL_USER@$NEW_IP" "sudo journalctl -u mediamap --no-pager -n 10"
 fi
 
 echo ""
-echo "🎉 Quick deployment completed!"
+echo "🎉 Fresh instance deployment completed!"
 echo ""
-echo "🌐 Application URL: http://$LIGHTSAIL_IP:8000"
+echo "🌐 Application URL: http://$NEW_IP:8000"
 echo "🔑 Admin login: admin / admin123"
 echo ""
-echo "📋 Test the application:"
-echo "   curl -I http://$LIGHTSAIL_IP:8000"
-echo "   curl -I http://$LIGHTSAIL_IP:3000"
+echo "📋 Next steps:"
+echo "1. Test the application in your browser"
+echo "2. Update all scripts with new IP: $NEW_IP"
+echo "3. Run: ./update-scripts-ip.sh $NEW_IP"
