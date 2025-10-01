@@ -163,23 +163,38 @@ class OpenAITrainer:
         
         return qa_pairs[:10]  # Limit to 10 Q&A pairs per PDF
     
-    def start_fine_tuning(self, training_file: str) -> Dict[str, Any]:
+    def start_fine_tuning(self, training_file_id: str = None, training_file_path: str = None) -> Dict[str, Any]:
         """Start OpenAI fine-tuning job"""
         logger.info(f"Starting fine-tuning for {self.model_name}")
         
         try:
-            # Upload training file
-            with open(training_file, 'rb') as f:
-                file_response = self.client.files.create(
-                    file=f,
-                    purpose='fine-tune'
-                )
-            
-            logger.info(f"Uploaded training file: {file_response.id}")
+            # Use provided file ID or upload new file
+            if training_file_id:
+                file_id = training_file_id
+                logger.info(f"Using provided training file ID: {file_id}")
+            elif training_file_path:
+                # Upload training file
+                with open(training_file_path, 'rb') as f:
+                    file_response = self.client.files.create(
+                        file=f,
+                        purpose='fine-tune'
+                    )
+                file_id = file_response.id
+                logger.info(f"Uploaded training file: {file_id}")
+            else:
+                # Prepare training data first
+                training_file_path = self.prepare_training_data(f"./training_data")
+                with open(training_file_path, 'rb') as f:
+                    file_response = self.client.files.create(
+                        file=f,
+                        purpose='fine-tune'
+                    )
+                file_id = file_response.id
+                logger.info(f"Prepared and uploaded training file: {file_id}")
             
             # Create fine-tuning job
             fine_tune_response = self.client.fine_tuning.jobs.create(
-                training_file=file_response.id,
+                training_file=file_id,
                 model=self.config['base_model'],
                 suffix=self.config['training_suffix']
             )
@@ -192,7 +207,8 @@ class OpenAITrainer:
                 'job_id': job_id,
                 'model_name': self.model_name,
                 'base_model': self.config['base_model'],
-                'training_file': training_file,
+                'training_file_id': file_id,
+                'training_file_path': training_file_path,
                 'started_at': datetime.now().isoformat(),
                 'status': 'running'
             }
@@ -204,6 +220,7 @@ class OpenAITrainer:
             return {
                 'success': True,
                 'job_id': job_id,
+                'file_id': file_id,
                 'status': 'running',
                 'message': f'Fine-tuning started for {self.model_name}'
             }

@@ -6709,6 +6709,323 @@ Note: OpenAI API integration is currently unavailable, so I'm providing a basic 
             'error': str(e)
         }), 500
 
+# OpenAI Agent Integration Endpoints
+@app.route('/admin/openai/agents', methods=['GET'])
+@login_required
+@admin_required
+def list_openai_agents():
+    """List all available OpenAI agents"""
+    try:
+        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        
+        agent_integration = get_openai_agent_integration()
+        if not agent_integration:
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI agent integration not available'
+            }), 500
+        
+        agents = agent_integration.list_available_agents()
+        
+        return jsonify({
+            'success': True,
+            'agents': agents
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/agents/<agent_type>/capabilities', methods=['GET'])
+@login_required
+@admin_required
+def get_agent_capabilities(agent_type):
+    """Get capabilities of a specific agent"""
+    try:
+        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        
+        agent_integration = get_openai_agent_integration()
+        if not agent_integration:
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI agent integration not available'
+            }), 500
+        
+        capabilities = agent_integration.get_agent_capabilities(agent_type)
+        
+        return jsonify({
+            'success': True,
+            'capabilities': capabilities
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/agents/<agent_type>/analyze', methods=['POST'])
+@login_required
+@admin_required
+def analyze_with_agent(agent_type):
+    """Analyze data using a specific OpenAI agent"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        analysis_data = data.get('data', {})
+        analysis_type = data.get('analysis_type', 'insights')
+        
+        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        
+        agent_integration = get_openai_agent_integration()
+        if not agent_integration:
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI agent integration not available'
+            }), 500
+        
+        result = agent_integration.analyze_data_with_agent(
+            agent_type=agent_type,
+            data=analysis_data,
+            analysis_type=analysis_type
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/agents/<agent_type>/instructions', methods=['PUT'])
+@login_required
+@admin_required
+def update_agent_instructions(agent_type):
+    """Update agent instructions"""
+    try:
+        data = request.get_json()
+        if not data or 'instructions' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Instructions not provided'
+            }), 400
+        
+        new_instructions = data['instructions']
+        
+        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        
+        agent_integration = get_openai_agent_integration()
+        if not agent_integration:
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI agent integration not available'
+            }), 500
+        
+        success = agent_integration.update_agent_instructions(agent_type, new_instructions)
+        
+        return jsonify({
+            'success': success,
+            'message': 'Instructions updated successfully' if success else 'Failed to update instructions'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/agents/<agent_type>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_agent(agent_type):
+    """Delete an agent"""
+    try:
+        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        
+        agent_integration = get_openai_agent_integration()
+        if not agent_integration:
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI agent integration not available'
+            }), 500
+        
+        success = agent_integration.delete_agent(agent_type)
+        
+        return jsonify({
+            'success': success,
+            'message': 'Agent deleted successfully' if success else 'Failed to delete agent'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# OpenAI Fine-tuning Endpoints
+@app.route('/admin/openai/fine-tuning/models', methods=['GET'])
+@login_required
+@admin_required
+def list_fine_tuned_models():
+    """List all fine-tuned models"""
+    try:
+        if not app.config.get('OPENAI_API_KEY'):
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI API key not configured'
+            }), 500
+        
+        openai_client = OpenAI(api_key=app.config['OPENAI_API_KEY'])
+        models = openai_client.fine_tuning.jobs.list()
+        
+        return jsonify({
+            'success': True,
+            'models': models.data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/fine-tuning/start', methods=['POST'])
+@login_required
+@admin_required
+def start_fine_tuning():
+    """Start fine-tuning process"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        model_name = data.get('model_name', 'mediamap')
+        training_file_id = data.get('training_file_id')
+        
+        if not training_file_id:
+            return jsonify({
+                'success': False,
+                'error': 'Training file ID is required'
+            }), 400
+        
+        from backend.training.openai_trainer import OpenAITrainer
+        
+        trainer = OpenAITrainer(model_name)
+        result = trainer.start_fine_tuning(training_file_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/embeddings', methods=['POST'])
+@login_required
+@admin_required
+def create_embeddings():
+    """Create embeddings for text"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Text not provided'
+            }), 400
+        
+        text = data['text']
+        model = data.get('model', 'text-embedding-3-small')
+        
+        if not app.config.get('OPENAI_API_KEY'):
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI API key not configured'
+            }), 500
+        
+        openai_client = OpenAI(api_key=app.config['OPENAI_API_KEY'])
+        
+        response = openai_client.embeddings.create(
+            model=model,
+            input=text
+        )
+        
+        return jsonify({
+            'success': True,
+            'embeddings': response.data[0].embedding,
+            'model': model,
+            'usage': response.usage
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/admin/openai/vision/analyze', methods=['POST'])
+@login_required
+@admin_required
+def analyze_image():
+    """Analyze image using OpenAI Vision API"""
+    try:
+        data = request.get_json()
+        if not data or 'image_url' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Image URL not provided'
+            }), 400
+        
+        image_url = data['image_url']
+        prompt = data.get('prompt', 'What do you see in this image?')
+        
+        if not app.config.get('OPENAI_API_KEY'):
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI API key not configured'
+            }), 500
+        
+        openai_client = OpenAI(api_key=app.config['OPENAI_API_KEY'])
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image_url}
+                        }
+                    ]
+                }
+            ],
+            max_tokens=1000
+        )
+        
+        return jsonify({
+            'success': True,
+            'analysis': response.choices[0].message.content
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/admin/model/status')
 @login_required
 @admin_required
