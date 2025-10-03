@@ -20,7 +20,7 @@ ssh mediamap
 
 #### Option B: Direct SSH
 ```bash
-ssh -i "LightsailDefaultKey-eu-west-2.pem" ubuntu@18.175.120.201
+ssh -i "LightsailDefaultKey-eu-west-2.pem" ubuntu@35.177.61.112
 ```
 
 ### 3. **Quick Sync for Development**
@@ -37,7 +37,7 @@ ssh -i "LightsailDefaultKey-eu-west-2.pem" ubuntu@18.175.120.201
 ### **Daily Development:**
 1. **Make changes locally** in Cursor
 2. **Sync to Lightsail:** `./sync-to-lightsail.sh`
-3. **Test on server:** http://18.175.120.201:8000
+3. **Test on server:** http://35.177.61.112:8000
 4. **SSH for debugging:** `ssh lightsail`
 
 ### **When You Need to Restart:**
@@ -52,8 +52,8 @@ ssh -i "LightsailDefaultKey-eu-west-2.pem" ubuntu@18.175.120.201
 
 ## 🌐 Application Access
 
-- **Main App:** http://18.175.120.201:8000
-- **Alternative:** http://18.175.120.201:3000
+- **Main App:** http://35.177.61.112:8000
+- **Alternative:** http://35.177.61.112:3000
 - **Admin Login:** admin / admin123
 
 ## 📋 Useful Commands
@@ -115,10 +115,10 @@ This means you can access the app at:
 ### **Connection Issues:**
 ```bash
 # Test connection
-ssh -i "LightsailDefaultKey-eu-west-2.pem" -o ConnectTimeout=10 ubuntu@18.175.120.201 "echo 'test'"
+ssh -i "LightsailDefaultKey-eu-west-2.pem" -o ConnectTimeout=10 ubuntu@35.177.61.112 "echo 'test'"
 
 # Check instance status
-curl -I http://18.175.120.201:8000
+curl -I http://35.177.61.112:8000
 ```
 
 ### **Application Issues:**
@@ -186,4 +186,9 @@ ssh lightsail "ps aux | grep -E '(python|gunicorn)' | grep -v grep"
 ---
 
 **Ready to develop? Run `./clean-deploy.sh` and then `ssh lightsail`! 🚀**
+
+
+
+
+
 
