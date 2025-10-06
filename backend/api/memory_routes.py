@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, session
-from backend.session_manager import SessionManager
-from backend.models import db, Memory, UserSession
+from session_manager import SessionManager
+from models import db, Memory, UserSession
 
 memory_api = Blueprint('memory_api', __name__)
 

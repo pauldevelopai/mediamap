@@ -18,9 +18,9 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 # Import existing training infrastructure
-from backend.training.model_trainer import HighlanderModelTrainer, HighlanderDataset
-from backend.training.data_collector import DataCollector
-from backend.training.enhanced_data_collector import EnhancedDataCollector
+from training.model_trainer import HighlanderModelTrainer, HighlanderDataset
+from training.data_collector import DataCollector
+from training.enhanced_data_collector import EnhancedDataCollector
 
 logger = logging.getLogger(__name__)
 

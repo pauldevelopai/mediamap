@@ -13,7 +13,7 @@ import json
 
 from .models import Patient, Doctor, HealthRecord, FamilyNotification
 from .twilio_service import twilio_service
-from ..models import db
+from models import db
 
 # Create Blueprint
 webhooks_bp = Blueprint('healthpin_webhooks', __name__, url_prefix='/healthpin/webhooks')

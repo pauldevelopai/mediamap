@@ -119,7 +119,7 @@ class AgentManager:
             thread = threading.Thread(
                 target=self._agent_worker,
                 args=(agent_name, agent),
-                daemon=True
+                daemon=False
             )
             thread.start()
             self.agent_threads[agent_name] = thread
@@ -160,7 +160,7 @@ class AgentManager:
             thread = threading.Thread(
                 target=self._agent_worker,
                 args=(agent_name, agent),
-                daemon=True
+                daemon=False
             )
             thread.start()
             self.agent_threads[agent_name] = thread

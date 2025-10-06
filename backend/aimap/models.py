@@ -7,7 +7,7 @@ import enum
 
 try:
     # Prefer absolute import when running via module
-    from backend.models import db
+    from models import db
 except Exception:  # pragma: no cover - fallback for direct script execution
     from models import db
 

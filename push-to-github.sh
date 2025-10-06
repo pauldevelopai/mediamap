@@ -7,7 +7,7 @@
 set -e
 
 # Configuration
-LIGHTSAIL_IP="35.177.61.112"
+LIGHTSAIL_IP="18.175.120.201"
 LIGHTSAIL_USER="ubuntu"
 LIGHTSAIL_KEY="LightsailDefaultKey-eu-west-2.pem"
 APP_DIR="/opt/mediamap"

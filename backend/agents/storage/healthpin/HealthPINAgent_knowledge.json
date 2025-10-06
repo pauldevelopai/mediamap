@@ -2,9 +2,9 @@
   "agent_name": "HealthPINAgent",
   "section": "healthpin",
   "created_at": "2025-09-23T13:21:08.511880",
-  "last_updated": "2025-09-30T22:22:12.217062",
-  "learning_cycles": 7,
-  "total_data_points": 77,
+  "last_updated": "2025-10-06T22:18:43.736225",
+  "learning_cycles": 12,
+  "total_data_points": 132,
   "knowledge_categories": {},
   "patterns": {
     "Research_Trends": [
@@ -173,6 +173,126 @@
           "pattern": "Medical research developments",
           "frequency": 1,
           "last_seen": "2025-09-30T22:22:12.216923",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729460",
+          "confidence": 0.30000000000000004
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729498",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729510",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561123",
+          "confidence": 0.30000000000000004
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561161",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561172",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422192",
+          "confidence": 0.30000000000000004
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422231",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422242",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423466",
+          "confidence": 0.30000000000000004
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423504",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423515",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.735956",
+          "confidence": 0.30000000000000004
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.735992",
+          "confidence": 0.4
+        }
+      ],
+      [
+        {
+          "pattern": "Medical research developments",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.736003",
           "confidence": 0.4
         }
       ]
@@ -427,6 +547,196 @@
           "frequency": 1,
           "last_seen": "2025-09-30T22:22:12.217057",
           "confidence": 1.0,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729484",
+          "confidence": 0.4,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729590",
+          "confidence": 1.0,
+          "specialties": [
+            "gynecology"
+          ]
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729700",
+          "confidence": 1.0,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:05:42.729723",
+          "confidence": 0.5,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561146",
+          "confidence": 0.4,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561253",
+          "confidence": 1.0,
+          "specialties": [
+            "gynecology"
+          ]
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561344",
+          "confidence": 1.0,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T11:34:28.561368",
+          "confidence": 0.5,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422216",
+          "confidence": 0.4,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422322",
+          "confidence": 1.0,
+          "specialties": [
+            "gynecology"
+          ]
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422428",
+          "confidence": 1.0,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T13:29:01.422452",
+          "confidence": 0.5,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423489",
+          "confidence": 0.4,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423595",
+          "confidence": 1.0,
+          "specialties": [
+            "gynecology"
+          ]
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423687",
+          "confidence": 1.0,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T15:48:36.423710",
+          "confidence": 0.5,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.735978",
+          "confidence": 0.4,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.736082",
+          "confidence": 1.0,
+          "specialties": [
+            "gynecology"
+          ]
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.736180",
+          "confidence": 1.0,
+          "specialties": []
+        }
+      ],
+      [
+        {
+          "pattern": "Clinical care evolution",
+          "frequency": 1,
+          "last_seen": "2025-10-06T22:18:43.736213",
+          "confidence": 0.5,
           "specialties": []
         }
       ]
@@ -947,11 +1257,91 @@
       "category": "Clinical_Care",
       "timestamp": "2025-09-30T22:22:12.216970",
       "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T11:05:42.729564",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T11:05:42.729684",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T11:34:28.561227",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T11:34:28.561328",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T13:29:01.422296",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T13:29:01.422400",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T15:48:36.423569",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T15:48:36.423671",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T22:18:43.736056",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
+    },
+    {
+      "type": "Patient_Care",
+      "insight": "Patient care quality and outcomes are being enhanced through technology",
+      "confidence": 0.6,
+      "category": "Clinical_Care",
+      "timestamp": "2025-10-06T22:18:43.736159",
+      "source": "https://www.who.int/rss-feeds/news-english.xml"
     }
   ],
   "performance_metrics": {
     "data_collection_success_rate": 2.2,
-    "learning_effectiveness": 0.8181818181818182,
+    "learning_effectiveness": 0.18181818181818182,
     "response_accuracy": 0.0
   }
 }

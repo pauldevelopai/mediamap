@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML, CSS
 from typing import Dict, List, Optional
 from datetime import datetime
-from backend.aimap.models import Organisation, Metrics
+from aimap.models import Organisation, Metrics
 from ..scoring.engine import ScoringEngine
 from ..config import REPORTS_ROOT
 

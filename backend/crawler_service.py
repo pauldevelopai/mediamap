@@ -303,7 +303,7 @@ class CrawlManager:
     def create_crawl_job(self, source_id: int) -> int:
         """Create a new crawl job"""
         try:
-            from backend.models import CrawlJob
+            from models import CrawlJob
         except ImportError:
             from models import CrawlJob
         
@@ -319,7 +319,7 @@ class CrawlManager:
     def run_crawl_job(self, job_id: int) -> bool:
         """Run a specific crawl job"""
         try:
-            from backend.models import CrawlJob, CrawlSource, CrawledContent
+            from models import CrawlJob, CrawlSource, CrawledContent
         except ImportError:
             from models import CrawlJob, CrawlSource, CrawledContent
         
@@ -401,7 +401,7 @@ class CrawlManager:
     def get_crawl_stats(self) -> Dict:
         """Get crawling statistics"""
         try:
-            from backend.models import CrawlSource, CrawledContent, CrawlJob
+            from models import CrawlSource, CrawledContent, CrawlJob
         except ImportError:
             from models import CrawlSource, CrawledContent, CrawlJob
         

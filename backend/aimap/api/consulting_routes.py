@@ -7,7 +7,7 @@ from flask_login import login_required
 from typing import Dict, List, Optional
 import logging
 from ..consulting.service import AIMAPConsultingService
-from backend.aimap.models import Organisation
+from aimap.models import Organisation
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ def generate_strategy(org_id: int):
             }), 404
         
         # Get latest metrics
-        from backend.aimap.models import Metrics
+        from aimap.models import Metrics
         latest_metrics = Metrics.query.filter_by(
             organisation_id=org_id
         ).order_by(Metrics.created_at.desc()).first()
@@ -108,7 +108,7 @@ def generate_consulting_package(org_id: int):
             }), 404
         
         # Get latest metrics
-        from backend.aimap.models import Metrics
+        from aimap.models import Metrics
         latest_metrics = Metrics.query.filter_by(
             organisation_id=org_id
         ).order_by(Metrics.created_at.desc()).first()
@@ -152,7 +152,7 @@ def get_consulting_insights(org_id: int):
             }), 404
         
         # Get latest metrics
-        from backend.aimap.models import Metrics
+        from aimap.models import Metrics
         latest_metrics = Metrics.query.filter_by(
             organisation_id=org_id
         ).order_by(Metrics.created_at.desc()).first()
@@ -196,7 +196,7 @@ def get_process_recommendations(org_id: int):
             }), 404
         
         # Get latest metrics
-        from backend.aimap.models import Metrics
+        from aimap.models import Metrics
         latest_metrics = Metrics.query.filter_by(
             organisation_id=org_id
         ).order_by(Metrics.created_at.desc()).first()
@@ -243,7 +243,7 @@ def create_success_plan(org_id: int):
             }), 404
         
         # Get latest metrics
-        from backend.aimap.models import Metrics
+        from aimap.models import Metrics
         latest_metrics = Metrics.query.filter_by(
             organisation_id=org_id
         ).order_by(Metrics.created_at.desc()).first()
@@ -345,7 +345,7 @@ def get_deliverables(org_id: int):
             }), 404
         
         # Get latest metrics
-        from backend.aimap.models import Metrics
+        from aimap.models import Metrics
         latest_metrics = Metrics.query.filter_by(
             organisation_id=org_id
         ).order_by(Metrics.created_at.desc()).first()

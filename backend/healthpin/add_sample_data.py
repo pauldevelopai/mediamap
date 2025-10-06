@@ -15,8 +15,8 @@ import random
 # Add the backend directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.models import db
-from backend.healthpin.models import (
+from models import db
+from healthpin.models import (
     Patient, Doctor, HealthRecord, DoctorMatch, 
     FamilyNotification, Consultation, HealthNews
 )
@@ -285,5 +285,5 @@ if __name__ == '__main__':
     # This script should be run from the backend directory
     # or with the proper Flask app context
     print("⚠️  This script should be run with Flask app context")
-    print("   Use: python -c \"from backend.healthpin.add_sample_data import add_sample_data; add_sample_data()\"")
+    print("   Use: python -c \"from healthpin.add_sample_data import add_sample_data; add_sample_data()\"")
 

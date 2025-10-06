@@ -17,7 +17,7 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 
 # Import existing model manager
-from backend.training.model_manager import HighlanderModelManager
+from training.model_manager import HighlanderModelManager
 
 logger = logging.getLogger(__name__)
 

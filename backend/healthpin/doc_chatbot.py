@@ -27,10 +27,10 @@ def section_required(required_section):
             return f(*args, **kwargs)
         return wrapped
     return decorator
-from backend.models import db, ChatMessage, User, PromptTemplate
+from models import db, ChatMessage, User, PromptTemplate
 from prompt_manager import get_prompt as get_prompt_from_db
 from prompt_version_manager import performance_tracker
-from backend.healthpin.models import Patient, HealthRecord, Doctor
+from healthpin.models import Patient, HealthRecord, Doctor
 
 # Create Blueprint
 doc_chatbot_bp = Blueprint('doc_chatbot', __name__, url_prefix='/healthpin/doc')
@@ -156,7 +156,7 @@ class DocChatbotManager:
         try:
             # Try to use HealthPIN model first
             try:
-                from backend.training.model_factory import get_healthpin_model_manager
+                from training.model_factory import get_healthpin_model_manager
                 
                 healthpin_manager = get_healthpin_model_manager()
                 

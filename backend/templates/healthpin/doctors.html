@@ -1,0 +1,297 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}South African Doctors - HealthPIN{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doctor-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-left: 4px solid #198754;
+        transition: all 0.3s ease;
+    }
+    
+    .doctor-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .doctor-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .badge-verified {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .specialty-badge {
+        background: #e3f2fd;
+        color: #1565c0;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        margin: 2px;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #198754, #157347);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .scrape-btn {
+        background: linear-gradient(45deg, #198754, #20c997);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .scrape-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">
+                    <i class="bi bi-stethoscope me-3"></i>
+                    South African Doctors
+                </h1>
+                <p class="mb-0 opacity-75">{{ total_count }} verified healthcare professionals</p>
+            </div>
+            <div>
+                <button class="btn scrape-btn me-2" onclick="triggerDoctorScraping()">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Scrape More Doctors
+                </button>
+                <a href="/healthpin/" class="btn btn-light">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if doctors %}
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h3 class="text-success">{{ total_count }}</h3>
+                    <p class="text-muted mb-0">Total Doctors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ doctors|selectattr('is_verified', 'equalto', true)|list|length }}</h3>
+                    <p class="text-muted mb-0">Verified</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h3 class="text-info">{{ doctors|map(attribute='city')|unique|list|length }}</h3>
+                    <p class="text-muted mb-0">Cities</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ doctors|map(attribute='province')|unique|list|length }}</h3>
+                    <p class="text-muted mb-0">Provinces</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Cards -->
+    <div class="row">
+        {% for doctor in doctors %}
+        <div class="col-lg-6 mb-4">
+            <div class="doctor-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-badge me-2 text-success"></i>
+                        {{ doctor.full_name }}
+                    </h5>
+                    {% if doctor.is_verified %}
+                        <span class="doctor-badge badge-verified">
+                            <i class="bi bi-check-circle me-1"></i>Verified
+                        </span>
+                    {% else %}
+                        <span class="doctor-badge badge-pending">
+                            <i class="bi bi-clock me-1"></i>Pending
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <i class="bi bi-building me-2 text-muted"></i>
+                            <strong>Practice:</strong> {{ doctor.practice_name or 'Private Practice' }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-geo-alt me-2 text-muted"></i>
+                            <strong>Location:</strong> {{ doctor.city }}, {{ doctor.province }}
+                        </p>
+                        {% if doctor.phone %}
+                        <p class="mb-2">
+                            <i class="bi bi-telephone me-2 text-muted"></i>
+                            <strong>Phone:</strong> {{ doctor.phone }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if doctor.consultation_fee %}
+                        <p class="mb-2">
+                            <i class="bi bi-currency-dollar me-2 text-muted"></i>
+                            <strong>Fee:</strong> R{{ doctor.consultation_fee }}
+                        </p>
+                        {% endif %}
+                        {% if doctor.years_experience %}
+                        <p class="mb-2">
+                            <i class="bi bi-award me-2 text-muted"></i>
+                            <strong>Experience:</strong> {{ doctor.years_experience }} years
+                        </p>
+                        {% endif %}
+                        <p class="mb-2">
+                            <i class="bi bi-shield-check me-2 text-muted"></i>
+                            <strong>Medical Aid:</strong> {{ 'Yes' if doctor.accepts_medical_aid else 'No' }}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if doctor.specialties %}
+                <div class="mt-3">
+                    <strong class="text-muted">
+                        <i class="bi bi-heart-pulse me-1"></i>Specialties:
+                    </strong>
+                    <div class="mt-2">
+                        {% for specialty in doctor.specialties %}
+                        <span class="specialty-badge">{{ specialty }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mt-3 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="bi bi-card-text me-1"></i>
+                        License: {{ doctor.medical_license }}
+                        <span class="ms-3">
+                            <i class="bi bi-clock me-1"></i>
+                            Added: {{ doctor.created_at[:10] if doctor.created_at else 'Unknown' }}
+                        </span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="bi bi-stethoscope display-1 text-muted mb-4"></i>
+                    <h3 class="text-muted">No South African Doctors Found</h3>
+                    <p class="text-muted mb-4">The doctor database is empty. Use OpenStreetMap data to find real healthcare professionals in South Africa.</p>
+                    <button class="btn scrape-btn" onclick="triggerDoctorScraping()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Start Doctor Scraping
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function triggerDoctorScraping() {
+    const btn = event.target;
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Scraping...';
+    
+    fetch('/healthpin/scrape-doctors', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({limit: 100})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>Success!</strong> Doctor scraping completed. Found ${data.result?.doctors_added || 'new'} doctors.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.page-header').nextSibling);
+            
+            // Refresh page after 2 seconds
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            // Show error message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Error!</strong> ${data.error || 'Scraping failed'}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.page-header').nextSibling);
+            
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    })
+    .catch(error => {
+        // Show error message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Error!</strong> Network error: ${error.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.page-header').nextSibling);
+        
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    });
+}
+</script>
+{% endblock %}

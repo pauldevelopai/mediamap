@@ -11,8 +11,8 @@ for different use cases:
 import os
 import logging
 from typing import Optional, Dict, Any
-from backend.training.model_manager import HighlanderModelManager
-from backend.healthpin.training.healthpin_model_manager import HealthPINModelManager
+from training.model_manager import HighlanderModelManager
+from healthpin.training.healthpin_model_manager import HealthPINModelManager
 
 logger = logging.getLogger(__name__)
 

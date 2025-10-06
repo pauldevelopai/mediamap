@@ -1,0 +1,1542 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}HealthPIN - Complete Health Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="bi bi-heart-pulse me-2 text-primary"></i>
+            HealthPIN - Complete Health Platform
+        </h1>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary" onclick="refreshStats()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+            <button class="btn btn-primary" onclick="showAddPatientModal()">
+                <i class="bi bi-person-plus me-1"></i>Add Patient
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_patients }}</h4>
+                            <p class="card-text">Total Patients</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small><i class="bi bi-arrow-up me-1"></i>Active patients in system</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_doctors }}</h4>
+                            <p class="card-text">Verified Doctors</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-stethoscope fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small><i class="bi bi-check-circle me-1"></i>Available for matching</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_records }}</h4>
+                            <p class="card-text">Health Records</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-file-medical fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small><i class="bi bi-bank me-1"></i>Stored in HealthBank</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_matches }}</h4>
+                            <p class="card-text">AI Matches</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-search fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small><i class="bi bi-cpu me-1"></i>HealthFind matches</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Monitoring -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-activity me-2"></i>
+                        System Health Monitor
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-database fs-1 text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Database</h6>
+                                    <span class="badge bg-success">Healthy</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-cpu fs-1 text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">AI Services</h6>
+                                    <span class="badge bg-success">Healthy</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-hdd fs-1 text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Storage</h6>
+                                    <span class="badge bg-success">Healthy</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bi bi-telephone fs-1 text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Twilio</h6>
+                                    <span class="badge bg-info" id="twilioStatusBadge">Checking...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">System Users</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>Total Users: <strong>{{ total_users }}</strong></span>
+                                <span>Admin Users: <strong>{{ admin_users }}</strong></span>
+                                <span>Regular Users: <strong>{{ regular_users }}</strong></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Last Activity</h6>
+                            <span>System Status: <strong>{{ system_status.last_backup }}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="showHealthFindModal()">
+                                <i class="bi bi-search me-2"></i>
+                                HealthFind
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-success w-100" onclick="showHealthBankModal()">
+                                <i class="bi bi-bank me-2"></i>
+                                HealthBank
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="showFamilyHealthModal()">
+                                <i class="bi bi-people me-2"></i>
+                                FamilyHealth
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-warning w-100" onclick="showHealthNewsModal()">
+                                <i class="bi bi-newspaper me-2"></i>
+                                HealthNews
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-success w-100" onclick="showMessagingModal()">
+                                <i class="bi bi-chat-dots me-2"></i>
+                                Send Message
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="showAppointmentReminderModal()">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Appointment Reminder
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="checkTwilioStatus()">
+                                <i class="bi bi-telephone me-2"></i>
+                                Twilio Status
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="showWebhookTestModal()">
+                                <i class="bi bi-webhook me-2"></i>
+                                Test Webhooks
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-success w-100" onclick="startHealthPINTraining()">
+                                <i class="bi bi-cpu me-2"></i>
+                                Train AI Model
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="checkAIModelStatus()">
+                                <i class="bi bi-robot me-2"></i>
+                                AI Model Status
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-warning w-100" onclick="testAIModel()">
+                                <i class="bi bi-chat-heart me-2"></i>
+                                Test AI Model
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-primary w-100" onclick="showAITrainingModal()">
+                                <i class="bi bi-gear me-2"></i>
+                                Training Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Recent Patients
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_patients %}
+                    <div class="list-group list-group-flush">
+                        {% for patient in recent_patients %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ patient.first_name }} {{ patient.last_name }}</h6>
+                                <small class="text-muted">{{ patient.phone_number }} • {{ patient.city or 'No location' }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ patient.created_at.strftime('%m/%d') }}</small>
+                                <br>
+                                <span class="badge bg-primary">{{ patient.language_preference|upper }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No recent patients</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-stethoscope me-2"></i>
+                        Recent Doctors
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_doctors %}
+                    <div class="list-group list-group-flush">
+                        {% for doctor in recent_doctors %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ doctor.title or '' }} {{ doctor.first_name }} {{ doctor.last_name }}</h6>
+                                <small class="text-muted">
+                                    {% if doctor.specialties %}
+                                        {{ doctor.specialties[0] if doctor.specialties else 'General' }}
+                                    {% else %}
+                                        General Practice
+                                    {% endif %}
+                                    • {{ doctor.city }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ doctor.created_at.strftime('%m/%d') }}</small>
+                                <br>
+                                {% if doctor.is_verified %}
+                                <span class="badge bg-success">Verified</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No recent doctors</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-chat-dots me-2"></i>
+                        Recent Chat Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_chats %}
+                    <div class="list-group list-group-flush">
+                        {% for chat in recent_chats %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Chat #{{ chat.id }}</h6>
+                                <small class="text-muted">{{ chat.user.username if chat.user else 'Unknown User' }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ chat.updated_at.strftime('%m/%d %H:%M') }}</small>
+                                <br>
+                                <span class="badge bg-info">Active</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No recent chat activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal fade" id="addPatientModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Add New Patient
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPatientForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="firstName" class="form-label">First Name *</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lastName" class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" id="lastName" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="phoneNumber" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="dateOfBirth">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="language" class="form-label">Language Preference</label>
+                                <select class="form-select" id="language">
+                                    <option value="en">English</option>
+                                    <option value="zu">isiZulu</option>
+                                    <option value="xh">isiXhosa</option>
+                                    <option value="sn">Shona</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="province" class="form-label">Province</label>
+                                <select class="form-select" id="province">
+                                    <option value="">Select Province</option>
+                                    <option value="Western Cape">Western Cape</option>
+                                    <option value="Eastern Cape">Eastern Cape</option>
+                                    <option value="Northern Cape">Northern Cape</option>
+                                    <option value="Free State">Free State</option>
+                                    <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                    <option value="North West">North West</option>
+                                    <option value="Gauteng">Gauteng</option>
+                                    <option value="Mpumalanga">Mpumalanga</option>
+                                    <option value="Limpopo">Limpopo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergencyContact" class="form-label">Emergency Contact Name</label>
+                        <input type="text" class="form-control" id="emergencyContact">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="emergencyPhone" class="form-label">Emergency Contact Phone</label>
+                        <input type="tel" class="form-control" id="emergencyPhone">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createPatient()">
+                    <i class="bi bi-check me-1"></i>Create Patient
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HealthFind Modal -->
+<div class="modal fade" id="healthFindModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-search me-2"></i>
+                    HealthFind - AI Doctor Matching
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="patientSelect" class="form-label">Select Patient</label>
+                    <select class="form-select" id="patientSelect">
+                        <option value="">Choose a patient...</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    HealthFind uses AI to match patients with the most suitable doctors based on specialty, location, cultural fit, and accessibility needs.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="findDoctors()">
+                    <i class="bi bi-search me-1"></i>Find Doctors
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Message Modal -->
+<div class="modal fade" id="messagingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-dots me-2"></i>
+                    Send Message to Patient
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="messagePatientSelect" class="form-label">Select Patient</label>
+                    <select class="form-select" id="messagePatientSelect">
+                        <option value="">Choose a patient...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="messageType" class="form-label">Message Type</label>
+                    <select class="form-select" id="messageType">
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="sms">SMS</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="messageContent" class="form-label">Message Content</label>
+                    <textarea class="form-control" id="messageContent" rows="4" placeholder="Enter your message here..."></textarea>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Messages will be sent via Twilio. Make sure Twilio is configured for messaging to work.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendMessage()">
+                    <i class="bi bi-send me-1"></i>Send Message
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Reminder Modal -->
+<div class="modal fade" id="appointmentReminderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Send Appointment Reminder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="reminderPatientSelect" class="form-label">Select Patient</label>
+                    <select class="form-select" id="reminderPatientSelect">
+                        <option value="">Choose a patient...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="doctorName" class="form-label">Doctor Name</label>
+                    <input type="text" class="form-control" id="doctorName" placeholder="Dr. John Smith">
+                </div>
+                <div class="mb-3">
+                    <label for="appointmentDate" class="form-label">Appointment Date & Time</label>
+                    <input type="datetime-local" class="form-control" id="appointmentDate">
+                </div>
+                <div class="mb-3">
+                    <label for="appointmentType" class="form-label">Appointment Type</label>
+                    <select class="form-select" id="appointmentType">
+                        <option value="consultation">Consultation</option>
+                        <option value="follow_up">Follow-up</option>
+                        <option value="checkup">Check-up</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendAppointmentReminder()">
+                    <i class="bi bi-calendar-check me-1"></i>Send Reminder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Twilio Status Modal -->
+<div class="modal fade" id="twilioStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-telephone me-2"></i>
+                    Twilio Configuration Status
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="twilioStatusContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking Twilio status...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="checkTwilioStatus()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let patients = [];
+let doctors = [];
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatients();
+    loadStats();
+    checkTwilioStatusOnLoad();
+});
+
+// Load patients for dropdowns
+async function loadPatients() {
+    try {
+        const response = await fetch('/healthpin/patients', {
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            patients = data.patients;
+            updatePatientSelect();
+        }
+    } catch (error) {
+        console.error('Error loading patients:', error);
+    }
+}
+
+// Update patient select dropdown
+function updatePatientSelect() {
+    const selects = ['patientSelect', 'messagePatientSelect', 'reminderPatientSelect'];
+    
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            select.innerHTML = '<option value="">Choose a patient...</option>';
+            
+            patients.forEach(patient => {
+                const option = document.createElement('option');
+                option.value = patient.id;
+                option.textContent = `${patient.first_name} ${patient.last_name} (${patient.phone_number})`;
+                select.appendChild(option);
+            });
+        }
+    });
+}
+
+// Load statistics
+async function loadStats() {
+    try {
+        const response = await fetch('/healthpin/stats', {
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update stats display if needed
+            console.log('Stats loaded:', data.stats);
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+// Show modals
+function showAddPatientModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addPatientModal'));
+    modal.show();
+}
+
+function showHealthFindModal() {
+    const modal = new bootstrap.Modal(document.getElementById('healthFindModal'));
+    modal.show();
+}
+
+function showHealthBankModal() {
+    alert('HealthBank functionality coming soon!');
+}
+
+function showFamilyHealthModal() {
+    alert('FamilyHealth functionality coming soon!');
+}
+
+function showHealthNewsModal() {
+    alert('HealthNews functionality coming soon!');
+}
+
+function showMessagingModal() {
+    const modal = new bootstrap.Modal(document.getElementById('messagingModal'));
+    modal.show();
+}
+
+function showAppointmentReminderModal() {
+    const modal = new bootstrap.Modal(document.getElementById('appointmentReminderModal'));
+    modal.show();
+}
+
+function showWebhookTestModal() {
+    alert('Webhook testing functionality coming soon!');
+}
+
+// Create new patient
+async function createPatient() {
+    const form = document.getElementById('addPatientForm');
+    const formData = new FormData(form);
+    
+    const patientData = {
+        first_name: document.getElementById('firstName').value,
+        last_name: document.getElementById('lastName').value,
+        phone_number: document.getElementById('phoneNumber').value,
+        date_of_birth: document.getElementById('dateOfBirth').value,
+        gender: document.getElementById('gender').value,
+        language_preference: document.getElementById('language').value,
+        city: document.getElementById('city').value,
+        province: document.getElementById('province').value,
+        emergency_contact_name: document.getElementById('emergencyContact').value,
+        emergency_contact_phone: document.getElementById('emergencyPhone').value
+    };
+    
+    try {
+        const response = await fetch('/healthpin/patients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(patientData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Patient created successfully!');
+            bootstrap.Modal.getInstance(document.getElementById('addPatientModal')).hide();
+            form.reset();
+            loadPatients(); // Reload patients list
+            location.reload(); // Refresh dashboard
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error creating patient:', error);
+        alert('Error creating patient. Please try again.');
+    }
+}
+
+// Find doctors for patient
+async function findDoctors() {
+    const patientId = document.getElementById('patientSelect').value;
+    
+    if (!patientId) {
+        alert('Please select a patient first.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/healthpin/healthfind/match', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ patient_id: parseInt(patientId) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDoctorMatches(result.matches);
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error finding doctors:', error);
+        alert('Error finding doctors. Please try again.');
+    }
+}
+
+// Display doctor matches
+function displayDoctorMatches(matches) {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('healthFindModal'));
+    modal.hide();
+    
+    // Create results modal
+    const resultsHtml = `
+        <div class="modal fade" id="doctorMatchesModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-search me-2"></i>
+                            Doctor Matches Found
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            ${matches.map(match => `
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">${match.doctor.full_name}</h6>
+                                            <p class="card-text">
+                                                <strong>Specialties:</strong> ${match.doctor.specialties.join(', ')}<br>
+                                                <strong>Location:</strong> ${match.doctor.city}, ${match.doctor.province}<br>
+                                                <strong>Practice:</strong> ${match.doctor.practice_name || 'Private Practice'}
+                                            </p>
+                                            <div class="mb-2">
+                                                <strong>Match Score: ${match.match_score.overall}%</strong>
+                                                <div class="progress mt-1">
+                                                    <div class="progress-bar" style="width: ${match.match_score.overall}%"></div>
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted">${match.match_score.reasoning}</p>
+                                        </div>
+                                        <div class="card-footer">
+                                            <button class="btn btn-sm btn-primary" onclick="selectDoctor(${match.doctor.id})">
+                                                Select Doctor
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if present
+    const existingModal = document.getElementById('doctorMatchesModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add new modal to DOM
+    document.body.insertAdjacentHTML('beforeend', resultsHtml);
+    
+    // Show modal
+    const newModal = new bootstrap.Modal(document.getElementById('doctorMatchesModal'));
+    newModal.show();
+}
+
+// Select doctor
+function selectDoctor(doctorId) {
+    alert(`Doctor ${doctorId} selected! Consultation booking functionality coming soon.`);
+}
+
+// Refresh stats
+function refreshStats() {
+    loadStats();
+    location.reload();
+}
+
+// Send message to patient
+async function sendMessage() {
+    const patientId = document.getElementById('messagePatientSelect').value;
+    const messageType = document.getElementById('messageType').value;
+    const messageContent = document.getElementById('messageContent').value;
+    
+    if (!patientId || !messageContent) {
+        alert('Please select a patient and enter a message.');
+        return;
+    }
+    
+    try {
+        const endpoint = messageType === 'whatsapp' ? '/healthpin/messaging/send-whatsapp' : '/healthpin/messaging/send-sms';
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                patient_id: parseInt(patientId),
+                message: messageContent
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Message sent successfully! Message ID: ${result.message_id}`);
+            bootstrap.Modal.getInstance(document.getElementById('messagingModal')).hide();
+            document.getElementById('messageContent').value = '';
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        alert('Error sending message. Please try again.');
+    }
+}
+
+// Send appointment reminder
+async function sendAppointmentReminder() {
+    const patientId = document.getElementById('reminderPatientSelect').value;
+    const doctorName = document.getElementById('doctorName').value;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const appointmentType = document.getElementById('appointmentType').value;
+    
+    if (!patientId || !doctorName || !appointmentDate) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/healthpin/messaging/send-appointment-reminder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                patient_id: parseInt(patientId),
+                doctor_name: doctorName,
+                appointment_date: appointmentDate,
+                appointment_type: appointmentType
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Appointment reminder sent successfully! Message ID: ${result.message_id}`);
+            bootstrap.Modal.getInstance(document.getElementById('appointmentReminderModal')).hide();
+            // Clear form
+            document.getElementById('doctorName').value = '';
+            document.getElementById('appointmentDate').value = '';
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error sending appointment reminder:', error);
+        alert('Error sending appointment reminder. Please try again.');
+    }
+}
+
+// Check Twilio status on page load
+async function checkTwilioStatusOnLoad() {
+    try {
+        const response = await fetch('/healthpin/messaging/status', {
+            credentials: 'same-origin'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const badge = document.getElementById('twilioStatusBadge');
+            if (badge) {
+                if (result.configured) {
+                    badge.textContent = 'Configured';
+                    badge.className = 'badge bg-success';
+                } else {
+                    badge.textContent = 'Not Configured';
+                    badge.className = 'badge bg-warning';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error checking Twilio status:', error);
+        const badge = document.getElementById('twilioStatusBadge');
+        if (badge) {
+            badge.textContent = 'Error';
+            badge.className = 'badge bg-danger';
+        }
+    }
+}
+
+// HealthPIN AI Training Functions
+async function startHealthPINTraining() {
+    try {
+        const response = await fetch('/healthpin/training/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                epochs: 3,
+                learning_rate: 2e-5,
+                base_model: 'microsoft/DialoGPT-medium',
+                quick_mode: false
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`HealthPIN AI training started successfully!\n\nTraining Mode: ${result.training_mode}\nEpochs: ${result.parameters.epochs}\nLearning Rate: ${result.parameters.learning_rate}\nBase Model: ${result.parameters.base_model}\n\nTraining will run in the background. Check the status periodically.`);
+        } else {
+            alert(`Error starting training: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error starting HealthPIN training:', error);
+        alert('Error starting HealthPIN training. Please try again.');
+    }
+}
+
+async function checkAIModelStatus() {
+    try {
+        const response = await fetch('/healthpin/training/status', {
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            let statusMessage = `AI Model Status:\n\n`;
+            statusMessage += `Model Loaded: ${result.model_loaded ? 'Yes' : 'No'}\n`;
+            statusMessage += `Model Type: ${result.model_type}\n`;
+            statusMessage += `Training Available: ${result.training_available ? 'Yes' : 'No'}\n`;
+            
+            if (result.model_stats) {
+                statusMessage += `\nModel Statistics:\n`;
+                statusMessage += `Total Requests: ${result.model_stats.stats.total_requests || 0}\n`;
+                statusMessage += `Medical Conversations: ${result.model_stats.stats.medical_conversations || 0}\n`;
+                statusMessage += `Doctor Matches: ${result.model_stats.stats.doctor_matches || 0}\n`;
+                statusMessage += `Health Record Analyses: ${result.model_stats.stats.health_record_analyses || 0}\n`;
+                statusMessage += `Family Notifications: ${result.model_stats.stats.family_notifications || 0}\n`;
+            }
+            
+            alert(statusMessage);
+        } else {
+            alert(`Error checking AI model status: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error checking AI model status:', error);
+        alert('Error checking AI model status. Please try again.');
+    }
+}
+
+async function testAIModel() {
+    const testMessage = prompt('Enter a test message for the AI model:');
+    if (!testMessage) return;
+
+    try {
+        const response = await fetch('/healthpin/ai/generate-response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                message: testMessage,
+                patient_context: {
+                    age: 35,
+                    gender: 'male',
+                    medical_history: 'none'
+                }
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            let responseMessage = `AI Model Test Results:\n\n`;
+            responseMessage += `Input: ${testMessage}\n\n`;
+            responseMessage += `Response: ${result.response}\n\n`;
+            responseMessage += `Source: ${result.source}\n`;
+            responseMessage += `Model Loaded: ${result.model_loaded ? 'Yes' : 'No'}`;
+            
+            alert(responseMessage);
+        } else {
+            alert(`Error testing AI model: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error testing AI model:', error);
+        alert('Error testing AI model. Please try again.');
+    }
+}
+
+function showAITrainingModal() {
+    // Create a simple training settings modal
+    const modalHtml = `
+        <div class="modal fade" id="aiTrainingModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-gear me-2"></i>
+                            HealthPIN AI Training Settings
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="trainingEpochs" class="form-label">Training Epochs</label>
+                            <input type="number" class="form-control" id="trainingEpochs" value="3" min="1" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <label for="learningRate" class="form-label">Learning Rate</label>
+                            <input type="number" class="form-control" id="learningRate" value="0.00002" step="0.00001" min="0.00001" max="0.001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="baseModel" class="form-label">Base Model</label>
+                            <select class="form-select" id="baseModel">
+                                <option value="microsoft/DialoGPT-small">DialoGPT Small (Fast)</option>
+                                <option value="microsoft/DialoGPT-medium" selected>DialoGPT Medium (Recommended)</option>
+                                <option value="microsoft/DialoGPT-large">DialoGPT Large (Slow)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="quickMode">
+                                <label class="form-check-label" for="quickMode">
+                                    Quick Training Mode (1 epoch, smaller model)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="startCustomTraining()">Start Training</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('aiTrainingModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiTrainingModal'));
+    modal.show();
+}
+
+async function startCustomTraining() {
+    const epochs = parseInt(document.getElementById('trainingEpochs').value);
+    const learningRate = parseFloat(document.getElementById('learningRate').value);
+    const baseModel = document.getElementById('baseModel').value;
+    const quickMode = document.getElementById('quickMode').checked;
+    
+    try {
+        const response = await fetch('/healthpin/training/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                epochs: epochs,
+                learning_rate: learningRate,
+                base_model: baseModel,
+                quick_mode: quickMode
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('aiTrainingModal'));
+            modal.hide();
+            
+            alert(`HealthPIN AI training started successfully!\n\nTraining Mode: ${result.training_mode}\nEpochs: ${result.parameters.epochs}\nLearning Rate: ${result.parameters.learning_rate}\nBase Model: ${result.parameters.base_model}\n\nTraining will run in the background. Check the status periodically.`);
+        } else {
+            alert(`Error starting training: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error starting custom training:', error);
+        alert('Error starting custom training. Please try again.');
+    }
+}
+
+// Check Twilio status
+async function checkTwilioStatus() {
+    const statusContent = document.getElementById('twilioStatusContent');
+    
+    try {
+        const response = await fetch('/healthpin/messaging/status', {
+            credentials: 'same-origin'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const statusHtml = `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-${result.configured ? 'success' : 'warning'}">
+                            <h6><i class="bi bi-${result.configured ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                            Twilio Status: ${result.configured ? 'Configured' : 'Not Configured'}</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>WhatsApp From:</strong><br>
+                        <code>${result.whatsapp_from || 'Not set'}</code>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>SMS From:</strong><br>
+                        <code>${result.sms_from || 'Not set'}</code>
+                    </div>
+                </div>
+                ${!result.configured ? `
+                <div class="alert alert-info mt-3">
+                    <h6>Setup Instructions:</h6>
+                    <ol>
+                        <li>Sign up for a Twilio account at <a href="https://www.twilio.com" target="_blank">twilio.com</a></li>
+                        <li>Get your Account SID and Auth Token from the Twilio Console</li>
+                        <li>Set up WhatsApp Business API or use the sandbox for testing</li>
+                        <li>Configure your environment variables (see twilio.env.example)</li>
+                        <li>Restart the application</li>
+                    </ol>
+                </div>
+                ` : ''}
+            `;
+            
+            statusContent.innerHTML = statusHtml;
+        } else {
+            statusContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    Error checking Twilio status: ${result.error}
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error checking Twilio status:', error);
+        statusContent.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle me-2"></i>
+                Error checking Twilio status. Please try again.
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}
+
+<script>
+// Interactive HealthPIN Dashboard - Real Data
+function showPatients() {
+    fetch('/healthpin/api/patients')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showDataModal('Clinical Care Patients (' + data.total + ' total)', data.data, 'patients');
+            }
+        });
+}
+
+function showDoctors() {
+    fetch('/healthpin/api/doctors')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showDataModal('Healthcare Sources & Experts (' + data.total + ' sources)', data.data, 'doctors');
+            }
+        });
+}
+
+function showRecords() {
+    fetch('/healthpin/api/records')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showDataModal('Health Records & Data (' + data.total + ' records)', data.data, 'records');
+            }
+        });
+}
+
+function showMatches() {
+    fetch('/healthpin/api/matches')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showDataModal('AI Healthcare Matches (' + data.total + ' categories)', data.data, 'matches');
+            }
+        });
+}
+
+function showDataModal(title, data, type) {
+    let modalContent = `
+        <div class="modal fade" id="dataModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">🏥 ${title}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>`;
+    
+    if (type === 'patients') {
+        modalContent += `<th>Clinical Case</th><th>Description</th><th>Source</th><th>Date</th>`;
+    } else if (type === 'doctors') {
+        modalContent += `<th>Healthcare Expert</th><th>Specialty</th><th>Data Points</th><th>Latest Finding</th>`;
+    } else if (type === 'records') {
+        modalContent += `<th>Health Record</th><th>Category</th><th>Content Preview</th><th>Date</th>`;
+    } else if (type === 'matches') {
+        modalContent += `<th>AI Category</th><th>Matches</th><th>Description</th><th>Confidence</th>`;
+    }
+    
+    modalContent += `</tr></thead><tbody>`;
+    
+    data.forEach((item, index) => {
+        modalContent += `<tr>`;
+        if (type === 'patients') {
+            modalContent += `
+                <td><strong>${item.name}</strong></td>
+                <td><small>${item.description}</small></td>
+                <td><span class="badge bg-info">${item.source.includes('who.int') ? 'WHO' : item.source.includes('harvard') ? 'Harvard' : 'Healthcare Source'}</span></td>
+                <td>${item.date}</td>`;
+        } else if (type === 'doctors') {
+            modalContent += `
+                <td><strong>${item.name}</strong></td>
+                <td><span class="badge bg-success">${item.specialty}</span></td>
+                <td><span class="badge bg-primary">${item.entries_count} entries</span></td>
+                <td><small>${item.latest_entry}</small></td>`;
+        } else if (type === 'records') {
+            modalContent += `
+                <td><strong>${item.title}</strong></td>
+                <td><span class="badge bg-warning">${item.type}</span></td>
+                <td><small>${item.content}</small></td>
+                <td>${item.date}</td>`;
+        } else if (type === 'matches') {
+            modalContent += `
+                <td><strong>${item.category}</strong></td>
+                <td><span class="badge bg-primary">${item.match_count} matches</span></td>
+                <td><small>${item.description}</small></td>
+                <td><span class="badge bg-success">${(item.confidence * 100).toFixed(1)}%</span></td>`;
+        }
+        modalContent += `</tr>`;
+    });
+    
+    modalContent += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    
+    // Remove existing modal
+    const existingModal = document.getElementById('dataModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalContent);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('dataModal'));
+    modal.show();
+}
+
+// Add click handlers and hover effects to colorful boxes
+document.addEventListener('DOMContentLoaded', function() {
+    const boxes = document.querySelectorAll('.card');
+    boxes.forEach(box => {
+        const titleElement = box.querySelector('.card-text, p');
+        if (titleElement) {
+            const title = titleElement.textContent.trim();
+            if (title.includes('Total Patients')) {
+                box.style.cursor = 'pointer';
+                box.style.transition = 'transform 0.2s';
+                box.addEventListener('click', showPatients);
+                box.addEventListener('mouseenter', () => box.style.transform = 'scale(1.05)');
+                box.addEventListener('mouseleave', () => box.style.transform = 'scale(1)');
+                box.title = 'Click to view clinical care cases';
+            } else if (title.includes('Verified Doctors')) {
+                box.style.cursor = 'pointer';
+                box.style.transition = 'transform 0.2s';
+                box.addEventListener('click', showDoctors);
+                box.addEventListener('mouseenter', () => box.style.transform = 'scale(1.05)');
+                box.addEventListener('mouseleave', () => box.style.transform = 'scale(1)');
+                box.title = 'Click to view healthcare sources';
+            } else if (title.includes('Health Records')) {
+                box.style.cursor = 'pointer';
+                box.style.transition = 'transform 0.2s';
+                box.addEventListener('click', showRecords);
+                box.addEventListener('mouseenter', () => box.style.transform = 'scale(1.05)');
+                box.addEventListener('mouseleave', () => box.style.transform = 'scale(1)');
+                box.title = 'Click to view all health records';
+            } else if (title.includes('AI Matches')) {
+                box.style.cursor = 'pointer';
+                box.style.transition = 'transform 0.2s';
+                box.addEventListener('click', showMatches);
+                box.addEventListener('mouseenter', () => box.style.transform = 'scale(1.05)');
+                box.addEventListener('mouseleave', () => box.style.transform = 'scale(1)');
+                box.title = 'Click to view AI category matches';
+            }
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Adding data links under boxes...");
+    
+    // Find all cards and add appropriate links
+    const cards = document.querySelectorAll('.card');
+    
+    cards.forEach(card => {
+        const cardText = card.textContent || '';
+        let linkHTML = '';
+        
+        if (cardText.includes('Total Patients') || cardText.includes('44')) {
+            linkHTML = '<a href="/healthpin/patients" class="data-link patients-link">👥 View All Clinical Cases</a>';
+        } else if (cardText.includes('Verified Doctors') || cardText.includes('2')) {
+            linkHTML = '<a href="/healthpin/doctors" class="data-link doctors-link">👨‍⚕️ View Healthcare Sources</a>';
+        } else if (cardText.includes('Health Records') || cardText.includes('121')) {
+            linkHTML = '<a href="/healthpin/records" class="data-link records-link">📋 View All Records</a>';
+        } else if (cardText.includes('AI Matches') || cardText.includes('4')) {
+            linkHTML = '<a href="/healthpin/matches" class="data-link matches-link">🤖 View AI Categories</a>';
+        }
+        
+        if (linkHTML) {
+            // Add link to card body or after card
+            const cardBody = card.querySelector('.card-body');
+            if (cardBody) {
+                cardBody.insertAdjacentHTML('beforeend', linkHTML);
+                console.log("Added link to card:", cardText.substring(0, 20));
+            }
+        }
+    });
+    
+    console.log("Data links added successfully!");
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const text = card.textContent;
+        let link = '';
+        
+        if (text.includes('Total Patients') || text.includes('44')) {
+            link = '<div class="mt-2"><a href="/healthpin/patients" class="btn btn-sm btn-outline-primary">👥 View Clinical Cases</a></div>';
+        } else if (text.includes('Verified Doctors') || text.includes('2')) {
+            link = '<div class="mt-2"><a href="/healthpin/doctors" class="btn btn-sm btn-outline-success">👨‍⚕️ View Sources</a></div>';
+        } else if (text.includes('Health Records') || text.includes('121')) {
+            link = '<div class="mt-2"><a href="/healthpin/records" class="btn btn-sm btn-outline-info">📋 View Records</a></div>';
+        } else if (text.includes('AI Matches') || text.includes('4')) {
+            link = '<div class="mt-2"><a href="/healthpin/matches" class="btn btn-sm btn-outline-warning">🤖 View Matches</a></div>';
+        }
+        
+        if (link) {
+            const cardBody = card.querySelector('.card-body');
+            if (cardBody) {
+                cardBody.insertAdjacentHTML('beforeend', link);
+            }
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const text = card.textContent;
+        let link = '';
+        
+        if (text.includes('Total Patients') || text.includes('44')) {
+            link = '<div class="mt-2"><a href="/healthpin/patients" class="btn btn-sm btn-outline-primary">👥 View Clinical Cases</a></div>';
+        } else if (text.includes('Verified Doctors') || text.includes('2')) {
+            link = '<div class="mt-2"><a href="/healthpin/doctors" class="btn btn-sm btn-outline-success">👨‍⚕️ View Sources</a></div>';
+        } else if (text.includes('Health Records') || text.includes('121')) {
+            link = '<div class="mt-2"><a href="/healthpin/records" class="btn btn-sm btn-outline-info">📋 View Records</a></div>';
+        } else if (text.includes('AI Matches') || text.includes('4')) {
+            link = '<div class="mt-2"><a href="/healthpin/matches" class="btn btn-sm btn-outline-warning">🤖 View Matches</a></div>';
+        }
+        
+        if (link) {
+            const cardBody = card.querySelector('.card-body');
+            if (cardBody) {
+                cardBody.insertAdjacentHTML('beforeend', link);
+            }
+        }
+    });
+});
+</script>

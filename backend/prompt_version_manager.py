@@ -5,7 +5,7 @@ Prompt Version Manager - Handles versioning and rollback functionality
 import json
 from typing import Dict, List, Optional, Any
 from datetime import datetime
-from backend.models import PromptTemplate, PromptVersion, PromptPerformance, db
+from models import PromptTemplate, PromptVersion, PromptPerformance, db
 from flask import current_app
 
 class PromptVersionManager:

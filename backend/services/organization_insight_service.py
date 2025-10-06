@@ -9,8 +9,8 @@ import json
 import openai
 from flask import current_app
 
-from backend.models import db, OrganizationInsight, Newsroom, User, HighlanderChat
-from backend.aimap.models import Organisation
+from models import db, OrganizationInsight, Newsroom, User, HighlanderChat
+from aimap.models import Organisation
 
 logger = logging.getLogger(__name__)
 

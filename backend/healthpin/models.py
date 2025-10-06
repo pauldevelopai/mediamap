@@ -10,7 +10,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Float, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from backend.models import db
+from models import db
 
 class Patient(db.Model):
     """Patient model for HealthPIN platform"""

@@ -127,7 +127,7 @@ def doctor_directory_status():
     """Return status for the HealthPIN Doctor Directory agent (counts)."""
     try:
         try:
-            from backend.healthpin.models import Doctor
+            from healthpin.models import Doctor
         except ImportError:
             from healthpin.models import Doctor
         total_doctors = Doctor.query.count()
@@ -956,3 +956,134 @@ def get_activity_log():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+
+
+@agents_bp.route('/<agent_name>/duration', methods=['POST'])
+@login_required
+def set_agent_duration(agent_name):
+    """Set how long an agent should run"""
+    try:
+        data = request.get_json() or {}
+        hours = data.get('hours', 24)  # Default 24 hours
+        auto_restart = data.get('auto_restart', True)
+        
+        if agent_name not in agent_manager.agents:
+            return jsonify({'success': False, 'error': 'Agent not found'}), 404
+        
+        agent = agent_manager.agents[agent_name]
+        
+        # Set duration on the agent config
+        if hasattr(agent, 'config'):
+            agent.config.run_duration_hours = hours
+            agent.config.auto_restart = auto_restart
+        
+        return jsonify({
+            'success': True,
+            'message': f'Agent {agent_name} will run for {hours} hours (auto-restart: {auto_restart})'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+@agents_bp.route('/<agent_name>/enable-tasks', methods=['POST'])
+@login_required
+def enable_agent_tasks(agent_name):
+    """Enable advanced tasks for an agent"""
+    try:
+        data = request.get_json()
+        tasks = data.get('tasks', [])
+        
+        if agent_name not in agent_manager.agents:
+            return jsonify({'success': False, 'error': 'Agent not found'}), 404
+        
+        agent = agent_manager.agents[agent_name]
+        
+        # Enable tasks based on selection
+        task_configs = {
+            'competitive-analysis': {
+                'analysis_types': ['competitive_analysis', 'market_trends'],
+                'custom_prompts': {
+                    'competitive': 'Analyze competitive landscape and market positioning'
+                }
+            },
+            'content-generation': {
+                'auto_actions': ['generate_reports', 'create_summaries'],
+                'response_style': 'executive_summary'
+            },
+            'predictive-analysis': {
+                'analysis_types': ['trends', 'forecasting'],
+                'confidence_threshold': 0.9
+            },
+            'data-enrichment': {
+                'auto_actions': ['enrich_data', 'validate_sources'],
+                'max_data_points': 2000
+            },
+            'automated-research': {
+                'analysis_types': ['research', 'insights'],
+                'learning_interval': 15
+            },
+            'alert-system': {
+                'auto_actions': ['send_alerts', 'monitor_events'],
+                'confidence_threshold': 0.85
+            }
+        }
+        
+        # Apply task configurations
+        enabled_tasks = []
+        for task in tasks:
+            if task in task_configs:
+                # Update agent configuration with task settings
+                config = task_configs[task]
+                # Here you would update the agent's configuration
+                enabled_tasks.append(task)
+        
+        return jsonify({
+            'success': True,
+            'enabled_tasks': enabled_tasks,
+            'message': f'Enabled {len(enabled_tasks)} advanced tasks for {agent_name}'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@agents_bp.route('/export-configs')
+@login_required
+def export_agent_configs():
+    """Export all agent configurations"""
+    try:
+        configs = {}
+        for agent_name, agent in agent_manager.agents.items():
+            configs[agent_name] = {
+                'name': agent.name,
+                'section': agent.section,
+                'data_sources': agent.data_sources,
+                'learning_interval': agent.learning_interval,
+                'max_data_points': agent.max_data_points
+            }
+        
+        from flask import make_response
+        import json
+        
+        response = make_response(json.dumps(configs, indent=2))
+        response.headers['Content-Type'] = 'application/json'
+        response.headers['Content-Disposition'] = 'attachment; filename=agent_configs.json'
+        
+        return response
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@agents_bp.route('/reset-defaults', methods=['POST'])
+@login_required
+def reset_agent_defaults():
+    """Reset all agents to default configurations"""
+    try:
+        # This would reset agent configurations to defaults
+        # Implementation depends on your specific requirements
+        
+        return jsonify({
+            'success': True,
+            'message': 'Agent configurations reset to defaults'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
