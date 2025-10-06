@@ -1671,7 +1671,7 @@ class ProjectAssignment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    person_id = db.Column(db.Integer, db.ForeignKey('people.id'), nullable=False)
+    person_id = db.Column(db.Integer, db.ForeignKey('people_management.id'), nullable=False)
     
     # Assignment Details
     role = db.Column(db.String(100), nullable=False)  # Project Manager, AI Expert, Consultant, Developer

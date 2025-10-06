@@ -5,7 +5,7 @@ This allows the app to use prompts that are edited and saved in the admin dashbo
 
 import json
 from typing import Dict, Optional, Any
-from backend.models import PromptTemplate, db
+from models import PromptTemplate, db
 from flask import current_app
 
 class PromptManager:
@@ -216,7 +216,7 @@ NEVER say 'Hello' again after the first interaction. Always continue the convers
         """Track prompt usage for performance metrics"""
         try:
             from prompt_version_manager import performance_tracker
-            from backend.models import PromptTemplate
+            from models import PromptTemplate
             
             # Get prompt ID from database
             prompt = PromptTemplate.query.filter_by(name=prompt_name).first()

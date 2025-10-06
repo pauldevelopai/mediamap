@@ -47,14 +47,14 @@ from openai import OpenAI
 import json
 import uuid
 try:
-    from backend.aimap.config import OPENAI_API_KEY
+    from aimap.config import OPENAI_API_KEY
 except ImportError:
     from aimap.config import OPENAI_API_KEY
 from datetime import datetime, timezone, timedelta
 import urllib.parse
 import requests
 try:
-    from backend.auth import auth
+    from auth import auth
 except ImportError:
     from auth import auth
 import time
@@ -87,7 +87,7 @@ try:
     from aimap.api.ml_routes import ml_api
     from aimap.api.consulting_routes import consulting_api
     from aimap.api.data_management_routes import data_api
-    from backend.aimap.models import Organisation  # Metrics temporarily disabled
+    from aimap.models import Organisation  # Metrics temporarily disabled
 except ImportError:
     aimap_api = None
     ml_api = None
@@ -100,10 +100,10 @@ except ImportError:
 try:
     from backend.healthpin import healthpin_bp
     # HealthPIN models imported via healthpin package to avoid duplicate registration
-    from backend.healthpin.webhooks import webhooks_bp
-    from backend.healthpin.doc_chatbot import doc_chatbot_bp
-    from backend.healthpin.whatsapp_webhook import whatsapp_webhook_bp
-    from backend.agents.routes import agents_bp
+    from healthpin.webhooks import webhooks_bp
+    from healthpin.doc_chatbot import doc_chatbot_bp
+    from healthpin.whatsapp_webhook import whatsapp_webhook_bp
+    from agents.routes import agents_bp
     print("✅ HealthPIN modules imported successfully")
 except ImportError as e:
     print(f"⚠️ HealthPIN import error: {e}")
@@ -122,7 +122,7 @@ except ImportError as e:
 
 # Import memory management
 try:
-    from backend.api.memory_routes import memory_api
+    from api.memory_routes import memory_api
 except ImportError:
     memory_api = None
 
@@ -353,7 +353,7 @@ app.register_blueprint(clients_bp)
 
 # Setup DataSafe Hugging Face integration routes
 try:
-    from backend.datasafe_integration import setup_datasafe_routes
+    from datasafe_integration import setup_datasafe_routes
     setup_datasafe_routes(app)
     print("✅ DataSafe Hugging Face integration routes loaded")
 except ImportError as e:
@@ -377,7 +377,7 @@ def load_model_from_hf():
     try:
         data = request.get_json(silent=True) or {}
         model_name = data.get('model_name') or os.getenv('HF_MODEL_REPO') or 'paulmcnally/highlander-ai-model'
-        from backend.training.model_factory import get_mediamap_model_manager
+        from training.model_factory import get_mediamap_model_manager
         manager = get_mediamap_model_manager()
         ok = manager.load_from_huggingface(model_name)
         return jsonify({ 'success': bool(ok), 'model_name': model_name }), (200 if ok else 500)
@@ -572,7 +572,7 @@ def chat():
         print(f"Using Highlander model manager for MediaMap chat")
         
         # Get MediaMap model manager
-        from backend.training.model_factory import get_mediamap_model_manager
+        from training.model_factory import get_mediamap_model_manager
         manager = get_mediamap_model_manager()
         
         # Prepare conversation history
@@ -1680,7 +1680,7 @@ def admin_organizations():
 @admin_required
 def admin_prompts():
     """Admin page for prompt management"""
-    from backend.models import PromptTemplate
+    from models import PromptTemplate
     
     # Get only active prompts (actually used in the application)
     prompts = PromptTemplate.query.filter_by(is_active=True).order_by(PromptTemplate.updated_at.desc()).all()
@@ -1778,7 +1778,7 @@ def generate_organization_insight():
         organization_id = data['organization_id']
         
         # Import the service
-        from backend.services.organization_insight_service import organization_insight_service
+        from services.organization_insight_service import organization_insight_service
         
         # Generate insights
         result = organization_insight_service.generate_comprehensive_insight(
@@ -1811,7 +1811,7 @@ def generate_organization_report():
         format_type = data.get('format', 'html')
         
         # Import the service
-        from backend.services.organization_insight_service import organization_insight_service
+        from services.organization_insight_service import organization_insight_service
         
         # Generate report
         result = organization_insight_service.generate_two_page_report(
@@ -1856,7 +1856,7 @@ def get_newsrooms():
 def get_organization_insights(organization_id: int):
     """Get insights for a specific organization"""
     try:
-        from backend.services.organization_insight_service import organization_insight_service
+        from services.organization_insight_service import organization_insight_service
         
         insights = organization_insight_service.get_organization_insights(organization_id)
         
@@ -1897,7 +1897,7 @@ def generate_insights_report():
         
         # Import agent_manager with error handling
         try:
-            from backend.agents.agent_manager import agent_manager
+            from agents.agent_manager import agent_manager
         except ImportError as e:
             logger.error(f"Failed to import agent_manager: {e}")
             return jsonify({
@@ -2126,7 +2126,7 @@ def download_insights_report(filename):
 def admin_start_agent(agent_name):
     """Start a specific AI agent from admin interface"""
     try:
-        from backend.agents.agent_manager import agent_manager
+        from agents.agent_manager import agent_manager
         
         if agent_name not in agent_manager.agents:
             return jsonify({
@@ -2157,7 +2157,7 @@ def admin_start_agent(agent_name):
 def admin_stop_agent(agent_name):
     """Stop a specific AI agent from admin interface"""
     try:
-        from backend.agents.agent_manager import agent_manager
+        from agents.agent_manager import agent_manager
         
         if agent_name not in agent_manager.agents:
             return jsonify({
@@ -2189,7 +2189,7 @@ def admin_stop_agent(agent_name):
 def get_agent_config(agent_name):
     """Get agent configuration"""
     try:
-        from backend.models import AgentConfiguration
+        from models import AgentConfiguration
         import json
         
         config = AgentConfiguration.query.filter_by(name=agent_name).first()
@@ -2247,8 +2247,8 @@ def get_agent_config(agent_name):
 def get_agents_dashboard():
     """Get agents dashboard data"""
     try:
-        from backend.models import Chat, HighlanderChat, DailyInsight, Newsroom
-        from backend.aimap.models import Organisation
+        from models import Chat, HighlanderChat, DailyInsight, Newsroom
+        from aimap.models import Organisation
         from datetime import datetime, timedelta
         
         # Get real data instead of dummy data
@@ -2330,7 +2330,7 @@ def get_agents_dashboard():
 def update_agent_config(agent_name):
     """Update agent configuration"""
     try:
-        from backend.models import AgentConfiguration, db
+        from models import AgentConfiguration, db
         import json
         
         data = request.get_json()
@@ -2371,7 +2371,7 @@ def update_agent_config(agent_name):
 def get_workflow_agents(workflow_name):
     """Get all agents for a specific workflow"""
     try:
-        from backend.models import WorkflowAgent
+        from models import WorkflowAgent
         
         agents = WorkflowAgent.query.filter_by(
             workflow_name=workflow_name,
@@ -2395,7 +2395,7 @@ def get_workflow_agents(workflow_name):
 def add_workflow_agent(workflow_name):
     """Add a new agent to a workflow"""
     try:
-        from backend.models import WorkflowAgent, db
+        from models import WorkflowAgent, db
         import json
         
         data = request.get_json()
@@ -2434,7 +2434,7 @@ def add_workflow_agent(workflow_name):
 def update_workflow_agent(workflow_name, agent_id):
     """Update a workflow agent"""
     try:
-        from backend.models import WorkflowAgent, db
+        from models import WorkflowAgent, db
         import json
         
         agent = WorkflowAgent.query.filter_by(
@@ -2480,7 +2480,7 @@ def update_workflow_agent(workflow_name, agent_id):
 def remove_workflow_agent(workflow_name, agent_id):
     """Remove an agent from a workflow"""
     try:
-        from backend.models import WorkflowAgent, db
+        from models import WorkflowAgent, db
         
         agent = WorkflowAgent.query.filter_by(
             id=agent_id,
@@ -2532,7 +2532,7 @@ def admin_doc_chatbot():
 @admin_required
 def create_prompt():
     """Create a new prompt"""
-    from backend.models import PromptTemplate
+    from models import PromptTemplate
     
     try:
         data = request.get_json()
@@ -2586,7 +2586,7 @@ def create_prompt():
 @admin_required
 def get_prompt(prompt_id):
     """Get a specific prompt"""
-    from backend.models import PromptTemplate
+    from models import PromptTemplate
     
     try:
         prompt = PromptTemplate.query.get_or_404(prompt_id)
@@ -2599,7 +2599,7 @@ def get_prompt(prompt_id):
 @admin_required
 def update_prompt(prompt_id):
     """Update a prompt"""
-    from backend.models import PromptTemplate
+    from models import PromptTemplate
     
     try:
         prompt = PromptTemplate.query.get_or_404(prompt_id)
@@ -2669,7 +2669,7 @@ def update_prompt(prompt_id):
 @admin_required
 def delete_prompt(prompt_id):
     """Delete a prompt"""
-    from backend.models import PromptTemplate
+    from models import PromptTemplate
     
     try:
         prompt = PromptTemplate.query.get_or_404(prompt_id)
@@ -2756,7 +2756,7 @@ def rollback_prompt(prompt_id):
 def check_prompt_duplicates():
     """Check for duplicate prompts in the database"""
     try:
-        from backend.models import PromptTemplate
+        from models import PromptTemplate
         
         # Get all active prompts
         prompts = PromptTemplate.query.filter_by(is_active=True).all()
@@ -2862,7 +2862,7 @@ def admin_intelligence_reports():
 def admin_prototyping():
     """AI Prototyping page - track newsroom AI product prototypes"""
     try:
-        from backend.models import AIPrototype, Newsroom, PrototypeUpdate
+        from models import AIPrototype, Newsroom, PrototypeUpdate
         
         # Get prototype statistics
         total_prototypes = AIPrototype.query.count()
@@ -2925,8 +2925,8 @@ def admin_map():
     """Business Map page - comprehensive overview of consulting business with AIMAP integration"""
     # Get REAL statistics from AIMAP database
     try:
-        from backend.aimap.models import Organisation  # Metrics temporarily disabled
-        from backend.models import Client, Newsroom, ResearchProject, DailyInsight
+        from aimap.models import Organisation  # Metrics temporarily disabled
+        from models import Client, Newsroom, ResearchProject, DailyInsight
         
         # AIMAP Organization statistics (REAL DATA)
         total_organisations = Organisation.query.count()
@@ -2993,7 +2993,7 @@ def admin_map():
         
         # Data source counts for insights
         try:
-            from backend.models import HighlanderChat
+            from models import HighlanderChat
             highlander_chat_count = HighlanderChat.query.count()
         except ImportError:
             highlander_chat_count = 0
@@ -3013,7 +3013,7 @@ def admin_map():
         industry_updates = 0
         
         # People statistics (REAL DATA)
-        from backend.models import PersonManagement
+        from models import PersonManagement
         total_people = PersonManagement.query.count()
         ai_experts = PersonManagement.query.filter_by(role='AI Expert').count()
         consultants = PersonManagement.query.filter_by(role='Consultant').count()
@@ -3027,7 +3027,7 @@ def admin_map():
         }
         
         # Project statistics (REAL DATA)
-        from backend.models import Project
+        from models import Project
         total_projects = Project.query.count()
         active_projects = Project.query.filter_by(status='Active').count()
         completed_projects = Project.query.filter_by(status='Completed').count()
@@ -3131,7 +3131,7 @@ def manage_people():
     """Manage people for AI consulting projects"""
     if request.method == 'GET':
         try:
-            from backend.models import PersonManagement
+            from models import PersonManagement
             people = PersonManagement.query.all()
             people_data = []
             for person in people:
@@ -3142,7 +3142,7 @@ def manage_people():
     
     elif request.method == 'POST':
         try:
-            from backend.models import PersonManagement
+            from models import PersonManagement
             data = request.get_json()
             
             new_person = PersonManagement(
@@ -3173,7 +3173,7 @@ def manage_people():
     
     elif request.method == 'PUT':
         try:
-            from backend.models import PersonManagement
+            from models import PersonManagement
             data = request.get_json()
             person_id = data['id']
             
@@ -3200,7 +3200,7 @@ def manage_people():
     
     elif request.method == 'DELETE':
         try:
-            from backend.models import PersonManagement
+            from models import PersonManagement
             data = request.get_json()
             person_id = data['id']
             
@@ -3224,13 +3224,13 @@ def manage_projects():
     """Manage AI consulting projects"""
     if request.method == 'GET':
         try:
-            from backend.models import Project
+            from models import Project
             projects = Project.query.all()
             projects_data = []
             for project in projects:
                 project_dict = project.to_dict()
                 # Get team members from assignments
-                from backend.models import ProjectAssignment
+                from models import ProjectAssignment
                 assignments = ProjectAssignment.query.filter_by(project_id=project.id).all()
                 team_members = []
                 for assignment in assignments:
@@ -3245,7 +3245,7 @@ def manage_projects():
     
     elif request.method == 'POST':
         try:
-            from backend.models import Project
+            from models import Project
             data = request.get_json()
             
             new_project = Project(
@@ -3283,7 +3283,7 @@ def manage_projects():
     
     elif request.method == 'PUT':
         try:
-            from backend.models import Project
+            from models import Project
             data = request.get_json()
             project_id = data['id']
             
@@ -3320,7 +3320,7 @@ def manage_projects():
     
     elif request.method == 'DELETE':
         try:
-            from backend.models import Project
+            from models import Project
             data = request.get_json()
             project_id = data['id']
             
@@ -3343,7 +3343,7 @@ def manage_projects():
 def export_people_csv():
     """Export people data to CSV"""
     try:
-        from backend.models import PersonManagement
+        from models import PersonManagement
         import csv
         from io import StringIO
         
@@ -3395,7 +3395,7 @@ def export_people_csv():
 def export_projects_csv():
     """Export projects data to CSV"""
     try:
-        from backend.models import Project
+        from models import Project
         import csv
         from io import StringIO
         
@@ -3451,7 +3451,7 @@ def manage_project_templates():
     """Manage AI project templates"""
     if request.method == 'GET':
         try:
-            from backend.models import ProjectTemplate
+            from models import ProjectTemplate
             templates = ProjectTemplate.query.all()
             templates_data = []
             for template in templates:
@@ -3462,7 +3462,7 @@ def manage_project_templates():
     
     elif request.method == 'POST':
         try:
-            from backend.models import ProjectTemplate
+            from models import ProjectTemplate
             data = request.get_json()
             
             new_template = ProjectTemplate(
@@ -3498,7 +3498,7 @@ def manage_organizations():
     """Manage AIMAP organizations"""
     if request.method == 'GET':
         try:
-            from backend.aimap.models import Organisation
+            from aimap.models import Organisation
             print(f"DEBUG: Fetching organizations from table: {Organisation.__tablename__}")
             organizations = Organisation.query.all()
             print(f"DEBUG: Found {len(organizations)} organizations")
@@ -3532,7 +3532,7 @@ def manage_organizations():
     
     elif request.method == 'POST':
         try:
-            from backend.aimap.models import Organisation
+            from aimap.models import Organisation
             data = request.get_json()
             print(f"DEBUG: POST - Creating organization with data: {data}")
             print(f"DEBUG: POST - Using table: {Organisation.__tablename__}")
@@ -3565,7 +3565,7 @@ def manage_organizations():
     
     elif request.method == 'PUT':
         try:
-            from backend.aimap.models import Organisation
+            from aimap.models import Organisation
             data = request.get_json()
             org_id = data['id']
             
@@ -3590,7 +3590,7 @@ def manage_organizations():
     
     elif request.method == 'DELETE':
         try:
-            from backend.aimap.models import Organisation
+            from aimap.models import Organisation
             data = request.get_json()
             org_id = data['id']
             
@@ -3620,7 +3620,7 @@ def start_discovery():
         print(f"Discovery request: keywords='{keywords}', sector='{sector}'")  # Debug log
         
         # Get existing organizations from database to filter out duplicates
-        from backend.aimap.models import Organisation
+        from aimap.models import Organisation
         existing_orgs = Organisation.query.all()
         existing_names = {org.name.lower().strip() for org in existing_orgs}
         print(f"Found {len(existing_names)} existing organizations in database")  # Debug log
@@ -3782,7 +3782,7 @@ def manage_clients():
     """Manage consulting clients"""
     if request.method == 'GET':
         try:
-            from backend.models import Client
+            from models import Client
             clients = Client.query.all()
             client_data = []
             for client in clients:
@@ -3806,7 +3806,7 @@ def manage_clients():
     
     elif request.method == 'POST':
         try:
-            from backend.models import Client
+            from models import Client
             data = request.get_json()
             
             # Validate required fields
@@ -3840,7 +3840,7 @@ def manage_clients():
     
     elif request.method == 'PUT':
         try:
-            from backend.models import Client
+            from models import Client
             data = request.get_json()
             client_id = data['id']
             
@@ -3865,7 +3865,7 @@ def manage_clients():
     
     elif request.method == 'DELETE':
         try:
-            from backend.models import Client
+            from models import Client
             data = request.get_json()
             client_id = data['id']
             
@@ -3887,7 +3887,7 @@ def manage_newsrooms():
     """Manage newsrooms"""
     if request.method == 'GET':
         try:
-            from backend.models import Newsroom
+            from models import Newsroom
             newsrooms = Newsroom.query.all()
             newsroom_data = []
             for newsroom in newsrooms:
@@ -3909,7 +3909,7 @@ def manage_newsrooms():
     
     elif request.method == 'POST':
         try:
-            from backend.models import Newsroom
+            from models import Newsroom
             data = request.get_json()
             
             new_newsroom = Newsroom(
@@ -3931,7 +3931,7 @@ def manage_newsrooms():
     
     elif request.method == 'PUT':
         try:
-            from backend.models import Newsroom
+            from models import Newsroom
             data = request.get_json()
             newsroom_id = data['id']
             
@@ -3951,7 +3951,7 @@ def manage_newsrooms():
     
     elif request.method == 'DELETE':
         try:
-            from backend.models import Newsroom
+            from models import Newsroom
             data = request.get_json()
             newsroom_id = data['id']
             
@@ -3974,7 +3974,7 @@ def manage_prototypes():
     """Manage AI prototypes"""
     if request.method == 'GET':
         try:
-            from backend.models import AIPrototype, Newsroom
+            from models import AIPrototype, Newsroom
             prototypes = AIPrototype.query.all()
             prototype_data = []
             for prototype in prototypes:
@@ -4009,7 +4009,7 @@ def manage_prototypes():
     
     elif request.method == 'POST':
         try:
-            from backend.models import AIPrototype
+            from models import AIPrototype
             data = request.get_json()
             
             new_prototype = AIPrototype(
@@ -4043,7 +4043,7 @@ def manage_prototypes():
     
     elif request.method == 'PUT':
         try:
-            from backend.models import AIPrototype
+            from models import AIPrototype
             data = request.get_json()
             prototype_id = data['id']
             
@@ -4074,7 +4074,7 @@ def manage_prototypes():
     
     elif request.method == 'DELETE':
         try:
-            from backend.models import AIPrototype
+            from models import AIPrototype
             data = request.get_json()
             prototype_id = data['id']
             
@@ -4096,7 +4096,7 @@ def manage_prototype_updates():
     """Manage prototype updates and progress reports"""
     if request.method == 'GET':
         try:
-            from backend.models import PrototypeUpdate
+            from models import PrototypeUpdate
             prototype_id = request.args.get('prototype_id')
             
             if prototype_id:
@@ -4124,7 +4124,7 @@ def manage_prototype_updates():
     
     elif request.method == 'POST':
         try:
-            from backend.models import PrototypeUpdate
+            from models import PrototypeUpdate
             data = request.get_json()
             
             new_update = PrototypeUpdate(
@@ -4151,7 +4151,7 @@ def manage_prototype_updates():
 def get_insights():
     """Get all insights (excluding news articles)"""
     try:
-        from backend.models import DailyInsight
+        from models import DailyInsight
         # Only get insights, exclude news articles
         insights = DailyInsight.query.filter(
             DailyInsight.category != 'Admin News'
@@ -4178,7 +4178,7 @@ def get_insights():
 def get_insight_detail(insight_id):
     """Get a specific insight by ID"""
     try:
-        from backend.models import DailyInsight
+        from models import DailyInsight
         insight = DailyInsight.query.get(insight_id)
         if insight:
             return jsonify({
@@ -4203,7 +4203,7 @@ def get_insight_detail(insight_id):
 def get_research_projects():
     """Get all research projects"""
     try:
-        from backend.models import ResearchProject
+        from models import ResearchProject
         projects = ResearchProject.query.order_by(ResearchProject.created_at.desc()).all()
         projects_data = []
         for project in projects:
@@ -4226,7 +4226,7 @@ def get_research_projects():
 def get_research_project_detail(project_id):
     """Get a specific research project by ID"""
     try:
-        from backend.models import ResearchProject
+        from models import ResearchProject
         project = ResearchProject.query.get(project_id)
         if project:
             return jsonify({
@@ -4244,7 +4244,7 @@ def get_research_project_detail(project_id):
 def get_training_workshops():
     """Get all training workshops"""
     try:
-        from backend.models import TrainingWorkshop
+        from models import TrainingWorkshop
         workshops = TrainingWorkshop.query.order_by(TrainingWorkshop.scheduled_date.desc()).all()
         workshops_data = []
         for workshop in workshops:
@@ -4259,7 +4259,7 @@ def get_training_workshops():
 def get_training_workshop_detail(workshop_id):
     """Get a specific training workshop by ID with attendees"""
     try:
-        from backend.models import TrainingWorkshop, TrainingAttendance
+        from models import TrainingWorkshop, TrainingAttendance
         workshop = TrainingWorkshop.query.get(workshop_id)
         if workshop:
             workshop_data = workshop.to_dict()
@@ -4281,7 +4281,7 @@ def get_training_workshop_detail(workshop_id):
 def create_training_workshop():
     """Create a new training workshop"""
     try:
-        from backend.models import TrainingWorkshop, db
+        from models import TrainingWorkshop, db
         from datetime import datetime
         
         data = request.get_json()
@@ -4319,7 +4319,7 @@ def create_training_workshop():
 def add_workshop_attendee(workshop_id):
     """Add an attendee to a training workshop"""
     try:
-        from backend.models import TrainingWorkshop, TrainingAttendance, Newsroom, db
+        from models import TrainingWorkshop, TrainingAttendance, Newsroom, db
         
         workshop = TrainingWorkshop.query.get(workshop_id)
         if not workshop:
@@ -4359,7 +4359,7 @@ def add_workshop_attendee(workshop_id):
 def update_training_attendee(attendee_id):
     """Update training attendee information"""
     try:
-        from backend.models import TrainingAttendance, db
+        from models import TrainingAttendance, db
         
         attendee = TrainingAttendance.query.get(attendee_id)
         if not attendee:
@@ -4391,7 +4391,7 @@ def update_training_attendee(attendee_id):
 def admin_chat_management():
     """Admin page for managing chat data from all users"""
     try:
-        from backend.models import Chat, Message, User, ChatMessage, HighlanderChat
+        from models import Chat, Message, User, ChatMessage, HighlanderChat
         
         # Get comprehensive statistics - include all chat types
         total_chats = Chat.query.count()
@@ -4556,7 +4556,7 @@ def admin_chat_management():
 def admin_chat_cleanup():
     """Admin endpoint for cleaning up chat data"""
     try:
-        from backend.models import Chat, Message
+        from models import Chat, Message
         from datetime import datetime, timedelta
         import re
         
@@ -4742,7 +4742,7 @@ def _admin_refresh_news_internal():
             all_news[category] = unique_articles
         
         # Store in database for admin dashboard
-        from backend.models import DailyInsight
+        from models import DailyInsight
         
         with app.app_context():
             # Clear old admin news
@@ -4781,7 +4781,7 @@ def _admin_refresh_news_internal():
 def admin_get_news():
     """Get current news for admin dashboard"""
     try:
-        from backend.models import DailyInsight
+        from models import DailyInsight
         
         # Get recent admin news
         admin_news = DailyInsight.query.filter_by(category='Admin News').order_by(DailyInsight.created_at.desc()).limit(12).all()
@@ -4858,7 +4858,7 @@ def save_news():
             return jsonify({'success': False, 'error': 'Title is required'})
         
         # Check if news already exists
-        from backend.models import SavedNews
+        from models import SavedNews
         existing_news = SavedNews.query.filter_by(
             title=title,
             user_id=current_user.id
@@ -4895,7 +4895,7 @@ def save_news():
 def get_saved_news():
     """Get user's saved news stories"""
     try:
-        from backend.models import SavedNews
+        from models import SavedNews
         
         saved_news = SavedNews.query.filter_by(user_id=current_user.id).order_by(SavedNews.created_at.desc()).all()
         
@@ -4913,7 +4913,7 @@ def get_saved_news():
 def delete_saved_news(news_id):
     """Delete a saved news story"""
     try:
-        from backend.models import SavedNews
+        from models import SavedNews
         
         saved_news = SavedNews.query.filter_by(id=news_id, user_id=current_user.id).first()
         
@@ -4952,8 +4952,8 @@ def generate_newsroom_insight():
         knowledge_gaps = []
         
         try:
-            from backend.models import Newsroom, DailyInsight, Chat, User
-            from backend.aimap.models import Organisation
+            from models import Newsroom, DailyInsight, Chat, User
+            from aimap.models import Organisation
             from datetime import datetime, timedelta
             
             # Get newsroom details
@@ -5107,7 +5107,7 @@ Format the report professionally with clear sections, bullet points, and actiona
             title = article_title if article_title else f'AI Status Report: {newsroom_data["name"]}'
             
             # Create insight record in database
-            from backend.models import DailyInsight
+            from models import DailyInsight
             insight = DailyInsight(
                 title=title,
                 content=report_content,
@@ -5164,8 +5164,8 @@ def highlander_chat():
         
         # Get comprehensive business context for Highlander AI
         try:
-            from backend.models import Client, Newsroom, ResearchProject, User, HighlanderChat
-            from backend.aimap.models import Organisation  # Metrics temporarily disabled
+            from models import Client, Newsroom, ResearchProject, User, HighlanderChat
+            from aimap.models import Organisation  # Metrics temporarily disabled
             
             # Core business data
             client_count = Client.query.count()
@@ -5246,7 +5246,7 @@ Respond as Highlander AI, your trusted business advisor. Always provide actionab
                 ).choices[0].message.content
                 
                 # Store the chat in database
-                from backend.models import HighlanderChat
+                from models import HighlanderChat
                 chat = HighlanderChat(
                     user_id=current_user.id,
                     session_id=session_id,
@@ -5299,7 +5299,7 @@ Respond as Highlander AI, your trusted business advisor. Always provide actionab
 def highlander_chats():
     """Get all Highlander AI chat history"""
     try:
-        from backend.models import HighlanderChat
+        from models import HighlanderChat
         chats = HighlanderChat.query.order_by(HighlanderChat.created_at.desc()).all()
         
         chat_data = []
@@ -5327,7 +5327,7 @@ def highlander_chats():
 def highlander_export():
     """Export Highlander AI chat data"""
     try:
-        from backend.models import HighlanderChat
+        from models import HighlanderChat
         chats = HighlanderChat.query.order_by(HighlanderChat.created_at.desc()).all()
         
         export_data = []
@@ -5357,7 +5357,7 @@ def highlander_export():
 def highlander_process():
     """Process and analyze Highlander AI chat data"""
     try:
-        from backend.models import HighlanderChat
+        from models import HighlanderChat
         chats = HighlanderChat.query.all()
         
         # Basic processing - count chats by category
@@ -5388,7 +5388,7 @@ def highlander_page():
 def get_highlander_chats():
     """Get Highlander AI chat history"""
     try:
-        from backend.models import HighlanderChat
+        from models import HighlanderChat
         chats = HighlanderChat.query.filter_by(user_id=current_user.id).order_by(HighlanderChat.created_at.desc()).limit(50).all()
         
         chat_data = []
@@ -5412,7 +5412,7 @@ def get_highlander_chats():
 def export_highlander_chats():
     """Export Highlander AI chat data for processing"""
     try:
-        from backend.models import HighlanderChat
+        from models import HighlanderChat
         chats = HighlanderChat.query.filter_by(user_id=current_user.id).all()
         
         export_data = []
@@ -5439,7 +5439,7 @@ def export_highlander_chats():
 def process_highlander_data():
     """Process Highlander AI chat data for insights"""
     try:
-        from backend.models import HighlanderChat
+        from models import HighlanderChat
         unprocessed_chats = HighlanderChat.query.filter_by(user_id=current_user.id, processed=False).all()
         
         # Process chats for insights
@@ -5478,14 +5478,14 @@ def implementation_experience_chat():
             return jsonify({'success': False, 'error': 'No message provided'})
         
         # Get user's newsroom
-        from backend.models import Newsroom
+        from models import Newsroom
         newsroom = Newsroom.query.filter_by(user_id=current_user.id).first()
         
         if not newsroom:
             return jsonify({'success': False, 'error': 'No newsroom found for this user'})
         
         # Get or create chat session
-        from backend.models import ImplementationChatSession
+        from models import ImplementationChatSession
         session = ImplementationChatSession.query.filter_by(
             session_id=session_id,
             user_id=current_user.id
@@ -5502,7 +5502,7 @@ def implementation_experience_chat():
             db.session.commit()
         
         # Store user message
-        from backend.models import ImplementationChatMessage
+        from models import ImplementationChatMessage
         user_message = ImplementationChatMessage(
             session_id=session.id,
             sender_type='user',
@@ -5537,7 +5537,7 @@ Be conversational, encouraging, and help them think through their experience sys
         
         # Generate AI response
         try:
-            from backend.training.model_factory import get_mediamap_model_manager
+            from training.model_factory import get_mediamap_model_manager
             manager = get_mediamap_model_manager()
             
             conversation = [
@@ -5577,14 +5577,14 @@ def submit_implementation_experience():
         data = request.get_json()
         
         # Get user's newsroom
-        from backend.models import Newsroom
+        from models import Newsroom
         newsroom = Newsroom.query.filter_by(user_id=current_user.id).first()
         
         if not newsroom:
             return jsonify({'success': False, 'error': 'No newsroom found for this user'})
         
         # Create implementation experience
-        from backend.models import NewsroomImplementationExperience
+        from models import NewsroomImplementationExperience
         experience = NewsroomImplementationExperience(
             newsroom_id=newsroom.id,
             user_id=current_user.id,
@@ -5621,7 +5621,7 @@ def submit_implementation_experience():
 def get_implementation_experience_history():
     """Get user's implementation experience history"""
     try:
-        from backend.models import NewsroomImplementationExperience
+        from models import NewsroomImplementationExperience
         experiences = NewsroomImplementationExperience.query.filter_by(
             user_id=current_user.id
         ).order_by(NewsroomImplementationExperience.created_at.desc()).all()
@@ -5641,7 +5641,7 @@ def get_implementation_experience_history():
 def admin_implementation_experiences():
     """Admin view of all implementation experiences"""
     try:
-        from backend.models import NewsroomImplementationExperience
+        from models import NewsroomImplementationExperience
         experiences = NewsroomImplementationExperience.query.order_by(
             NewsroomImplementationExperience.created_at.desc()
         ).all()
@@ -5669,7 +5669,7 @@ def admin_implementation_experiences():
 def admin_view_implementation_experience(experience_id):
     """Admin view of a specific implementation experience"""
     try:
-        from backend.models import NewsroomImplementationExperience
+        from models import NewsroomImplementationExperience
         experience = NewsroomImplementationExperience.query.get_or_404(experience_id)
         
         return render_template('admin/implementation_experience_detail.html', 
@@ -5685,7 +5685,7 @@ def admin_view_implementation_experience(experience_id):
 def admin_update_implementation_experience(experience_id):
     """Admin update of implementation experience status and notes"""
     try:
-        from backend.models import NewsroomImplementationExperience
+        from models import NewsroomImplementationExperience
         experience = NewsroomImplementationExperience.query.get_or_404(experience_id)
         
         data = request.get_json()
@@ -5706,7 +5706,7 @@ def admin_update_implementation_experience(experience_id):
 def export_implementation_experiences():
     """Export all implementation experiences to CSV"""
     try:
-        from backend.models import NewsroomImplementationExperience
+        from models import NewsroomImplementationExperience
         experiences = NewsroomImplementationExperience.query.order_by(
             NewsroomImplementationExperience.created_at.desc()
         ).all()
@@ -5757,7 +5757,7 @@ def export_implementation_experiences():
 def get_newsletters():
     """Get all newsletters"""
     try:
-        from backend.models import Newsletter
+        from models import Newsletter
         newsletters = Newsletter.query.order_by(Newsletter.created_at.desc()).limit(20).all()
         return jsonify({
             'success': True,
@@ -5772,7 +5772,7 @@ def get_newsletters():
 def get_newsletter_detail(newsletter_id):
     """Get a specific newsletter"""
     try:
-        from backend.models import Newsletter
+        from models import Newsletter
         newsletter = Newsletter.query.get(newsletter_id)
         if not newsletter:
             return jsonify({'success': False, 'error': 'Newsletter not found'})
@@ -5796,11 +5796,11 @@ def generate_newsletter():
         end_date = data.get('end_date')
         
         # Get training data (past newsletters)
-        from backend.models import Newsletter
+        from models import Newsletter
         training_newsletters = Newsletter.query.filter_by(is_training_data=True).order_by(Newsletter.created_at.desc()).limit(10).all()
         
         # Get news and insights within the specified date range
-        from backend.models import DailyInsight
+        from models import DailyInsight
         from datetime import datetime
         
         if start_date and end_date:
@@ -5932,7 +5932,7 @@ def upload_training_newsletter():
                 published_at = datetime.now()
         
         # Save as training data
-        from backend.models import Newsletter
+        from models import Newsletter
         newsletter = Newsletter(
             title=title,
             content=content,
@@ -5964,7 +5964,7 @@ def manage_policies():
     """Manage AI policies and governance"""
     if request.method == 'GET':
         try:
-            from backend.models import AIPolicy
+            from models import AIPolicy
             policies = AIPolicy.query.all()
             policies_data = []
             for policy in policies:
@@ -5975,7 +5975,7 @@ def manage_policies():
     
     elif request.method == 'POST':
         try:
-            from backend.models import AIPolicy
+            from models import AIPolicy
             from flask_login import current_user
             data = request.get_json()
             
@@ -6006,7 +6006,7 @@ def manage_policies():
     
     elif request.method == 'PUT':
         try:
-            from backend.models import AIPolicy
+            from models import AIPolicy
             data = request.get_json()
             policy_id = data['id']
             
@@ -6032,7 +6032,7 @@ def manage_policies():
     
     elif request.method == 'DELETE':
         try:
-            from backend.models import AIPolicy
+            from models import AIPolicy
             data = request.get_json()
             policy_id = data['id']
             
@@ -6055,7 +6055,7 @@ def manage_policies():
 def get_ai_tools():
     """Get all AI tools with statistics"""
     try:
-        from backend.models import AITool, AIToolRecommendation
+        from models import AITool, AIToolRecommendation
         
         # Get all tools
         tools = AITool.query.all()
@@ -6230,7 +6230,7 @@ def delete_ai_tool(tool_id):
 def export_ai_tools():
     """Export AI tools data as JSON"""
     try:
-        from backend.models import AITool, AIToolRecommendation, AIToolReview
+        from models import AITool, AIToolRecommendation, AIToolReview
         
         tools = AITool.query.all()
         recommendations = AIToolRecommendation.query.all()
@@ -6296,7 +6296,7 @@ def add_ai_recommendation():
 def get_consulting_data():
     """Get all consulting data with statistics"""
     try:
-        from backend.models import ConsultingClient, ConsultingSession, ConsultingProgressReport
+        from models import ConsultingClient, ConsultingSession, ConsultingProgressReport
         
         # Get all clients
         clients = ConsultingClient.query.all()
@@ -6531,7 +6531,7 @@ def upload_session_recording():
 def export_consulting_data():
     """Export consulting data as JSON"""
     try:
-        from backend.models import ConsultingClient, ConsultingSession, ConsultingProgressReport, ConsultingProgressEntry, ConsultingSuccessMetric
+        from models import ConsultingClient, ConsultingSession, ConsultingProgressReport, ConsultingProgressEntry, ConsultingSuccessMetric
         
         clients = ConsultingClient.query.all()
         sessions = ConsultingSession.query.all()
@@ -6569,7 +6569,7 @@ def admin_gpt_context():
         
         # Get AI model status
         try:
-            from backend.training.model_factory import get_mediamap_model_manager
+            from training.model_factory import get_mediamap_model_manager
             manager = get_mediamap_model_manager()
             model_info = manager.get_model_info()
             model_status = "Loaded" if model_info.get('custom_model_loaded', False) else "Not Loaded"
@@ -6590,7 +6590,7 @@ def admin_gpt_context():
         
         # Get system performance metrics
         try:
-            from backend.training.model_factory import get_mediamap_model_manager
+            from training.model_factory import get_mediamap_model_manager
             manager = get_mediamap_model_manager()
             model_info = manager.get_model_info()
             performance_metrics = manager.get_performance_metrics()
@@ -6716,7 +6716,7 @@ Note: OpenAI API integration is currently unavailable, so I'm providing a basic 
 def list_openai_agents():
     """List all available OpenAI agents"""
     try:
-        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        from agents.openai_agent_integration import get_openai_agent_integration
         
         agent_integration = get_openai_agent_integration()
         if not agent_integration:
@@ -6744,7 +6744,7 @@ def list_openai_agents():
 def get_agent_capabilities(agent_type):
     """Get capabilities of a specific agent"""
     try:
-        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        from agents.openai_agent_integration import get_openai_agent_integration
         
         agent_integration = get_openai_agent_integration()
         if not agent_integration:
@@ -6782,7 +6782,7 @@ def analyze_with_agent(agent_type):
         analysis_data = data.get('data', {})
         analysis_type = data.get('analysis_type', 'insights')
         
-        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        from agents.openai_agent_integration import get_openai_agent_integration
         
         agent_integration = get_openai_agent_integration()
         if not agent_integration:
@@ -6820,7 +6820,7 @@ def update_agent_instructions(agent_type):
         
         new_instructions = data['instructions']
         
-        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        from agents.openai_agent_integration import get_openai_agent_integration
         
         agent_integration = get_openai_agent_integration()
         if not agent_integration:
@@ -6848,7 +6848,7 @@ def update_agent_instructions(agent_type):
 def delete_agent(agent_type):
     """Delete an agent"""
     try:
-        from backend.agents.openai_agent_integration import get_openai_agent_integration
+        from agents.openai_agent_integration import get_openai_agent_integration
         
         agent_integration = get_openai_agent_integration()
         if not agent_integration:
@@ -6919,7 +6919,7 @@ def start_fine_tuning():
                 'error': 'Training file ID is required'
             }), 400
         
-        from backend.training.openai_trainer import OpenAITrainer
+        from training.openai_trainer import OpenAITrainer
         
         trainer = OpenAITrainer(model_name)
         result = trainer.start_fine_tuning(training_file_id)
@@ -7032,7 +7032,7 @@ def analyze_image():
 def admin_model_status():
     """Admin endpoint to get detailed model status"""
     try:
-        from backend.training.model_factory import get_mediamap_model_manager
+        from training.model_factory import get_mediamap_model_manager
         manager = get_mediamap_model_manager()
         model_info = manager.get_model_info()
         performance_metrics = manager.get_performance_metrics()
@@ -7326,7 +7326,7 @@ def admin_training():
     
     # Get actual model status data to pass to template
     try:
-        from backend.training.openai_trainer import get_model_status
+        from training.openai_trainer import get_model_status
         
         # Get status for all models
         mediamap_status = get_model_status('mediamap')
@@ -7461,7 +7461,7 @@ def admin_reports_generate():
         # Pull high-severity recent threats from DataSafe to include in the report
         high_threats = []
         try:
-            from backend.datasafe_integration import DataSafeProcessor
+            from datasafe_integration import DataSafeProcessor
             dsp = DataSafeProcessor()
             high_threats = dsp.get_high_severity_threats(hours=24)[:5]
         except Exception:
@@ -7735,7 +7735,7 @@ def training_status():
     """Get training status and model information"""
     try:
         try:
-            from backend.training.model_factory import get_mediamap_model_manager
+            from training.model_factory import get_mediamap_model_manager
         except ImportError:
             return jsonify({
                 'success': False,
@@ -7828,7 +7828,7 @@ def deploy_model():
         model_name = data.get('model', 'highlander')
         
         try:
-            from backend.training.model_factory import get_mediamap_model_manager
+            from training.model_factory import get_mediamap_model_manager
         except ImportError:
             return jsonify({
                 'success': False,
@@ -7922,7 +7922,7 @@ def model_status():
         # Try to get enhanced status for mediamap/healthpin
         if model_name in ['mediamap', 'healthpin']:
             try:
-                from backend.training.openai_trainer import get_model_status
+                from training.openai_trainer import get_model_status
                 enhanced_status = get_model_status(model_name)
                 status.update(enhanced_status)
             except Exception as e:
@@ -7946,7 +7946,7 @@ def training_history():
     """Get detailed training history"""
     try:
         try:
-            from backend.training.training_history import get_training_history
+            from training.training_history import get_training_history
         except ImportError:
             return jsonify({
                 'success': False,
@@ -8212,10 +8212,14 @@ def login():
             
             # Determine user's single allowed section
             try:
-                from backend.models import UserSection
+                from models import UserSection
             except ImportError:
                 from models import UserSection
-            user_section = UserSection.query.filter_by(user_id=user.id).first()
+            try:
+                user_section = UserSection.query.filter_by(user_id=user.id).first()
+            except Exception as e:
+                print(f"UserSection query error: {e}")
+                user_section = None
             resolved_section = user_section.section if user_section else 'mediamap'
             
             # Admin direct to Admin Map if user selected admin or next targets admin
@@ -8288,7 +8292,7 @@ def register():
             
             # Assign allowed section to user
             try:
-                from backend.models import UserSection
+                from models import UserSection
             except ImportError:
                 from models import UserSection
             allowed = UserSection(user_id=new_user.id, section=section if section in ['mediamap', 'healthpin'] else 'mediamap')
@@ -9447,7 +9451,7 @@ def get_training_data():
             
         else:  # highlander
             # Highlander general data
-            from backend.models import Chat, Message
+            from models import Chat, Message
             conversations = Chat.query.count()
             pdfs = 2
             research_papers = 1
@@ -9593,7 +9597,7 @@ def get_model_status_new():
         
         if model_name in ['mediamap', 'healthpin']:
             try:
-                from backend.training.openai_trainer import get_model_status
+                from training.openai_trainer import get_model_status
                 status = get_model_status(model_name)
             except ImportError as ie:
                 # Fallback if openai_trainer is not available
@@ -9716,7 +9720,7 @@ def test_model():
 def get_agent_training_stats():
     """Get statistics about available agent training data"""
     try:
-        from backend.training.agent_training_bridge import create_training_bridge
+        from training.agent_training_bridge import create_training_bridge
         
         bridge = create_training_bridge()
         stats = bridge.get_training_data_stats()
@@ -9737,7 +9741,7 @@ def get_agent_training_stats():
 def collect_agent_training_data():
     """Collect training data from agents"""
     try:
-        from backend.training.agent_training_bridge import create_training_bridge
+        from training.agent_training_bridge import create_training_bridge
         
         bridge = create_training_bridge()
         stats = bridge.collect_all_agent_training_data()
@@ -9762,8 +9766,8 @@ def train_model_from_agents():
         data = request.get_json() or {}
         model_name = data.get('model_name', 'mediamap')
         
-        from backend.training.agent_training_bridge import create_training_bridge
-        from backend.training.openai_trainer import OpenAITrainer
+        from training.agent_training_bridge import create_training_bridge
+        from training.openai_trainer import OpenAITrainer
         
         # First collect the latest agent data
         bridge = create_training_bridge()
@@ -9805,7 +9809,7 @@ def start_continuous_agent_collection():
         data = request.get_json() or {}
         interval_hours = data.get('interval_hours', 24)
         
-        from backend.training.agent_training_bridge import create_training_bridge
+        from training.agent_training_bridge import create_training_bridge
         
         bridge = create_training_bridge()
         result = bridge.start_continuous_training_collection(interval_hours)
