@@ -1,0 +1,10 @@
+{
+  "name": "OpenWebText",
+  "description": "Open source recreation of WebText dataset",
+  "url": "https://github.com/jcpeterson/openwebtext",
+  "size": "38GB",
+  "type": "text_corpus",
+  "use_case": "language_model_training",
+  "collected_at": "2025-09-13T17:28:43.476938",
+  "source": "public_datasets"
+}

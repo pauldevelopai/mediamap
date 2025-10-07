@@ -1,0 +1,191 @@
+[
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T12:39:36.999726",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T12:39:36.999726"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T12:28:57.362326",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T12:28:57.362326"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T09:27:40.995099",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T09:27:40.995099"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T08:57:14.947748",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T08:57:14.947748"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T06:02:23.010303",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T06:02:23.010303"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T06:00:33.877969",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T06:00:33.877969"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, an AI assistant specialized in media business analysis. Provide insights based on industry data and trends.",
+    "user_input": "What can you tell me about this business development: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people ar...",
+    "assistant_output": "Based on the latest industry data, this development shows From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This indicates important trends in media business models and market dynamics.",
+    "category": "business_analysis",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T05:29:48.641367",
+      "source_url": "https://www.niemanlab.org/2025/09/from-denmark-to-finland-to-norway-zetland-bets-its-model-can-travel-well-and-germanys-up-next/"
+    }
+  },
+  {
+    "system_prompt": "You are Mediamap, providing strategic business insights for media organizations.",
+    "user_input": "What are the key business trends I should be aware of?",
+    "assistant_output": "One significant trend is: From Denmark to Finland to Norway, Zetland bets its model can travel well (and Germany’s up next) The Nordic countries are good places to launch news outlets. Trust in news is very high, and people are willing to pay for news subscriptions. Zetland, the membership-driven news site launched in Denmark in 2012, now counts 50,000 paid subscribers, and the publication has begun expanding its model to other countries. Last year, Zetland — whose.... This reflects broader changes in how media organizations are adapting their business models.",
+    "category": "strategic_insights",
+    "source": "mediamap_agent_data",
+    "confidence": 0.6000000000000001,
+    "metadata": {
+      "agent": "mediamap",
+      "original_category": "Business_Model",
+      "timestamp": "2025-09-24T05:29:48.641367"
+    }
+  }
+]

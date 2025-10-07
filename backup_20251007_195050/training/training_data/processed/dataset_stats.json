@@ -1,0 +1,15 @@
+{
+  "total_examples": 10,
+  "total_tokens": 1000,
+  "sources": {
+    "user_conversations": 0,
+    "pdf_documents": 0,
+    "research_papers": 10,
+    "feedback_entries": 0,
+    "notion_pages": 0,
+    "websites": 0,
+    "datasafe_threats": 0
+  },
+  "collected_at": "2025-09-09T16:34:56.916366",
+  "collected_by": "admin"
+}

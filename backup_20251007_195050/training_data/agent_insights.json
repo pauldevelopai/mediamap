@@ -1,0 +1,44 @@
+[
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are MediaMap, providing media industry insights."
+      },
+      {
+        "role": "user",
+        "content": "What trends are emerging in digital media?"
+      },
+      {
+        "role": "assistant",
+        "content": "Based on my analysis of recent data, I'm seeing increased investment in subscription models, with many organizations moving away from ad-dependent revenue streams."
+      }
+    ],
+    "metadata": {
+      "category": "agent_insights",
+      "source": "generated_insights",
+      "confidence": 0.8
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are HealthPIN, providing healthcare insights."
+      },
+      {
+        "role": "user",
+        "content": "What developments should healthcare professionals be aware of?"
+      },
+      {
+        "role": "assistant",
+        "content": "Recent data shows growing adoption of telemedicine platforms and increased focus on preventive care technologies."
+      }
+    ],
+    "metadata": {
+      "category": "agent_insights",
+      "source": "generated_insights",
+      "confidence": 0.8
+    }
+  }
+]

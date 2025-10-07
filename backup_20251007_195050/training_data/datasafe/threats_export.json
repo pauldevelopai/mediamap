@@ -1,0 +1,466 @@
+[
+  {
+    "id": 20,
+    "source": "CISA KEV",
+    "title": "CVE-2013-3893 — Microsoft Internet Explorer",
+    "summary": "This threat intelligence report indicates that microsoft internet explorer resource management errors vulnerability | known exploited vulnerability. due date: 2025-09-02. cve-2013-3893 — microsoft internet explorer resource management errors vulnerability.",
+    "threats": [
+      "Vulnerability"
+    ],
+    "sectors": [],
+    "iocs": {
+      "ips": [],
+      "domains": [],
+      "emails": [],
+      "urls": [],
+      "cves": [
+        "CVE-2013-3893"
+      ],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "https://learn.microsoft.com/en-us/security-updates/securitybulletins/2013/ms13-080 ; https://nvd.nist.gov/vuln/detail/CVE-2013-3893",
+    "published_at": "2025-08-12",
+    "severity": "Low",
+    "created_at": "2025-08-12 20:34:21",
+    "risk": {}
+  },
+  {
+    "id": 19,
+    "source": "CISA KEV",
+    "title": "CVE-2007-0671 — Microsoft Office",
+    "summary": "This threat intelligence report indicates that microsoft office excel remote code execution vulnerability | known exploited vulnerability. due date: 2025-09-02. cve-2007-0671 — microsoft office office remote code execution vulnerability.",
+    "threats": [
+      "Vulnerability"
+    ],
+    "sectors": [],
+    "iocs": {
+      "ips": [],
+      "domains": [],
+      "emails": [],
+      "urls": [],
+      "cves": [
+        "CVE-2007-0671"
+      ],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "https://learn.microsoft.com/en-us/security-updates/securitybulletins/2007/ms07-015 ; https://nvd.nist.gov/vuln/detail/CVE-2007-0671",
+    "published_at": "2025-08-12",
+    "severity": "Low",
+    "created_at": "2025-08-12 20:34:16",
+    "risk": {}
+  },
+  {
+    "id": 18,
+    "source": "CISA KEV",
+    "title": "CVE-2025-8088 — RARLAB WinRAR",
+    "summary": "This threat intelligence report indicates that rarlab path traversal vulnerability | known exploited vulnerability. due date: 2025-09-02. cve-2025-8088 — rarlab winrar path traverse vulnerability.",
+    "threats": [
+      "Vulnerability"
+    ],
+    "sectors": [],
+    "iocs": {
+      "ips": [],
+      "domains": [],
+      "emails": [],
+      "urls": [],
+      "cves": [
+        "CVE-2025-8088"
+      ],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "https://www.win-rar.com/singlenewsview.html?&L=0&tx_ttnews%5Btt_news%5D=283&cHash=a64b4a8f662d3639dec8d65f47bc93c5 ; https://nvd.nist.gov/vuln/detail/CVE-2025-8088",
+    "published_at": "2025-08-12",
+    "severity": "Low",
+    "created_at": "2025-08-12 20:34:11",
+    "risk": {}
+  },
+  {
+    "id": 17,
+    "source": "PhishTank",
+    "title": "http://www.phishtank.com/phish_detail.php?phish_id=9181684",
+    "summary": "This threat intelligence report indicates that url: http://www.phishtank.com/phish_id=9181684url: https://t.co/hqjgovnv3v | target: other.",
+    "threats": [
+      "Phishing"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {
+      "ips": [],
+      "domains": [
+        ".co",
+        "ww.phishtank"
+      ],
+      "emails": [],
+      "urls": [
+        "http://www.phishtank.com/phish_detail.php?phish_id=9181684",
+        "https://t.co/HQjGOvNv3v"
+      ],
+      "cves": [],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "https://t.co/HQjGOvNv3v",
+    "published_at": "2025-08-12T19:57:37+00:00",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:34:07",
+    "risk": {}
+  },
+  {
+    "id": 16,
+    "source": "PhishTank",
+    "title": "http://www.phishtank.com/phish_detail.php?phish_id=9181686",
+    "summary": "This threat intelligence report indicates that url: https://procesos-tramite-sicopcr.webnode.cr/sobre-nosotros/ | target: other.",
+    "threats": [
+      "Phishing"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {
+      "ips": [],
+      "domains": [
+        "ww.phishtank",
+        "rocesos-tramite-sicopcr.webnode"
+      ],
+      "emails": [],
+      "urls": [
+        "http://www.phishtank.com/phish_detail.php?phish_id=9181686",
+        "https://procesos-tramite-sicopcr.webnode.cr/sobre-nosotros/"
+      ],
+      "cves": [],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "https://procesos-tramite-sicopcr.webnode.cr/sobre-nosotros/",
+    "published_at": "2025-08-12T19:59:21+00:00",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:34:01",
+    "risk": {}
+  },
+  {
+    "id": 15,
+    "source": "PhishTank",
+    "title": "http://www.phishtank.com/phish_detail.php?phish_id=9181687",
+    "summary": "This threat intelligence report indicates that url: https://procesos-tramite-sicopcr.webnode.cr | target: other. http://www.phishtank.com/phish_detail.php?phist_id=9181687.",
+    "threats": [
+      "Phishing"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {
+      "ips": [],
+      "domains": [
+        "ww.phishtank",
+        "rocesos-tramite-sicopcr.webnode"
+      ],
+      "emails": [],
+      "urls": [
+        "https://procesos-tramite-sicopcr.webnode.cr",
+        "http://www.phishtank.com/phish_detail.php?phish_id=9181687"
+      ],
+      "cves": [],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "https://procesos-tramite-sicopcr.webnode.cr",
+    "published_at": "2025-08-12T19:59:28+00:00",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:33:58",
+    "risk": {}
+  },
+  {
+    "id": 14,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:12:10\"",
+    "summary": "This threat intelligence report indicates that url: \"http://182.115.199.94:45033/bin.sh\" | threat: \"2025-08-12 20:12:10\".",
+    "threats": [
+      "Harassment",
+      "Phishing"
+    ],
+    "sectors": [
+      "Media",
+      "Other"
+    ],
+    "iocs": {
+      "ips": [
+        "182.115.199.94"
+      ],
+      "domains": [
+        "in.sh"
+      ],
+      "emails": [],
+      "urls": [
+        "http://182.115.199.94:45033/bin.sh"
+      ],
+      "cves": [],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "\"http://182.115.199.94:45033/bin.sh\"",
+    "published_at": "\"3601531\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:33:52",
+    "risk": {}
+  },
+  {
+    "id": 13,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:18:11\"",
+    "summary": "This threat intelligence report indicates that url: \"http://115.50.32.64:48437/bin.sh\" | threat: \"2025-08-12 20:18:11\".",
+    "threats": [
+      "Harassment",
+      "Phishing"
+    ],
+    "sectors": [
+      "Media",
+      "Other"
+    ],
+    "iocs": {
+      "ips": [
+        "115.50.32.64"
+      ],
+      "domains": [
+        "in.sh"
+      ],
+      "emails": [],
+      "urls": [
+        "http://115.50.32.64:48437/bin.sh"
+      ],
+      "cves": [],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "\"http://115.50.32.64:48437/bin.sh\"",
+    "published_at": "\"3601532\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:33:50",
+    "risk": {}
+  },
+  {
+    "id": 12,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:20:12\"",
+    "summary": "This threat intelligence report indicates that url: \"http://27.213.223.6:38787/bin.sh\" | threat: \"2025-08-12 20:20:12\".",
+    "threats": [
+      "Harassment",
+      "Phishing"
+    ],
+    "sectors": [
+      "Media"
+    ],
+    "iocs": {
+      "ips": [
+        "27.213.223.6"
+      ],
+      "domains": [
+        "in.sh"
+      ],
+      "emails": [],
+      "urls": [
+        "http://27.213.223.6:38787/bin.sh"
+      ],
+      "cves": [],
+      "md5": [],
+      "sha1": [],
+      "sha256": []
+    },
+    "url": "\"http://27.213.223.6:38787/bin.sh\"",
+    "published_at": "\"3601533\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:33:48",
+    "risk": {}
+  },
+  {
+    "id": 11,
+    "source": "CISA KEV",
+    "title": "CVE-2020-25079 — D-Link DCS-2530L and DCS-2670L Devices",
+    "summary": "D-Link DCS-2530L and DCS-2670L Command Injection Vulnerability | Known exploited vulnerability. Due date: 2025-08-26",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "https://support.dlink.com/productinfo.aspx?m=DCS-2530L ; https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10180 ; https://nvd.nist.gov/vuln/detail/CVE-2020-25079",
+    "published_at": "2025-08-05",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 10,
+    "source": "CISA KEV",
+    "title": "CVE-2020-25078 — D-Link DCS-2530L and DCS-2670L Devices",
+    "summary": "D-Link DCS-2530L and DCS-2670L Devices Unspecified Vulnerability | Known exploited vulnerability. Due date: 2025-08-26",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "https://support.dlink.com/productinfo.aspx?m=DCS-2530L ; https://supportannouncement.us.dlink.com/announcement/publication.aspx?name=SAP10180 ; https://nvd.nist.gov/vuln/detail/CVE-2020-25078",
+    "published_at": "2025-08-05",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 9,
+    "source": "CISA KEV",
+    "title": "CVE-2013-3893 — Microsoft Internet Explorer",
+    "summary": "Microsoft Internet Explorer Resource Management Errors Vulnerability | Known exploited vulnerability. Due date: 2025-09-02",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "https://learn.microsoft.com/en-us/security-updates/securitybulletins/2013/ms13-080 ; https://nvd.nist.gov/vuln/detail/CVE-2013-3893",
+    "published_at": "2025-08-12",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 8,
+    "source": "CISA KEV",
+    "title": "CVE-2007-0671 — Microsoft Office",
+    "summary": "Microsoft Office Excel Remote Code Execution Vulnerability | Known exploited vulnerability. Due date: 2025-09-02",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "https://learn.microsoft.com/en-us/security-updates/securitybulletins/2007/ms07-015 ; https://nvd.nist.gov/vuln/detail/CVE-2007-0671",
+    "published_at": "2025-08-12",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 7,
+    "source": "CISA KEV",
+    "title": "CVE-2025-8088 — RARLAB WinRAR",
+    "summary": "RARLAB WinRAR Path Traversal Vulnerability | Known exploited vulnerability. Due date: 2025-09-02",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "https://www.win-rar.com/singlenewsview.html?&L=0&tx_ttnews%5Btt_news%5D=283&cHash=a64b4a8f662d3639dec8d65f47bc93c5 ; https://nvd.nist.gov/vuln/detail/CVE-2025-8088",
+    "published_at": "2025-08-12",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 6,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:02:07\"",
+    "summary": "URL: \"http://202.169.234.64:45095/i\" | Threat: \"2025-08-12 20:02:07\"",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "\"http://202.169.234.64:45095/i\"",
+    "published_at": "\"3601529\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 5,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:04:07\"",
+    "summary": "URL: \"http://113.74.13.79:60827/i\" | Threat: \"2025-08-12 20:04:07\"",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "\"http://113.74.13.79:60827/i\"",
+    "published_at": "\"3601530\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 4,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:12:10\"",
+    "summary": "URL: \"http://182.115.199.94:45033/bin.sh\" | Threat: \"2025-08-12 20:12:10\"",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "\"http://182.115.199.94:45033/bin.sh\"",
+    "published_at": "\"3601531\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 3,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:18:11\"",
+    "summary": "URL: \"http://115.50.32.64:48437/bin.sh\" | Threat: \"2025-08-12 20:18:11\"",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "\"http://115.50.32.64:48437/bin.sh\"",
+    "published_at": "\"3601532\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  },
+  {
+    "id": 2,
+    "source": "URLhaus",
+    "title": "URLhaus: \"2025-08-12 20:20:12\"",
+    "summary": "URL: \"http://27.213.223.6:38787/bin.sh\" | Threat: \"2025-08-12 20:20:12\"",
+    "threats": [
+      "Unknown"
+    ],
+    "sectors": [
+      "Other"
+    ],
+    "iocs": {},
+    "url": "\"http://27.213.223.6:38787/bin.sh\"",
+    "published_at": "\"3601533\"",
+    "severity": "Medium",
+    "created_at": "2025-08-12 20:29:24",
+    "risk": {}
+  }
+]

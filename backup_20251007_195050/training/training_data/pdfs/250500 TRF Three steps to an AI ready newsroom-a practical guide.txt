@@ -1,0 +1,211 @@
+1
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+Three steps to an 
+AI-ready newsroom: 
+A practical guide to 
+responsible policies 
+2
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+Protecting journalism in the AI age means adopting it responsibly. This practical starter guide 
+is designed to help newsrooms identify ethical risks in their AI applications and take action to 
+mitigate these. 
+It is intended as a starting point for ongoing conversations within your organisation on how to use 
+AI while upholding journalistic values—accuracy, fairness, transparency, and accountability. These 
+principles serve as essential pillars for informed communities worldwide, allowing journalism to 
+fulfil its vital role in society. 
+How to use this guide 
+Each step in this guide builds on the previous one, helping you move from understanding your 
+current AI usage to implementing responsible practices:
+We recommend involving journalists, editors, and technical staff in this process to ensure 
+capturing diverse perspectives. 
+REUTERS/Louafi Larbi01. 
+Begin by taking stock 
+of AI tools already in 
+use in your newsroom02. 
+Identify the common 
+risks these tools pose to 
+journalistic standards, and 
+come up with solutions to 
+address them 03. 
+Establish ongoing 
+monitoring to 
+ensure continuous 
+improvement 
+3
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+Step 1: Identify your AI tools  
+Before diving into the steps, let’s define what we mean by Artificial Intelligence (AI) in the context 
+of newsrooms. In simple terms, AI refers to computer systems that are designed to perform 
+tasks that typically require human intelligence. In newsrooms, this includes tools for transcription, 
+translation, content editing, summarisation, and data analysis among others. 
+The most widely used tools recently are Generative AI platforms like ChatGPT, Copilot, Gemini, 
+and Claude that can produce text and/or visuals based on specific prompts. You probably 
+already use many other tools with AI integrations without realising it, like spell-checkers that 
+suggest writing improvements or transcription features that convert speech to text, or even 
+simple features in Microsoft Excel that can help organise your data. 
+Understanding what constitutes AI will help you take inventory of the AI tools already in use in 
+your newsroom. Think about: 
+• What AI tools are newsroom staff using? 
+• For what purposes are they being used? 
+• How frequently are they being used? 
+• Do any guidelines currently exist? 
+• Who is responsible for overseeing their use? 
+Once you’ve identified the tools being used by your staff, you’re ready to progress to the next 
+step in this guide. 
+REUTERS/Omar Sobhani
+4
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+Step 2: Map the risks and solutions  
+After completing your audit of AI tools, it’s time to look at the specific risks these tools can pose 
+and how you can mitigate them. Your approach to AI adoption needs to match your specific 
+needs and challenges, so one-size-fits-all solutions won’t work. Here are some suggestions for 
+addressing common AI use cases. 
+In our research , we found that over 55% of journalists are using AI tools like Grammarly 
+or ChatGPT to polish their writing or translate copy. While these editing assistants can be 
+helpful, they do come with risks—plagiarism and factual errors might be introduced. Your 
+solution could be introducing clear guidelines to your journalists and editors, noting that 
+any AI-enhanced text should always be reviewed by a human editor who can check for 
+factual accuracy, while ensuring originality and proper attribution. 
+For newsrooms creating specialised AI assistants (e.g., Custom GPTs, Claude Projects, 
+Copilot Agents), clearly instruct these tools with journalistic standards. For example, you 
+might instruct an AI assistant with the following: “You’re helping our investigative team. 
+Always prioritise source protection and flag potential ethical issues”. Your solution should 
+also address protecting information shared with free AI tools, which may be stored on 
+external servers and used to train their models. You can establish clear guidelines—for 
+instance, prohibiting the uploading of unpublished drafts, source identities, or confidential 
+documents to external AI platforms. 
+On the next page is a simplified example mapping common newsroom AI tools, their associated 
+risks, and practical solutions. This is just for illustration—you can download an empty template to 
+create your own customised risk assessment.
+REUTERS/Joe Skipper
+5
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+AI application How it’s used Main risks Solutions
+Text generation 
+(e.g., ChatGPT, 
+Gemini, Copilot, 
+Claude)Creating summaries 
+or first drafts of 
+routine stories like 
+market updates or 
+weather reports• AI might make up 
+facts or “hallucinate” 
+information 
+• AI might copy existing 
+content without 
+attribution 
+• Stories may lose 
+their unique voice or 
+perspective • Tell readers when 
+AI helped create 
+content 
+• Always have a 
+human editor review 
+AI-written text 
+• Use plagiarism 
+checkers on AI 
+outputs 
+• Clearly attribute 
+information 
+Recommendation 
+algorithims within 
+your websiteSystems that 
+suggest “more 
+stories you might 
+like” to readers• Readers only 
+see content that 
+reinforces their 
+existing views, 
+creating “filter 
+bubbles” 
+• Algorithms tend to 
+promote content that 
+gets clicks rather than 
+what’s newsworthy 
+• Reader data gets 
+collected without 
+proper consent• Regularly review 
+what the algorithm 
+recommends 
+• Mix editor-
+selected stories 
+with algorithm 
+recommendations 
+• Let readers 
+choose different 
+types of content 
+recommendations 
+• Explain to readers 
+how and why 
+stories are 
+recommended to 
+them
+Data analysis for 
+investigationsUsing AI to sort 
+through large 
+document sets or 
+data leaks• Exposing confidential 
+sources through data 
+handling 
+• AI finds patterns 
+that aren’t actually 
+meaningful 
+• Accidentally revealing 
+private information in 
+stories• Store sensitive data 
+on secure, offline 
+systems 
+• Double-check 
+AI findings using 
+traditional reporting 
+methods 
+• Create specific 
+rules for handling 
+sensitive informationExample: AI risk & solution mapping
+Download the template
+6
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+Step 3:  Integrate AI guidelines into your 
+editorial policies  
+Look at your existing editorial policies as a foundation for thoughtfully incorporating ethical 
+AI considerations in your newsroom workflows. Some newsrooms maintain both integrated 
+guidelines and a separate AI policy document. 
+ 
+When updating policies, be specific about AI’s role in each section. For example, in your 
+newsgathering section, include practical protocols for how reporters should (or should not) use 
+AI research tools, what verification steps they must follow, and how to document AI assistance. If 
+you’re using AI for fact-checking, map exactly where these tools fit in your workflow, noting their 
+strengths and limitations—whether they’re commercial solutions or custom-built tools.  
+Review any country/regional policies that might apply to your AI use. Many countries are 
+developing or updating data protection laws that could affect how you collect, store and process 
+information with AI tools. Adding a simple step in your process to review relevant regulations in 
+your region can help you avoid potential legal issues down the road. 
+What’s next | Monitor, evaluate and adapt 
+Once you’ve mapped your AI risks and solutions, it’s important to share this with everyone in 
+your newsroom and assign owners to different AI use cases to continually monitor, evaluate, and 
+adapt as the technology evolves. Schedule regular check-ins (e.g., quarterly) to: 
+• Review existing and new AI tools being used in your newsroom 
+• Assess how well your ethical solutions are working 
+• Update policies/guidelines based on emerging ethical concerns 
+• Share lessons learned across departments 
+• Document feedback from staff 
+• Create clear testing protocols before deploying new AI tools 
+• Maintain logs of all issues encountered and how they were resolved. 
+By developing responsible AI practices now, your newsroom will be better positioned to adapt 
+to future technological developments while maintaining trust with your audience. This balanced 
+approach allows you to benefit from AI’s capabilities while maintaining the human judgment, 
+ethics, and accountability that make journalism valuable to society. 
+7
+THOMSON REUTERS FOUNDATION  NEWSROOM AI POLICY GUIDE
+This resource was developed by the Thomson Reuters Foundation, based on 
+insights from our research and training programmes  for newsrooms in the 
+Global South. It builds on our 2025 TRF Insights report, Journalism in the AI Era: 
+Opportunities and challenges in the Global South and emerging economies , which 
+explored how our global community of journalists are navigating AI adoption. 
+The Thomson Reuters Foundation is the corporate foundation of Thomson 
+Reuters, the global news and information services company. As an independent 
+charity, registered in the UK and the USA, we leverage our media, legal and data-
+driven expertise to strengthen independent journalism, enable access to the law 
+and promote responsible business. Through news, media development, free legal 
+assistance and data intelligence, we aim to build free, fair and informed societies.  
+For more information, visit www.trust.org

@@ -1,0 +1,22 @@
+{
+  "id": "http://arxiv.org/abs/2509.09677v1",
+  "title": "The Illusion of Diminishing Returns: Measuring Long Horizon Execution in\n  LLMs",
+  "summary": "Does continued scaling of large language models (LLMs) yield diminishing\nreturns? Real-world value often stems from the length of task an agent can\ncomplete. We start this work by observing the simple but counterintuitive fact\nthat marginal gains in single-step accuracy can compound into exponential\nimprovements in the length of a task a model can successfully complete. Then,\nwe argue that failures of LLMs when simple tasks are made longer arise from\nmistakes in execution, rather than an inability to reason. We propose isolating\nexecution capability, by explicitly providing the knowledge and plan needed to\nsolve a long-horizon task. We find that larger models can correctly execute\nsignificantly more turns even when small models have 100\\% single-turn\naccuracy. We observe that the per-step accuracy of models degrades as the\nnumber of steps increases. This is not just due to long-context limitations --\ncuriously, we observe a self-conditioning effect -- models become more likely\nto make mistakes when the context contains their errors from prior turns.\nSelf-conditioning does not reduce by just scaling the model size. In contrast,\nrecent thinking models do not self-condition, and can also execute much longer\ntasks in a single turn. We conclude by benchmarking frontier thinking models on\nthe length of task they can execute in a single turn. Overall, by focusing on\nthe ability to execute, we hope to reconcile debates on how LLMs can solve\ncomplex reasoning problems yet fail at simple tasks when made longer, and\nhighlight the massive benefits of scaling model size and sequential test-time\ncompute for long-horizon tasks.",
+  "authors": [
+    "Akshit Sinha",
+    "Arvindh Arun",
+    "Shashwat Goel",
+    "Steffen Staab",
+    "Jonas Geiping"
+  ],
+  "published": "2025-09-11T17:59:34Z",
+  "updated": "2025-09-11T17:59:34Z",
+  "categories": [
+    "cs.AI"
+  ],
+  "links": [
+    "http://arxiv.org/abs/2509.09677v1",
+    "http://arxiv.org/pdf/2509.09677v1"
+  ],
+  "source": "arxiv"
+}
