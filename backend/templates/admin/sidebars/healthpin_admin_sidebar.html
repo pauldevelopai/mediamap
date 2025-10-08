@@ -1,0 +1,107 @@
+<!-- DEVELOP AI - HealthPIN Admin Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-heart-pulse-fill me-2" style="font-size: 1.5rem; color: #28a745;"></i>
+            <h4 class="mb-0">DEVELOP AI - HealthPIN Admin</h4>
+        </div>
+        <button class="btn btn-link sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    
+    <div class="sidebar-content">
+        <div class="user-info">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name">{{ current_user.username }}</div>
+                    <div class="user-role">DEVELOP AI - HealthPIN Administrator</div>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('healthpin_dashboard') }}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>HealthPIN Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- HealthPIN Specific Functions -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('healthpin_patients') }}">
+                        <i class="bi bi-person-heart"></i>
+                        <span>Patient Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('healthpin_doctors') }}">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Doctor Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin_agents') }}">
+                        <i class="bi bi-robot"></i>
+                        <span>HealthPIN Agents</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('healthpin_records') }}">
+                        <i class="bi bi-file-medical"></i>
+                        <span>Medical Records</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('healthpin_matches') }}">
+                        <i class="bi bi-heart-arrow"></i>
+                        <span>Patient Matching</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin_insights') }}">
+                        <i class="bi bi-lightbulb"></i>
+                        <span>Health Insights</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin_users') }}">
+                        <i class="bi bi-people"></i>
+                        <span>User Management</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin_settings') }}">
+                        <i class="bi bi-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="app-switcher">
+                <a href="{{ url_for('app_selector') }}" class="btn btn-outline-light btn-sm w-100">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>Switch App
+                </a>
+            </div>
+            <div class="logout-section">
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -46,6 +46,23 @@ except ImportError:
 from openai import OpenAI
 import json
 import uuid
+
+# Multi-app architecture
+try:
+    from .app_routes import register_app_routes
+except ImportError:
+    from app_routes import register_app_routes
+try:
+    from .filtered_admin_routes import register_filtered_admin_routes
+except ImportError:
+    from filtered_admin_routes import register_filtered_admin_routes
+# Separate Admin Apps
+try:
+    from .admin_apps.mediamap_admin.routes import register_mediamap_admin_routes
+    from .admin_apps.healthpin_admin.routes import register_healthpin_admin_routes
+except ImportError:
+    from admin_apps.mediamap_admin.routes import register_mediamap_admin_routes
+    from admin_apps.healthpin_admin.routes import register_healthpin_admin_routes
 try:
     from aimap.config import OPENAI_API_KEY
 except ImportError:
@@ -188,6 +205,13 @@ os.makedirs('instance', exist_ok=True)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "media_analysis.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Register multi-app routes
+register_app_routes(app)
+register_filtered_admin_routes(app)
+# Register separate admin apps
+register_mediamap_admin_routes(app)
+register_healthpin_admin_routes(app)
 
 # Initialize extensions
 db.init_app(app)
@@ -1491,66 +1515,12 @@ def your_info():
 
 # Admin routes
 @app.route('/admin')
+@app.route('/admin/')
 @login_required
-@admin_required
-def admin_default():
-    """Default admin page - redirects to MediaMap"""
-    return redirect(url_for('admin_map'))
-@app.route('/admin/dashboard')
-@login_required
-@admin_required
 def admin_dashboard():
-    """Admin dashboard showing system overview"""
-    user_count = User.query.count()
-    analysis_count = MediaAnalysis.query.count()
-    chat_count = Chat.query.count()
-    lesson_count = Lesson.query.count()
-    feedback_count = Feedback.query.count()
-    message_count = Message.query.count()
-    
-    # Count admin users
-    admin_count = 0
-    for user in User.query.all():
-        if hasattr(user, 'is_admin') and user.is_admin:
-            admin_count += 1
-    
-    # Count strategies
-    try:
-        from backend.strategies_crawler import StrategyEntry
-        strategy_count = StrategyEntry.query.count()
-    except:
-        strategy_count = 0
-    
-    # Get Flask version
-    import flask
-    flask_version = flask.__version__
-    
-    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
-    
-    # Plan/report counts
-    try:
-        plan_count = ImplementationPlan.query.count()
-        report_count = DailyReport.query.count()
-        cheatsheet_count = CheatSheet.query.count()
-    except Exception:
-        plan_count = report_count = cheatsheet_count = 0
-
-    return render_template(
-        'admin/dashboard.html', 
-        user_count=user_count,
-        analysis_count=analysis_count,
-        chat_count=chat_count,
-        lesson_count=lesson_count,
-        feedback_count=feedback_count,
-        message_count=message_count,
-        strategy_count=strategy_count,
-        recent_users=recent_users,
-        admin_count=admin_count,
-        flask_version=flask_version,
-        plan_count=plan_count,
-        report_count=report_count,
-        cheatsheet_count=cheatsheet_count
-    )
+    """Redirect old admin route to app selector"""
+    flash('Please select your admin application', 'info')
+    return redirect(url_for('app_selector'))
 
 @app.route('/admin/quick-access')
 @login_required
@@ -9846,6 +9816,30 @@ def kill_existing_processes():
         print("🧹 Cleaned up existing Flask processes")
     except Exception as e:
         print(f"Note: Could not clean existing processes: {e}")
+
+
+@app.route('/admin/<path:path>')
+@login_required
+def admin_catch_all(path):
+    """Redirect old admin paths to app selector"""
+    flash('Please select your admin application from the options below', 'warning')
+    return redirect(url_for('app_selector'))
+
+
+# Test routes for separate admin apps
+@app.route('/test-mediamap-admin')
+@login_required
+def test_mediamap_admin():
+    """Test route for MediaMap Admin"""
+    session['app_context'] = 'mediamap_admin'
+    return redirect('/mediamap-admin/')
+
+@app.route('/test-healthpin-admin')
+@login_required
+def test_healthpin_admin():
+    """Test route for HealthPIN Admin"""
+    session['app_context'] = 'healthpin_admin'
+    return redirect('/healthpin-admin/')
 
 if __name__ == '__main__':
     sys.path.append('/path/to/your/directory')

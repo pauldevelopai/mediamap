@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your App - DEVELOP AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 2rem 0;
+        }
+        
+        .app-selector-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .app-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .app-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .mediamap-card .app-icon { color: #667eea; }
+        .mediamap-admin-card .app-icon { color: #764ba2; }
+        .healthpin-card .app-icon { color: #28a745; }
+        .healthpin-admin-card .app-icon { color: #dc3545; }
+        
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .app-description {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .app-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .app-features li {
+            padding: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        
+        .app-features li i {
+            color: #28a745;
+            margin-right: 0.5rem;
+        }
+        
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .logout-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('logout') }}" class="logout-btn">
+        <i class="bi bi-box-arrow-right me-2"></i>Logout
+    </a>
+    
+    <div class="app-selector-container">
+        <div class="header-card">
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <i class="bi bi-robot" style="font-size: 3rem; color: #667eea; margin-right: 1rem;"></i>
+                <h1 class="mb-0" style="color: #333; font-weight: 700;">DEVELOP AI</h1>
+            </div>
+            
+            <div class="user-info">
+                <h5 class="mb-1">Welcome, {{ current_user.username }}!</h5>
+                <p class="mb-0">Select your AI-powered application</p>
+            </div>
+        </div>
+        
+                <div class="row g-4">
+            <!-- MediaMap User App -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='mediamap') }}" class="app-card mediamap-card d-block">
+                    <i class="bi bi-newspaper app-icon"></i>
+                    <h3 class="app-title">MediaMap</h3>
+                    <p class="app-description">Media analysis and content creation tools for users</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Media Analysis</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Content Creation</li>
+                        <li><i class="bi bi-check-circle-fill"></i> AI Insights</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Reports & Analytics</li>
+                    </ul>
+                </a>
+            </div>
+            
+            <!-- MediaMap Admin -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='mediamap_admin') }}" class="app-card mediamap-admin-card d-block">
+                    <i class="bi bi-gear-fill app-icon"></i>
+                    <h3 class="app-title">MediaMap Admin</h3>
+                    <p class="app-description">Administrative interface for MediaMap management</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> User Management</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Media Config</li>
+                        <li><i class="bi bi-check-circle-fill"></i> AI Agents</li>
+                        <li><i class="bi bi-check-circle-fill"></i> System Settings</li>
+                    </ul>
+                </a>
+            </div>
+            
+            <!-- HealthPIN User App -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='healthpin') }}" class="app-card healthpin-card d-block">
+                    <i class="bi bi-heart-pulse-fill app-icon"></i>
+                    <h3 class="app-title">HealthPIN</h3>
+                    <p class="app-description">Healthcare data analysis and patient matching</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Patient Data</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Doctor Matching</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Health Insights</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medical Records</li>
+                    </ul>
+                </a>
+            </div>
+            
+            <!-- HealthPIN Admin -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='healthpin_admin') }}" class="app-card healthpin-admin-card d-block">
+                    <i class="bi bi-hospital-fill app-icon"></i>
+                    <h3 class="app-title">HealthPIN Admin</h3>
+                    <p class="app-description">Administrative interface for HealthPIN management</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Healthcare Config</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Doctor Management</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Health Agents</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medical Analytics</li>
+                    </ul>
+                </a>
+            </div>
+        </div>
+            
+            <!-- MediaMap Admin -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='mediamap_admin') }}" class="app-card mediamap-admin-card d-block">
+                    <i class="bi bi-gear-fill app-icon"></i>
+                    <h3 class="app-title">MediaMap Admin</h3>
+                    <p class="app-description">Administrative interface for MediaMap management</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> User Management</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Media Config</li>
+                        <li><i class="bi bi-check-circle-fill"></i> AI Agents</li>
+                        <li><i class="bi bi-check-circle-fill"></i> System Settings</li>
+                    </ul>
+                </a>
+            </div>
+            
+            <!-- HealthPIN User App -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='healthpin') }}" class="app-card healthpin-card d-block">
+                    <i class="bi bi-heart-pulse-fill app-icon"></i>
+                    <h3 class="app-title">HealthPIN</h3>
+                    <p class="app-description">Healthcare data analysis and patient matching</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Patient Data</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Doctor Matching</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Health Insights</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medical Records</li>
+                    </ul>
+                </a>
+            </div>
+            
+            <!-- HealthPIN Admin -->
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('set_app_context', app_type='healthpin_admin') }}" class="app-card healthpin-admin-card d-block">
+                    <i class="bi bi-hospital-fill app-icon"></i>
+                    <h3 class="app-title">HealthPIN Admin</h3>
+                    <p class="app-description">Administrative interface for HealthPIN management</p>
+                    <ul class="app-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Healthcare Config</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Doctor Management</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Health Agents</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medical Analytics</li>
+                    </ul>
+                </a>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 0.9rem;">
+                <i class="bi bi-info-circle me-2"></i>
+                Select the application that matches your role and requirements
+            </p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add smooth animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.app-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 * (index + 1));
+            });
+        });
+    </script>
+</body>
+</html>

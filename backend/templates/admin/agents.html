@@ -283,7 +283,7 @@
     <div class="row">
         <!-- MediaMap Agent -->
         <div class="col-lg-6 mb-4">
-            <div class="agent-card mediamap">
+            {% if is_healthpin_admin or not (is_mediamap_admin or is_healthpin_admin) %}{% if is_mediamap_admin or not (is_mediamap_admin or is_healthpin_admin) %}<div class="agent-card mediamap">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <h4 class="mb-1">
@@ -295,7 +295,7 @@
                     <div class="text-end">
                         <span class="agent-status status-stopped" id="mediamap-status">Stopped</span>
                     </div>
-                </div>
+                </div>{% endif %}
                 
                 <!-- Current Capabilities -->
                 <div class="mb-3">
@@ -365,7 +365,7 @@
                     <div class="text-end">
                         <span class="agent-status status-stopped" id="healthpin-status">Stopped</span>
                     </div>
-                </div>
+                </div>{% endif %}
                 
                 <!-- Current Capabilities -->
                 <div class="mb-3">
